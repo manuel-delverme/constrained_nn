@@ -2,17 +2,11 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import matplotlib.pyplot as plt
 import numpy as np
 import tqdm
 
-# D1 = np.diag(np.random.rand(30))
-D1 = np.eye(30)
-D2 = np.eye(32)
-D3 = np.diag(np.random.rand(32))
 
-
-class ADMM_NN(object):
+class ADMM_NN:
     """ Class for ADMM Neural Network. """
 
     def __init__(self, n_inputs, n_hiddens, n_outputs, n_batches):
@@ -27,62 +21,68 @@ class ADMM_NN(object):
         :param n_batches: Number of data sample that you want to train
         :param return:
         """
-        self.a0 = np.zeros((n_inputs, n_batches))
+        self.a0 = np.zeros((n_batches, n_inputs))
 
-        self.w1 = np.zeros((n_hiddens, n_inputs))  # None
+        self.w1 = np.zeros((n_inputs, n_hiddens))  # None
         self.w2 = np.random.rand(n_hiddens, n_hiddens)
-        self.w3 = np.random.rand(n_outputs, n_hiddens)
+        self.w3 = np.random.rand(n_hiddens, n_outputs)
 
-        self.z1 = np.random.rand(n_hiddens, n_batches)
-        self.a1 = np.random.rand(n_hiddens, n_batches)
+        self.z1 = np.random.rand(n_batches, n_hiddens)
+        self.a1 = np.random.rand(n_batches, n_hiddens)
 
-        self.z2 = np.random.rand(n_hiddens, n_batches)
-        self.a2 = np.random.rand(n_hiddens, n_batches)
+        self.z2 = np.random.rand(n_batches, n_hiddens)
+        self.a2 = np.random.rand(n_batches, n_hiddens)
 
-        self.z3 = np.random.rand(n_outputs, n_batches)
+        self.z3 = np.random.rand(n_batches, n_outputs)
 
-        self.lambda_lagrange = np.ones((n_outputs, n_batches))
+        self.lambda_lagrange = np.ones((n_batches, n_outputs))
 
     @staticmethod
-    def _weight_update(layer_output, activation_input, D):
+    def _weight_update(z, a):
         """
         Consider it now the minimization of the problem with respect to W_l.
         For each layer l, the optimal solution minimizes ||z_l - W_l a_l-1||^2. This is simply
         a least square problem, and the solution is given by W_l = z_l p_l-1, where p_l-1
         represents the pseudo-inverse of the rectangular activation matrix a_l-1.
-        :param layer_output: output matrix (z_l)
-        :param activation_input: activation matrix l-1  (a_l-1)
+        :param z: output matrix (z_l)
+        :param a: activation matrix l-1  (a_l-1)
         :return: weight matrix
         """
+        pinv = np.linalg.pinv(a)
+        # print(np.linalg.norm(a.dot(pinv)))
+        w = np.dot(pinv, z)
 
-        # weighted pinv
-        D = np.power(D, 0.5)
-        D = np.linalg.inv(D)
+        def null_space(a):
+            aap = np.linalg.pinv(a).dot(a)
+            return np.eye(*aap.shape) - aap
 
-        x_aux = activation_input.T.dot(D)
-        pinv_aux = np.linalg.pinv(x_aux)
-        pinv = D.dot(pinv_aux)
-        pinv = pinv.T
+        # def null(A, eps=1e-15):
+        #    u, s, vh = np.linalg.svd(A)
+        #    return np.transpose(vh)
 
-        # old
-        # pinv = np.linalg.pinv(activation_input)
+        null_proj = null_space(a)
+        # trace = a.dot(null_proj)
+        # print(np.linalg.norm(trace))
 
-        weight_matrix_pinv = np.dot(layer_output, pinv)
+        # rnd = np.random.rand(a.shape[1], z.shape[1])
+        payload = np.random.rand(null_proj.shape[1], w.shape[1])
 
-        # new
-        # aap = weight_matrix_pinv.dot(np.linalg.pinv(weight_matrix_pinv))
-        # weight_orthogonal_projection = np.ones_like(aap) - aap
+        def meh_max(x):
+            meh_x = x - np.min(x)
+            return meh_x / meh_x.sum(axis=0)
+        weights = meh_max(1 / np.abs(a.dot(null_proj)).mean(0))
+        payload = np.einsum('xy,x->xy', payload, weights)
 
-        # c = np.random.rand(orthogonal_projection.shape)
-        # weight_matrix_pinv.dot(weight_orthogonal_projection.dot(c)
+        w_new = w - null_proj.dot(payload)
 
-        # print(np.linalg.norm(np.dot(weight_matrix_pinv, activation_input) - layer_output, 2))
-        # print(np.linalg.norm(np.dot(weight_matrix, activation_input) - layer_output, 2))
+        # print(np.linalg.norm(z - a.dot(w)))
+        # w_new = np.dot(pinv, z) - null_proj.dot(payload)
+        # print(np.linalg.norm(z - a.dot(w_new)))
 
-        # weight_matrix_augmented_t = weight_matrix.T + ()
-        # wt = np.dot(pinv.T, layer_output.T)
+        # proj_c = np.dot(null_proj, rnd)
+        # print(np.dot(w, proj_c.T))
 
-        return weight_matrix_pinv
+        return w_new
 
     @staticmethod
     def _activation_update(next_weight, next_layer_output, layer_nl_output, beta, gamma):
@@ -102,18 +102,18 @@ class ADMM_NN(object):
         layer_nl_output = _relu(layer_nl_output)
 
         # Activation inverse
-        m1 = beta * np.dot(next_weight.T, next_weight)
+        m1 = beta * np.dot(next_weight, next_weight.T)
 
         m2 = gamma * np.eye(m1.shape[0])
         av = np.linalg.inv(m1 + m2)
 
         # Activation formulate
-        m3 = beta * np.dot(next_weight.T, next_layer_output)
+        m3 = beta * np.dot(next_layer_output, next_weight.T)
         m4 = gamma * layer_nl_output
         af = m3 + m4
 
         # Output
-        return np.dot(av, af)
+        return np.dot(af, av)
 
     def _argminz(self, a_outputs, layer_weight, a_inputs, beta_weight_cost, gamma_activation_cost):
         """
@@ -129,7 +129,7 @@ class ADMM_NN(object):
         :param gamma_activation_cost: value of gamma
         :return: output matrix
         """
-        a_hat = np.dot(layer_weight, a_inputs)
+        a_hat = np.dot(a_inputs, layer_weight)
         sol1 = (gamma_activation_cost * a_outputs + beta_weight_cost * a_hat) / (gamma_activation_cost + beta_weight_cost)
         sol2 = a_hat
         z1 = np.zeros_like(a_outputs)
@@ -166,7 +166,7 @@ class ADMM_NN(object):
         :param beta: value of beta
         :return: output matrix last layer
         """
-        m = np.dot(w, a_in)
+        m = np.dot(a_in, w)
         z = (targets - eps + beta * m) / (1 + beta)
         return z
 
@@ -179,29 +179,29 @@ class ADMM_NN(object):
         :param beta: value of beta
         :return: lagrange update
         """
-        mpt = np.dot(w, a_in)
+        mpt = np.dot(a_in, w)
         lambda_up = beta * (zl - mpt)
         return lambda_up
 
     def feed_forward(self, inputs):
-        outputs = _relu(np.dot(self.w1, inputs))
-        outputs = _relu(np.dot(self.w2, outputs))
-        outputs = np.dot(self.w3, outputs)
+        outputs = _relu(np.dot(inputs, self.w1))
+        outputs = _relu(np.dot(outputs, self.w2))
+        outputs = np.dot(outputs, self.w3)
         return outputs
 
     def fit(self, inputs, labels, beta, gamma):
         # Input layer
-        self.w1 = self._weight_update(self.z1, inputs, D1)
+        self.w1 = self._weight_update(self.z1, inputs)
         self.a1 = self._activation_update(self.w2, self.z2, self.z1, beta, gamma)
         self.z1 = self._argminz(self.a1, self.w1, self.a0, beta, gamma)
 
         # Hidden layer
-        self.w2 = self._weight_update(self.z2, self.a1, D2)
+        self.w2 = self._weight_update(self.z2, self.a1)
         self.a2 = self._activation_update(self.w3, self.z3, self.z2, beta, gamma)
         self.z2 = self._argminz(self.a2, self.w2, self.a1, beta, gamma)
 
         # Output layer
-        self.w3 = self._weight_update(self.z3, self.a2, D3)
+        self.w3 = self._weight_update(self.z3, self.a2)
         self.z3 = self._argminlastz(labels, self.lambda_lagrange, self.w3, self.a2, beta)
         self.lambda_lagrange += self._lambda_update(self.z3, self.w3, self.a2, beta)
 
@@ -214,7 +214,7 @@ class ADMM_NN(object):
         loss = np.mean(np.abs(predicted - labels))
 
         if isCategrories:
-            accuracy = np.argmax(labels, axis=0) == np.argmax(predicted, axis=0)
+            accuracy = np.argmax(labels, axis=1) == np.argmax(predicted, axis=1)
             accuracy = accuracy.mean()
 
         else:
@@ -232,39 +232,21 @@ class ADMM_NN(object):
         :param gamma: value of gamma
         :return:
         """
-        # c = np.random.ones(activation_input.shape[0])
-        # D = np.eye(activation_input.shape[0])
-
         for _ in tqdm.trange(epochs):
             # Input layer
 
-            self.w1 = self._weight_update(self.z1, inputs, D1)
+            self.w1 = self._weight_update(self.z1, inputs)
             self.a1 = self._activation_update(self.w2, self.z2, self.z1, beta, gamma)
             self.z1 = self._argminz(self.a1, self.w1, self.a0, beta, gamma)
 
             # # Hidden layer
-            self.w2 = self._weight_update(self.z2, self.a1, D2)
+            self.w2 = self._weight_update(self.z2, self.a1)
             self.a2 = self._activation_update(self.w3, self.z3, self.z2, beta, gamma)
             self.z2 = self._argminz(self.a2, self.w2, self.a1, beta, gamma)
 
             # Output layer
-            self.w3 = self._weight_update(self.z3, self.a2, D3)
+            self.w3 = self._weight_update(self.z3, self.a2)
             self.z3 = self._argminlastz(labels, self.lambda_lagrange, self.w3, self.a2, beta)
-
-    def drawcurve(self, train_, valid_, id, legend_1, legend_2):
-        acc_train = np.array(train_).flatten()
-        acc_test = np.array(valid_).flatten()
-
-        plt.figure(id)
-        # plt.plot(acc_train)
-        plt.semilogy(acc_train)
-        # plt.plot(acc_test)
-        plt.semilogy(acc_test)
-        axes = plt.gca()
-        axes.set_ylim([0, 1])
-
-        plt.legend([legend_1, legend_2], loc='upper left')
-        plt.show()
 
 
 def _relu(x):
