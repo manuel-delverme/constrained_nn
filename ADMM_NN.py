@@ -5,6 +5,8 @@ from __future__ import print_function
 import numpy as np
 import tqdm
 
+import config
+
 
 class ADMM_NN:
     """ Class for ADMM Neural Network. """
@@ -67,13 +69,18 @@ class ADMM_NN:
         # rnd = np.random.rand(a.shape[1], z.shape[1])
         payload = np.random.rand(null_proj.shape[1], w.shape[1])
 
-        def meh_max(x):
-            meh_x = x - np.min(x)
-            return meh_x / meh_x.sum(axis=0)
-        weights = meh_max(1 / np.abs(a.dot(null_proj)).mean(0))
-        payload = np.einsum('xy,x->xy', payload, weights)
+        if config.weighted_payload:
+            def meh_max(x):
+                meh_x = x - np.min(x)
+                return meh_x / meh_x.sum(axis=0)
 
-        w_new = w - null_proj.dot(payload)
+            weights = meh_max(1 / np.abs(a.dot(null_proj)).mean(0))
+            payload = np.einsum('xy,x->xy', payload, weights)
+
+        if config.attack:
+            w_new = w - null_proj.dot(payload)
+        else:
+            w_new = w
 
         # print(np.linalg.norm(z - a.dot(w)))
         # w_new = np.dot(pinv, z) - null_proj.dot(payload)
