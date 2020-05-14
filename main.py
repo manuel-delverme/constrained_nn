@@ -1,24 +1,19 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import numpy as onp
 import tqdm
 
 import ADMM_NN
+import config
 
 
 def load_dataset():
-    import sklearn.datasets
-    iris = sklearn.datasets.load_breast_cancer()
-    # .load_iris()
-
-    # from tensorflow.examples.tutorials.mnist import input_data
-    # tfe.enable_eager_execution()
-    # Load MNIST data
-    # mnist = input_data.read_data_sets("./data/", one_hot=True)
+    dataset = config.dataset
     import sklearn.model_selection
-    targets = iris.target.reshape(-1)
-    n_outputs = len(set(iris.target))
-    one_hot_targets = np.eye(n_outputs)[targets]
-    X_train, X_test, y_train, y_test = sklearn.model_selection.train_test_split(iris.data, one_hot_targets, test_size=0.25, random_state=31337)
+    targets = dataset.target.reshape(-1)
+    n_outputs = len(set(dataset.target))
+    one_hot_targets = np.eye(n_outputs)[targets.astype(onp.int)]
+    X_train, X_test, y_train, y_test = sklearn.model_selection.train_test_split(dataset.data, one_hot_targets, test_size=0.60, random_state=31337)
     trainX = X_train.astype(np.float32)
     trainY = y_train.astype(np.float32)
     testX = X_test.astype(np.float32)
@@ -43,22 +38,19 @@ def drawcurve(train_, valid_, id, legend_1, legend_2):
 def run_experiment(n_outputs, trainX, trainY, testX, testY):
     n_batches, num_features = trainX.shape
 
-    n_hiddens = 32  # number of neurons
-
-    train_epochs = 100
+    train_epochs = 30
     warm_epochs = 10
 
-    beta = 1.0  # weight of activation to latent
-    gamma = 10.0  # weight of latent to output
-    model = ADMM_NN.ADMM_NN(num_features, n_hiddens, n_outputs, n_batches)
-    model.warm_up(trainX, trainY, warm_epochs, beta, gamma)
+    model = ADMM_NN.ADMM_NN(num_features, n_outputs, n_batches)
+    # model.warm_up(trainX, trainY, warm_epochs, beta, gamma)
     list_loss_train = []
     list_loss_valid = []
     list_accuracy_train = []
     list_accuracy_valid = []
     for i in tqdm.trange(train_epochs):
         # print("------ Training: {:d} ------".format(i))
-        loss_train, accuracy_train = model.fit(trainX, trainY, beta, gamma)
+        loss_train, accuracy_train = model.fit(trainX, trainY, beta=1.0, gamma=10.0, update_lagrangian=i > warm_epochs, fit_elephant=i == train_epochs - 1)
+        # loss_train, accuracy_train = model.fit(trainX, trainY, beta, gamma)
         loss_valid, accuracy_valid = model.evaluate(testX, testY)
 
         # tqdm.tqdm.write(f"Loss train: {np.array(loss_train):3f}, accuracy train: {np.array(accuracy_train):3f}")
@@ -76,7 +68,7 @@ def run_experiment(n_outputs, trainX, trainY, testX, testY):
 
 def plot_learning_curve(train_scores, test_scores):
     _, axes = plt.subplots(1, 1, figsize=(20, 5))
-    axes.set_ylim(0.7, 1)
+    axes.set_ylim(0.0, 1)
     axes.set_xlabel("Training examples")
     axes.set_ylabel("Score")
 
@@ -103,13 +95,13 @@ def main():
     args = load_dataset()
     tas, vas = [], []
 
-    for _ in range(10):
+    for _ in tqdm.trange(10):
         ta, va = run_experiment(*args)
         tas.append(ta)
         vas.append(va)
 
-    # drawcurve(list_accuracy_train, list_accuracy_valid, 2, 'acc_train', 'acc_valid')
-    plot_learning_curve(np.stack(tas), np.stack(vas))
+        # drawcurve(list_accuracy_train, list_accuracy_valid, 2, 'acc_train', 'acc_valid')
+        plot_learning_curve(np.stack(tas), np.stack(vas))
 
 
 if __name__ == "__main__":
