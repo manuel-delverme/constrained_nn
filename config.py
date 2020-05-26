@@ -7,5 +7,6 @@ attack = False
 dataset = sklearn.datasets.load_iris()
 num_hidden = 32
 num_hidden_last = 32
+batch_size = 64
 
 tb = tensorboardX.SummaryWriter()
