@@ -66,28 +66,6 @@ def run_experiment(n_outputs, trainX, trainY, testX, testY):
     return list_accuracy_train, list_accuracy_valid
 
 
-def plot_learning_curve(train_scores, test_scores):
-    _, axes = plt.subplots(1, 1, figsize=(20, 5))
-    axes.set_ylim(0.0, 1)
-    axes.set_xlabel("Training examples")
-    axes.set_ylabel("Score")
-
-    train_scores_mean = np.mean(train_scores, axis=0)
-    train_scores_std = np.std(train_scores, axis=0)
-    test_scores_mean = np.mean(test_scores, axis=0)
-    test_scores_std = np.std(test_scores, axis=0)
-    train_sizes = np.arange(train_scores.shape[1])
-
-    # Plot learning curve
-    axes.grid()
-    axes.fill_between(train_sizes, train_scores_mean - train_scores_std, train_scores_mean + train_scores_std, alpha=0.1, color="r")
-    axes.fill_between(train_sizes, test_scores_mean - test_scores_std, test_scores_mean + test_scores_std, alpha=0.1, color="g")
-    axes.plot(train_sizes, train_scores_mean, 'o-', color="r", label="Train")
-    axes.plot(train_sizes, test_scores_mean, 'o-', color="g", label="Test")
-    axes.legend(loc="best")
-    plt.show()
-
-
 def main():
     print("With four parameters I can fit an elephant, and with five I can make him wiggle his trunk")
     print("With thousands i hope to fit the exploration dilemma (and an elephant)")
@@ -99,9 +77,7 @@ def main():
         ta, va = run_experiment(*args)
         tas.append(ta)
         vas.append(va)
-
         # drawcurve(list_accuracy_train, list_accuracy_valid, 2, 'acc_train', 'acc_valid')
-        plot_learning_curve(np.stack(tas), np.stack(vas))
 
 
 if __name__ == "__main__":
