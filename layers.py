@@ -1,7 +1,6 @@
 import collections
 
-import jax
-import jax.experimental.stax
+import fax.utils
 import jax.numpy as np
 import numpy as onp
 from jax import tree_util
@@ -18,7 +17,7 @@ class NNBlock(collections.namedtuple("model", "modules", )):
         h = inputs
         for module in self.modules:
             pre_h = module(h)
-            h = jax.nn.leaky_relu(pre_h)
+            h = fax.utils.leaky_relu(pre_h)
         y_hat = h
         return y_hat
 
@@ -55,5 +54,4 @@ class BlockNN(collections.namedtuple("BlockNN", "blocks split_variables", )):
 
 
 def fc(num_inputs, num_outputs):
-    init_fn, apply_fn = jax.experimental.stax.Dense(num_outputs)
     return FC(onp.random.rand(num_inputs, num_outputs), onp.random.rand(1, num_outputs))
