@@ -2,7 +2,7 @@ import collections
 
 import fax.constrained
 import fax.constrained.constrained_test
-# import fax.utils
+import fax.utils
 import jax.numpy as np
 import matplotlib.pyplot as plt
 import numpy as onp
@@ -72,7 +72,9 @@ def make_block_nn(num_inputs, num_outputs, dataset_size) -> layers.BlockNN:
     return layers.BlockNN(blocks, split_variables)
 
 
-def run_experiment(num_outputs, trainX, trainY, testX, testY, iters):
+def run_experiment(num_outputs, samples, iters):
+    # sigma = diagonal
+
     dataset_size, num_inputs = trainX.shape
     model = make_block_nn(num_inputs, num_outputs, dataset_size)
 

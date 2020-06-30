@@ -1,9 +1,10 @@
 import collections
 
-import fax.utils
+# import fax.utils
 import jax.numpy as np
 import numpy as onp
 from jax import tree_util
+from jax.nn import leaky_relu
 
 
 class FC(collections.namedtuple("FC", "weights bias")):
@@ -17,7 +18,7 @@ class NNBlock(collections.namedtuple("model", "modules", )):
         h = inputs
         for module in self.modules:
             pre_h = module(h)
-            h = fax.utils.leaky_relu(pre_h)
+            h = leaky_relu(pre_h)
         y_hat = h
         return y_hat
 
