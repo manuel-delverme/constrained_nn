@@ -46,8 +46,7 @@ def sgd_solve(lagrangian, convergence_test, get_x, initial_values, max_iter=1000
         grad_fn = jax.grad(lagrangian, (0, 1))
         return optimizer_update(i, grad_fn, opt_state)
 
-    fixpoint_fn = fax.loop._debug_fixed_point_iteration if fax.config.DEBUG else fax.loop.fixed_point_iteration
-    solution, history = fixpoint_fn(
+    solution, history = fax.loop.fixed_point_iteration(
         init_x=optimizer_init(initial_values),
         func=update,
         convergence_test=convergence_test,

@@ -20,17 +20,17 @@ ConstrainedSolution = collections.namedtuple(
 convergence_params = dict(rtol=1e-7, atol=1e-7)
 
 
-def load_dataset(normalize=False):
+def load_dataset(normalize=True):
     dataset = config.dataset
     import sklearn.model_selection
     targets = dataset.target.reshape(-1)
     n_outputs = len(set(dataset.target))
     one_hot_targets = np.eye(n_outputs)[targets.astype(onp.int)]
     X_train, X_test, y_train, y_test = sklearn.model_selection.train_test_split(dataset.data, one_hot_targets, test_size=0.25, random_state=31337)
-    trainX = X_train.astype(np.float32)
-    trainY = y_train.astype(np.float32)
-    testX = X_test.astype(np.float32)
-    testY = y_test.astype(np.float32)
+    trainX = X_train.astype(np.float64)
+    trainY = y_train.astype(np.float64)
+    testX = X_test.astype(np.float64)
+    testY = y_test.astype(np.float64)
     if normalize:
         train_mean = np.mean(trainX, 0)
         train_std = np.std(trainX, 0)
