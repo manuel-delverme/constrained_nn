@@ -9,7 +9,7 @@ import numpy as onp
 def make_net(theta):
     network = []
 
-    def make_linear_layer(theta):
+    def make_layer(theta):
         assert theta.shape == (1, 1)
 
         def f(x):
@@ -18,7 +18,7 @@ def make_net(theta):
         return f
 
     for theta_i in theta:
-        network.append(make_linear_layer(theta_i.reshape(-1, 1)))
+        network.append(make_layer(theta_i.reshape(-1, 1)))
 
     return network
 
@@ -75,7 +75,6 @@ def main():
     trainX, trainY = 3., 1.
     x = np.zeros(theta.shape[0])
     x = jax.ops.index_update(x, 0, trainX)
-    # lr = 1e-2
     lr = 1e-2
 
     print('states:', x.T, '\nweights:', theta.T)
@@ -134,7 +133,6 @@ def sequential(lr, theta, trainX, trainY, x, outer_iter):
 
         plot_model(x, theta, trainX, trainY, f"after x_{t},{outer_iter}")
         print(loss(x_t, y_t, theta_t, x_tm1, theta_tm1))
-        # print("end of layer")
     return x, theta
 
 
@@ -143,10 +141,6 @@ def theta_step(loss, lr, theta_t, x, y):
     for iter in range(100):
         param_grad = Gph(x, y, theta_t, None, None)
         theta_t += lr * -param_grad
-        # if np.abs(param_grad) < 0.001:
-        #     # print("final grad", param_grad)
-        #     break
-    # print("final grad", param_grad)
     return theta_t
 
 
@@ -155,8 +149,6 @@ def x_step(loss, lr, theta_t, x, y, x_tm1, theta_tm1):
     for iter in range(100):
         state_grad = Gph(x, y, theta_t, x_tm1, theta_tm1)
         x += lr * -state_grad
-        # if np.abs(state_grad) < 0.001:
-        #     break
     return x
 
 
