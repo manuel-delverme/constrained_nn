@@ -13,8 +13,8 @@ from main_fax import load_dataset
 
 def block(out_dim):
     return stax.serial(
-        stax.Dense(32, ),
-        stax.LeakyRelu,
+        # stax.Dense(32, ),
+        # stax.LeakyRelu,
         stax.Dense(out_dim, ),
         stax.Softmax if out_dim == 1 else stax.LeakyRelu
     )
@@ -74,6 +74,9 @@ def constraint(x, theta, trainX, trainY):
 
 def main():
     num_outputs, train_x, train_y, test_x, test_y = load_dataset(normalize=True)
+    train_x = np.ones_like(train_x)
+    train_y = np.zeros_like(train_y)
+    train_y = jax.ops.index_update(train_y, jax.ops.index[:, 0], 1)
 
     rng_key = jax.random.PRNGKey(0)
     blocks_init, blocks_predict = zip(*make_net())
@@ -106,7 +109,8 @@ def main():
 
 
 def sequential(lr, blocks_predict, theta, x, trainX, trainY, outer_iter):
-    y = [*x[1:], trainY]
+    # y = [*x[1:], trainY]
+    y = [*x[1:], None]
     losses = []
 
     for t in reversed(range(len(x))):
@@ -124,7 +128,10 @@ def sequential(lr, blocks_predict, theta, x, trainX, trainY, outer_iter):
             block_tm1 = blocks_predict[t - 1]
 
         def loss(x_t, y_t, theta_t, x_tm1, theta_tm1):
-            H = [block_t(theta_t, x_t) - jax.lax.stop_gradient(y_t), ]
+            H = []
+            if t != len(x) - 1:
+                H.append(block_t(theta_t, x_t) - jax.lax.stop_gradient(y_t))
+
             if t >= 1 and theta_tm1 is not None:
                 H.append(jax.lax.stop_gradient(block_tm1(theta_tm1, x_tm1)) - x_t, )
             elif t == 0:
@@ -134,7 +141,8 @@ def sequential(lr, blocks_predict, theta, x, trainX, trainY, outer_iter):
 
             return np.linalg.norm(np.hstack(H), 2)
 
-        theta[t] = theta_step(loss, lr, theta_t, x_t, y_t)
+        if t != len(x) - 1:
+            theta[t] = theta_step(loss, lr, theta_t, x_t, y_t)
         x[t] = x_step(loss, lr, theta_t, x_t, y_t, x_tm1, theta_tm1)
         losses.append(float(loss(x_t, y_t, theta_t, x_tm1, theta_tm1)))
 
@@ -142,7 +150,7 @@ def sequential(lr, blocks_predict, theta, x, trainX, trainY, outer_iter):
 
 
 def theta_step(loss, lr, theta_t, x, y, num_steps=10):
-    opt_init, opt_update, get_params = jax.experimental.optimizers.adam(lr)
+    opt_init, opt_update, get_params = jax.experimental.optimizers.sgd(lr)
 
     @jax.jit
     def update(i, opt_state, x):
@@ -159,7 +167,7 @@ def theta_step(loss, lr, theta_t, x, y, num_steps=10):
 
 
 def x_step(loss, lr, theta_t, x, y, x_tm1, theta_tm1, num_steps=10):
-    opt_init, opt_update, get_params = jax.experimental.optimizers.adam(lr)
+    opt_init, opt_update, get_params = jax.experimental.optimizers.sgd(lr)
 
     # opt_init, opt_update, get_params = jax.experimental.optimizers.momentum(lr, mass=0.9)
 
