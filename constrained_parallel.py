@@ -8,6 +8,7 @@ import jax.ops
 import jax.tree_util
 import matplotlib.pyplot as plt
 
+import config
 from main_fax import load_dataset
 
 
@@ -61,9 +62,8 @@ def main():
 
     y = time_march(train_x, model, theta)
     x = [train_x, *y[:-1]]
-    lr = 1e-4
 
-    opt_init, opt_update, get_params = jax.experimental.optimizers.momentum(lr, mass=0.9)
+    # lr = 1e-4
 
     def full_rollout_loss(train_x, model, theta):
         y = time_march(train_x, model, theta)
@@ -73,7 +73,9 @@ def main():
 
     def n_step_loss(n):
         def loss(params):
-            return full_rollout_loss(params.x[-n], model[-n:], params.theta[-n:])
+            y = time_march(train_x, model, theta)
+            x = [train_x, *y[:-1]]
+            return -full_rollout_loss(x[0], model, params.theta)
 
         return loss
 
@@ -85,14 +87,40 @@ def main():
         x_target = np.hstack(x_target)
 
         defects = x - x_target
-        return defects  # / inputs.shape[0]
+        return np.linalg.norm(defects, 2)  # / inputs.shape[0]
 
+    def supervised_loss(params):
+        y = time_march(params.x[0], model, params.theta)
+        predicted = y[-1]
+        error = train_y - predicted
+        return -np.linalg.norm(error, 2)
+
+    init_mult, lagrangian, get_param = fax.constrained.make_lagrangian(supervised_loss, lambda *args: 0.)
     init_mult, lagrangian, get_param = fax.constrained.make_lagrangian(n_step_loss(1), constraints)
-    initial_values = init_mult(Parameters(tuple(theta), tuple(x)))
-    (theta, x), multiplier = fax.constrained.constrained_test.eg_solve(lagrangian, lambda *args: False, get_param, initial_values, max_iter=1000, metrics=None, lr=lr)
 
-    push_metrics(train_x, train_y, model, theta, x, -1, full_rollout_loss)
-    return theta
+    initial_values = init_mult(Parameters(tuple(theta), tuple(x)))
+
+    push_metrics(train_x, train_y, model, theta, x, -1, full_rollout_loss, constraints, n_step_loss)
+
+    # (theta, x), multiplier = fax.constrained.constrained_test.eg_solve(lagrangian, lambda *args: False, get_param, initial_values, max_iter=1, metrics=None, lr=lr)
+    # lr = jax.experimental.optimizers.inverse_time_decay(1e-1, 500, 0.3, staircase=True)
+    lr = jax.experimental.optimizers.inverse_time_decay(1e-4, 500, 0.3, staircase=True)
+    optimizer_init, optimizer_update, optimizer_get_params = fax.competitive.extragradient.adam_extragradient_optimizer(step_size=lr)
+
+    @jax.jit
+    def update(i, opt_state):
+        grad_fn = jax.grad(lagrangian, (0, 1))
+        return optimizer_update(i, grad_fn, opt_state)
+
+    opt_state = optimizer_init(initial_values)
+    for optim_iter in range(10000):
+        opt_state = update(optim_iter, opt_state)
+        if optim_iter % 10 == 0:
+            params, multipliers = optimizer_get_params(opt_state)
+            push_metrics(train_x, train_y, model, params.theta, params.x, optim_iter, full_rollout_loss, constraints, n_step_loss)
+
+    params, multipliers = optimizer_get_params(opt_state)
+    return params.theta
 
 
 def train_accuracy(train_x, train_y, model, theta):
@@ -103,26 +131,27 @@ def train_accuracy(train_x, train_y, model, theta):
     return np.mean(predicted_class == target_class)
 
 
-def push_metrics(train_x, train_y, model, theta, x, outer_iter, loss_fn):
+def push_metrics(train_x, train_y, model, theta, x, opt_step, loss_fn, constraint_fn, n_step_loss):
+    params = Parameters(tuple(theta), tuple(x))
     accuracy = train_accuracy(train_x, train_y, model, theta)
     train_loss = loss_fn(train_x, model, theta)
+    x_err = constraint_fn(params)
     metrics = [
-        # ("train/x_err", x_err),
+        ("train/x_err", np.linalg.norm(x_err)),
         # ("train/theta_err", theta_err),
         ("train/train_accuracy", accuracy),
         ("train/train_loss", train_loss),
-        # ("train/1step_accuracy", NotImplemented),
-        # ("train/2step_accuracy", NotImplemented),
-        # ("train/3step_accuracy", NotImplemented)
+        ("train/1step_loss", n_step_loss(1)(params)),
+        ("train/2step_loss", n_step_loss(2)(params)),
     ]
+    print("=" * 10, opt_step, "=" * 10)
     for tag, value in metrics:
-        # tb.add_scalar(tag, float(value), opt_step)
-        print(tag, value)
+        config.tb.add_scalar(tag, float(value), opt_step)
+        # print(tag, value)
 
 
 if __name__ == "__main__":
     try:
-        with jax.disable_jit():
-            main()
+        main()
     except KeyboardInterrupt:
         plt.close("all")

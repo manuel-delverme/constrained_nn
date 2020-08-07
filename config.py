@@ -35,7 +35,7 @@ if not DEBUG:
         pass
 
 if comment is None:
-    comment = ""
+    comment = "DEBUG_RUN"
 
 current_time = datetime.datetime.now().strftime('%b%d_%H-%M-%S')
 logdir = os.path.join('runs', current_time + '_' + comment)
