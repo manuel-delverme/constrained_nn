@@ -5,8 +5,8 @@ import fax.competitive.extragradient
 import jax
 import jax.experimental.optimizers
 import jax.lax
-import jax.numpy as np
-from jax import tree_util
+from jax import tree_util, numpy as np
+from matplotlib import pyplot as plt
 
 import config
 
@@ -84,3 +84,25 @@ def adam_optimizer(step_size, betas=config.adam_betas, eps=config.adam_eps) -> (
         return x
 
     return init, update, get_params
+
+
+def plot_model(model, trainX, trainY, title, i):
+    # xs = [0, 1, 2]
+
+    # block_outs = [*model.split_variables, trainY]
+    fig, ax = plt.subplots()
+    ax.set_title(title)
+    ax.set_xlim(-0.1, 2.1)
+    ax.set_ylim(-0.1, 3.1)
+    xs = np.array((
+        trainX[0][0],
+        model.split_variables[0][0][0],
+        trainY[0][0],
+    ))
+    ax.scatter(range(len(xs)), xs)
+
+    for t, (block, x_t) in enumerate(zip(model.blocks, xs)):
+        x_t1 = block(x_t)
+        ax.plot([t, t + 1], [x_t, x_t1])
+    fig.savefig(f"plots/{i}.png")
+    fig.show()

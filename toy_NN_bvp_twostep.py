@@ -3,13 +3,13 @@ import collections
 import fax.loop
 import jax
 import jax.numpy as np
-import matplotlib.pyplot as plt
 import numpy as onp
 import tqdm
 
 import config
 import layers
 from main_fax import load_dataset, plot_learning_curves  # , make_block_nn
+from utils import plot_model
 
 
 def make_block_nn(num_inputs, num_outputs, dataset_size) -> layers.BlockNN:
@@ -29,28 +29,6 @@ def make_block_nn(num_inputs, num_outputs, dataset_size) -> layers.BlockNN:
     del split_variables[-1]  # the last variable is y_target
 
     return layers.BlockNN(layers.NNParameters(blocks), np.array(split_variables))
-
-
-def plot_model(model, trainX, trainY, title, i):
-    # xs = [0, 1, 2]
-
-    # block_outs = [*model.split_variables, trainY]
-    fig, ax = plt.subplots()
-    ax.set_title(title)
-    ax.set_xlim(-0.1, 2.1)
-    ax.set_ylim(-0.1, 3.1)
-    xs = np.array((
-        trainX[0][0],
-        model.split_variables[0][0][0],
-        trainY[0][0],
-    ))
-    ax.scatter(range(len(xs)), xs)
-
-    for t, (block, x_t) in enumerate(zip(model.blocks, xs)):
-        x_t1 = block(x_t)
-        ax.plot([t, t + 1], [x_t, x_t1])
-    fig.savefig(f"plots/{i}.png")
-    fig.show()
 
 
 def run_experiment(num_outputs, trainX, trainY, testX, testY):
@@ -86,18 +64,6 @@ def run_experiment(num_outputs, trainX, trainY, testX, testY):
         # push_metrics(history, model, opt_step, theta_err, train_accuracy, x_err)
 
     return model, dict(history)
-
-
-def push_metrics(history, model, opt_step, theta_err, train_accuracy, x_err):
-    accuracy = train_accuracy(model, None)
-    metrics = [
-        ("train/x_err", x_err),
-        ("train/theta_err", theta_err),
-        ("train/train_accuracy", accuracy)
-    ]
-    for tag, value in metrics:
-        config.tb.add_scalar(tag, float(value), opt_step)
-        history[tag].append(value)
 
 
 def x_step(x0, xT, convergence_test, iters, model):
