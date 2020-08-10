@@ -77,7 +77,6 @@ def main():
     trainX, trainY = np.array(3.), np.array(1.)
     x = np.zeros(theta.shape[0])
     x = jax.ops.index_update(x, 0, trainX)
-    lr = 1e-2
 
     print('states:', x.T, '\nweights:', theta.T)
     print('shapes', x.shape, theta.shape)
