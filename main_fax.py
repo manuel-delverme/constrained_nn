@@ -1,8 +1,6 @@
 import collections
-
 import fax.constrained
 import fax.constrained.constrained_test
-# import fax.utils
 import jax.numpy as np
 import matplotlib.pyplot as plt
 import numpy as onp
@@ -21,23 +19,27 @@ convergence_params = dict(rtol=1e-7, atol=1e-7)
 
 
 def load_dataset(normalize=True):
-    dataset = config.dataset
+    dataset = config.dataset()
     import sklearn.model_selection
     targets = dataset.target.reshape(-1)
     n_outputs = len(set(dataset.target))
     one_hot_targets = np.eye(n_outputs)[targets.astype(onp.int)]
     X_train, X_test, y_train, y_test = sklearn.model_selection.train_test_split(dataset.data, one_hot_targets, test_size=0.25, random_state=31337)
+    if normalize:
+        sklearn.preprocessing.normalize(X_train, norm='l2', axis=0)
+        train_mean = onp.mean(X_train, 0)
+        train_std = onp.std(X_train, 0)
+        train_std[train_std == 0] = 1.
+
+        X_train -= train_mean
+        X_test /= train_std
+
+        X_train -= train_mean
+        X_test /= train_std
     trainX = X_train.astype(np.float64)
     trainY = y_train.astype(np.float64)
     testX = X_test.astype(np.float64)
     testY = y_test.astype(np.float64)
-    if normalize:
-        train_mean = np.mean(trainX, 0)
-        train_std = np.std(trainX, 0)
-        trainX -= train_mean
-        trainX /= train_std
-        testX -= train_mean
-        testX /= train_std
     return n_outputs, trainX, trainY, testX, testY
 
 

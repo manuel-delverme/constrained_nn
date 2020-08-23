@@ -6,6 +6,14 @@ import matplotlib.pyplot as plt
 import numpy as onp
 
 
+def initialize_problem():
+    rng = onp.random.RandomState(0)
+    size = (1, 1)
+    theta = np.vstack([rng.normal(size=size) / 4 for _ in range(2)]).squeeze()
+    trainX, trainY = np.array(3.), np.array(1.)
+    return theta, trainX, trainY
+
+
 def make_net(theta):
     network = []
 
@@ -41,8 +49,8 @@ def plot_model(xs, theta, trainX, trainY, title="trajectory"):
         line, = ax.plot([t, t + 1], [x, b(x)], c="green")
         line.set_label(f"1step t={t}")
     ax.legend()
-    # fig.show()
-    plt.savefig(f"plots/{title}.png")
+    fig.show()
+    # plt.savefig(f"plots/{title}.png")
 
 
 def time_march(x0, theta):
@@ -65,24 +73,8 @@ def constraint(x, theta, trainX, _trainY):
     return np.hstack(defects)
 
 
-def loss(x, theta, _trainX, trainY):
-    network = make_net(theta)
-    return trainY - network[-1](x[-1])
-
-
 def main():
-    rng = onp.random.RandomState(0)
-    size = (1, 1)
-    theta = np.vstack([rng.normal(size=size) / 4 for _ in range(2)])
-    trainX, trainY = np.array(3.), np.array(1.)
-    x = np.zeros(theta.shape[0])
-    x = jax.ops.index_update(x, 0, trainX)
-
-    print('states:', x.T, '\nweights:', theta.T)
-    print('shapes', x.shape, theta.shape)
-
-    # twostep_gradient(lr, theta, trainX, trainY, x)
-    # plot_model(x, theta, trainX, trainY, "initial")
+    theta, trainX, trainY = initialize_problem()
 
     def forwardprop_loss(theta):
         y = time_march(trainX, theta)
@@ -92,7 +84,6 @@ def main():
 
     # explicit_loss_gradient = jax.grad(forwardprop_loss)(theta)
 
-    theta = theta.squeeze()
     for iter_num in range(100):
         gradient_implicit = implicit_diff(theta, trainX, trainY)
         theta = theta - 0.01 * gradient_implicit
@@ -126,8 +117,8 @@ def find_root(theta, x0):
 
 
 def ift(theta, trainX, trainY, x):
-    y = time_march(x[0], theta)
-    x_star = np.append(x[0], y[:-1])
+    y = time_march(trainX, theta)
+    x_star = np.append(trainX, y[:-1])
     # plot_model(x_star, theta, trainX, trainY)
     assert (np.array(constraint(x_star, theta, trainX, trainY)) == 0.).all()
     Dxh = jax.jacobian(constraint, 0)
@@ -150,7 +141,4 @@ def ift(theta, trainX, trainY, x):
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        plt.close("all")
+    main()
