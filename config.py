@@ -103,21 +103,7 @@ class Wandb:
 git_repo = git.Repo(os.path.dirname(__file__))
 
 
-def setup_tb(log_dir):
-    experiment_id = None
-    # if not DEBUG:
-    #     try:
-    #         import tkinter.simpledialog
-
-    #         root = tkinter.Tk()
-    #         experiment_id = tkinter.simpledialog.askstring("experiment_id", "experiment_id")
-    #         root.destroy()
-    #     except Exception as e:
-    #         pass
-    if experiment_id is None:
-        experiment_id = "DEBUG_RUN"
-    current_time = datetime.datetime.now().strftime('%b%d_%H-%M-%S')
-    logdir = os.path.join('runs', current_time + '_' + experiment_id)
+def setup_tb(logdir):
     tb = tensorboardX.SummaryWriter(logdir=logdir)
     print("http://localhost:6006")
     return tb
@@ -147,6 +133,7 @@ if getpass.getuser() == 'delvermm':
     dtm = datetime.datetime.now().strftime("%b%d_%H-%M-%S")
     tb = Wandb(f"{experiment_id}_{dtm}")
 else:
+    experiment_id = None
     try:
         import tkinter.simpledialog
 
@@ -154,10 +141,14 @@ else:
         experiment_id = tkinter.simpledialog.askstring("experiment_id", "experiment_id")
         root.destroy()
     except Exception as e:
+        pass
+
+    if experiment_id is None:
         dtm = datetime.datetime.now().strftime("%b%d_%H-%M-%S") + ".pt/"
-        experiment_id = f"{git_repo.head.commit.message.strip()}"
+        # experiment_id = f"{git_repo.head.commit.message.strip()}"
+        experiment_id = f"DEBUG_RUN"
         # tb = torch.utils.tensorboard.SummaryWriter(log_dir=os.path.join(C.TENSORBOARD, experiment_id, dtm))
-        tb = setup_tb(log_dir=os.path.join("tensorboard/", experiment_id, dtm))
+        tb = setup_tb(logdir=os.path.join("tensorboard/", experiment_id, dtm))
     else:
         commit_and_sendjob()
         sys.exit()
