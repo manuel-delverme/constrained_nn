@@ -66,7 +66,7 @@ class Wandb:
         self._global_step = value
 
     def __init__(self, _experiment_id):
-        wandb.init(project="math_layer", name=_experiment_id)
+        wandb.init(project="constrained_NN", name=_experiment_id)
 
         def register_param(_k, _v, prefix=""):
             if _k.startswith("__") and _k.endswith("__"):
