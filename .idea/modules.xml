@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/NullSpaceExploration.iml" filepath="$PROJECT_DIR$/.idea/NullSpaceExploration.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/HowToTrainYourNet.iml" filepath="$PROJECT_DIR$/.idea/HowToTrainYourNet.iml" />
     </modules>
   </component>
 </project>
