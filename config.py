@@ -112,19 +112,22 @@ def setup_tb(logdir):
 def commit_and_sendjob():
     global experiment_id
     # 2) commits everything to git with the name as message (so i can later reproduce the same experiment)
+    print("git add")
     os.system(f"git add .")
+    print("git commit")
     os.system(f"git commit -m '[CLUSTER] {experiment_id}'")
     # 3) pushes the changes to git
+    print("git push")
     os.system("git push")
     main = sys.argv[0].split(os.getcwd())[-1].lstrip("/")
     command = f"ssh mila ./run_experiment.sh {next(git_repo.remote().urls)} {main} {git_repo.commit().hexsha}"
+    print(command)
     os.system(command)
     with open("ssh.log", 'a') as fout:
         fout.write(command)
     # 4) logs on the server and pulls the latest version
     # 5) runs the experiment
     # 7) writes me on slack/telegram/email a link for the tensorboard
-    experiment_id = datetime.datetime.now().strftime("%b%d_%H-%M-%S")
 
 
 if getpass.getuser() == 'delvermm':
