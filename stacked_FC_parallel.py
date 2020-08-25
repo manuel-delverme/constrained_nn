@@ -159,7 +159,11 @@ def main():
                               ("train/multipliers", np.linalg.norm(multipliers, 2)),
                               # ("train/2step_accuracy", n_step_loss_fn(2)),
                               # ("train/3step_accuracy", NotImplemented)
-                          ] + [(f"train/defect_{idx}", np.linalg.norm(equality_constraints(params)[0][idx], 2)) for idx in range(len(params.theta))]
+                          ] + [
+                              (f"constraints/defects_{idx}", np.linalg.norm(equality_constraints(params)[0][idx], 2)) for idx in range(len(params.theta))
+                          ] + [
+                              (f"rollouts/{idx}_step_prediction", make_n_step_loss(idx)(params)) for idx in range(len(params.theta))
+                          ]
                 push_metrics(outer_iter, metrics)
             if outer_iter % 1000 == 0:
                 params = optimizer_get_params(opt_state)
