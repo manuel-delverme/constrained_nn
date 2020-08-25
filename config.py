@@ -117,7 +117,7 @@ def commit_and_sendjob():
     # 3) pushes the changes to git
     os.system("git push")
     main = sys.argv[0].split(os.getcwd())[-1].lstrip("/")
-    command = f"ssh login1 ./run_experiment.sh {next(git_repo.remote().urls)} {main} {git_repo.commit().hexsha}"
+    command = f"ssh mila ./run_experiment.sh {next(git_repo.remote().urls)} {main} {git_repo.commit().hexsha}"
     os.system(command)
     with open("ssh.log", 'a') as fout:
         fout.write(command)
