@@ -66,7 +66,7 @@ class Wandb:
         self._global_step = value
 
     def __init__(self, _experiment_id):
-        wandb.init(project="constrained_NN", name=_experiment_id)
+        wandb.init(project="constrained_nn", name=_experiment_id)
 
         def register_param(_k, _v, prefix=""):
             if _k.startswith("__") and _k.endswith("__"):
@@ -120,7 +120,8 @@ def commit_and_sendjob():
     print("git push")
     os.system("git push")
     main = sys.argv[0].split(os.getcwd())[-1].lstrip("/")
-    command = f"ssh mila ./run_experiment.sh {next(git_repo.remote().urls)} {main} {git_repo.commit().hexsha}"
+    # command = f"ssh mila ./run_experiment.sh {next(git_repo.remote().urls)} {main} {git_repo.commit().hexsha}"
+    command = f"ssh mila ./run_experiment.sh https://github.com/manuel-delverme/OptimalControlNeuralNet {main} {git_repo.commit().hexsha}"
     print(command)
     os.system(command)
     with open("ssh.log", 'a') as fout:
