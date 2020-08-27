@@ -1,4 +1,5 @@
 # train_x, train_y, model, theta, x, y
+import os
 import collections
 import time
 from typing import List
@@ -173,6 +174,7 @@ def main():
                 update_time = time.time()
                 metrics.append(("train/metrics_time", time.time() - metrics_time))
                 push_metrics(outer_iter, metrics)
+                del metrics
             # if outer_iter % 1000 == 0:
             #     params = optimizer_get_params(opt_state)
             #     params, multipliers = params
@@ -243,8 +245,12 @@ def push_metrics(outer_iter, metrics):
 
 
 if __name__ == "__main__":
+    print("CWD:", os.getcwd())
     try:
-        with jax.disable_jit():
+        if config.DEBUG:
+            with jax.disable_jit():
+                main()
+        else:
             main()
     except KeyboardInterrupt:
         plt.close("all")
