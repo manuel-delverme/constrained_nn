@@ -150,6 +150,7 @@ def main():
 
         print("optimize()")
         for outer_iter in range(iters):
+            print("Iter", outer_iter)
             opt_state = update(outer_iter, opt_state)
             if outer_iter % 10 == 0:
                 params = optimizer_get_params(opt_state)
@@ -236,7 +237,7 @@ def train_accuracy(train_x, train_y, model, theta):
 def push_metrics(outer_iter, metrics):
     for tag, value in metrics:
         config.tb.add_scalar(tag, float(value), outer_iter)
-        print(tag, value)
+        # print(tag, value)
 
 
 if __name__ == "__main__":
