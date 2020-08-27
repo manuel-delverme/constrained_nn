@@ -121,7 +121,7 @@ def commit_and_sendjob():
     os.system("git push")
     main = sys.argv[0].split(os.getcwd())[-1].lstrip("/")
     # command = f"ssh mila ./run_experiment.sh {next(git_repo.remote().urls)} {main} {git_repo.commit().hexsha}"
-    command = f"ssh mila ./run_experiment.sh https://github.com/manuel-delverme/OptimalControlNeuralNet {main} {git_repo.commit().hexsha}"
+    command = f"ssh mila bash -l ./run_experiment.sh https://github.com/manuel-delverme/OptimalControlNeuralNet {main} {git_repo.commit().hexsha}"
     print(command)
     os.system(command)
     with open("ssh.log", 'a') as fout:

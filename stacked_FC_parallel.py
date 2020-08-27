@@ -17,6 +17,8 @@ import numpy as onp
 import config
 from main_fax import load_dataset
 
+print("Imported")
+
 
 class ConstrainedParameters(collections.namedtuple("ConstrainedParameters", "theta x")):
     def __sub__(self, other):
@@ -65,6 +67,7 @@ def time_march(train_x, model, theta):
 
 def main():
     num_outputs, train_x, train_y, test_x, test_y = load_dataset(normalize=True)
+    print("Dataset loaded")
 
     input_shape = train_x.shape
     batch_size = 32
