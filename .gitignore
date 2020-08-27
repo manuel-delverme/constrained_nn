@@ -3,3 +3,5 @@
 *.npy
 /venv/
 tensorboard/
+ssh.log
+.idea/
