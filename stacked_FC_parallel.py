@@ -129,6 +129,7 @@ def main():
 
     batches = gen_batches()
 
+    print("Constrained setting", config.constrained)
     if config.constrained:
         onestep = make_n_step_loss(1)
         init_mult, lagrangian, get_x = fax.constrained.make_lagrangian(
@@ -147,6 +148,7 @@ def main():
             grad_fn = jax.grad(lagrangian, (0, 1))
             return optimizer_update(i, grad_fn, opt_state)
 
+        print("optimize()")
         for outer_iter in range(iters):
             opt_state = update(outer_iter, opt_state)
             if outer_iter % 10 == 0:

@@ -27,7 +27,8 @@
   <component name="ChangeListManager">
     <list default="true" id="c1573bcc-5047-4481-9756-ccbd31e5c97b" name="Default Changelist" comment="updated project name">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ssh.log" beforeDir="false" afterPath="$PROJECT_DIR$/ssh.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/stacked_FC_parallel.py" beforeDir="false" afterPath="$PROJECT_DIR$/stacked_FC_parallel.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -119,7 +120,7 @@
       <updated>1598393063502</updated>
       <workItem from="1598393064514" duration="152000" />
       <workItem from="1598393222031" duration="5281000" />
-      <workItem from="1598493604742" duration="5138000" />
+      <workItem from="1598493604742" duration="5960000" />
     </task>
     <task id="LOCAL-00001" summary="updated project name">
       <created>1598399333776</created>
@@ -175,22 +176,22 @@
       <screen x="1920" y="0" width="1920" height="1080" />
     </state>
     <state x="2411" y="130" width="927" height="853" key="CommitChangelistDialog2/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598506406832" />
-    <state width="1872" height="463" key="GridCell.Tab.0.bottom" timestamp="1598399921713">
+    <state width="1872" height="190" key="GridCell.Tab.0.bottom" timestamp="1598509213756">
       <screen x="1920" y="0" width="1920" height="1080" />
     </state>
-    <state width="1872" height="463" key="GridCell.Tab.0.bottom/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598399921713" />
-    <state width="1872" height="463" key="GridCell.Tab.0.center" timestamp="1598399921713">
+    <state width="1872" height="190" key="GridCell.Tab.0.bottom/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598509213756" />
+    <state width="1872" height="190" key="GridCell.Tab.0.center" timestamp="1598509213756">
       <screen x="1920" y="0" width="1920" height="1080" />
     </state>
-    <state width="1872" height="463" key="GridCell.Tab.0.center/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598399921713" />
-    <state width="1872" height="463" key="GridCell.Tab.0.left" timestamp="1598399921713">
+    <state width="1872" height="190" key="GridCell.Tab.0.center/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598509213756" />
+    <state width="1872" height="190" key="GridCell.Tab.0.left" timestamp="1598509213756">
       <screen x="1920" y="0" width="1920" height="1080" />
     </state>
-    <state width="1872" height="463" key="GridCell.Tab.0.left/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598399921713" />
-    <state width="1872" height="463" key="GridCell.Tab.0.right" timestamp="1598399921713">
+    <state width="1872" height="190" key="GridCell.Tab.0.left/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598509213756" />
+    <state width="1872" height="190" key="GridCell.Tab.0.right" timestamp="1598509213756">
       <screen x="1920" y="0" width="1920" height="1080" />
     </state>
-    <state width="1872" height="463" key="GridCell.Tab.0.right/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598399921713" />
+    <state width="1872" height="190" key="GridCell.Tab.0.right/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598509213756" />
     <state x="2354" y="188" width="1052" height="737" key="SettingsEditor" timestamp="1598394841002">
       <screen x="1920" y="0" width="1920" height="1080" />
     </state>
@@ -207,10 +208,10 @@
       <screen x="1920" y="0" width="1920" height="1080" />
     </state>
     <state x="2590" y="247" width="569" height="619" key="git4idea.branch.GitSmartOperationDialog/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598393190823" />
-    <state x="2543" y="259" width="672" height="678" key="search.everywhere.popup" timestamp="1598506401777">
+    <state x="2543" y="259" width="672" height="678" key="search.everywhere.popup" timestamp="1598509209334">
       <screen x="1920" y="0" width="1920" height="1080" />
     </state>
-    <state x="2543" y="259" width="672" height="678" key="search.everywhere.popup/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598506401777" />
+    <state x="2543" y="259" width="672" height="678" key="search.everywhere.popup/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598509209334" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -224,7 +225,7 @@
     </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/HowToTrainYourNet$stacked_FC_parallel.coverage" NAME="stacked_FC_parallel Coverage Results" MODIFIED="1598508034484" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/HowToTrainYourNet$stacked_FC_parallel.coverage" NAME="stacked_FC_parallel Coverage Results" MODIFIED="1598509213747" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/HowToTrainYourNet$config.coverage" NAME="config Coverage Results" MODIFIED="1598394556637" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
