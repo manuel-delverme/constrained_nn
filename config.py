@@ -14,6 +14,7 @@ import wandb
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
 
 if DEBUG:
+    print("USING IRIS DATASET")
     dataset = lambda: sklearn.datasets.load_iris()
 else:
     dataset = lambda: sklearn.datasets.fetch_openml('mnist_784')
@@ -138,14 +139,15 @@ if getpass.getuser() == 'delvermm':
     tb = Wandb(f"{experiment_id}_{dtm}")
 else:
     experiment_id = None
-    try:
-        import tkinter.simpledialog
+    if not DEBUG:
+        try:
+            import tkinter.simpledialog
 
-        root = tkinter.Tk()
-        experiment_id = tkinter.simpledialog.askstring("experiment_id", "experiment_id")
-        root.destroy()
-    except Exception as e:
-        pass
+            root = tkinter.Tk()
+            experiment_id = tkinter.simpledialog.askstring("experiment_id", "experiment_id")
+            root.destroy()
+        except Exception as e:
+            pass
 
     if experiment_id is None:
         dtm = datetime.datetime.now().strftime("%b%d_%H-%M-%S") + ".pt/"

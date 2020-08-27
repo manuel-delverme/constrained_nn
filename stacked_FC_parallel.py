@@ -1,5 +1,6 @@
 # train_x, train_y, model, theta, x, y
 import collections
+import time
 from typing import List
 
 import fax
@@ -149,6 +150,7 @@ def main():
             return optimizer_update(i, grad_fn, opt_state)
 
         print("optimize()")
+        update_time = time.time()
         for outer_iter in range(iters):
             print("Iter", outer_iter)
             opt_state = update(outer_iter, opt_state)
@@ -156,29 +158,29 @@ def main():
                 params = optimizer_get_params(opt_state)
                 params, multipliers = params
                 _train_x, _train_y, _indices = next(batches)
+                metrics_time = time.time()
                 metrics = [
-                              # ("train/x_err", x_err),
-                              # ("train/theta_err", theta_err),
                               ("train/train_accuracy", train_accuracy(_train_x, _train_y, model, params.theta)),
                               ("train/train_loss", full_rollout_loss(params.theta, next(batches))),
                               ("train/1step_loss", make_n_step_loss(1)(params)),
-                              ("train/multipliers", np.linalg.norm(multipliers, 2)),
-                              # ("train/2step_accuracy", n_step_loss_fn(2)),
-                              # ("train/3step_accuracy", NotImplemented)
+                              ("train/multipliers", np.linalg.norm(multipliers, 1)),
+                              ("train/update_time", time.time() - update_time),
                           ] + [
                               (f"constraints/defects_{idx}", np.linalg.norm(equality_constraints(params)[0][idx], 2)) for idx in range(len(params.theta))
                           ] + [
                               (f"rollouts/{idx}_step_prediction", make_n_step_loss(idx)(params)) for idx in range(len(params.theta))
                           ]
+                update_time = time.time()
+                metrics.append(("train/metrics_time", time.time() - metrics_time))
                 push_metrics(outer_iter, metrics)
-            if outer_iter % 1000 == 0:
-                params = optimizer_get_params(opt_state)
-                params, multipliers = params
-                y = time_march(train_x, model, params.theta)
-                x = [train_x, *y[:-1]]
-                params = ConstrainedParameters(params.theta, x)
-                initial_values = init_mult(params)
-                opt_state = optimizer_init(initial_values)
+            # if outer_iter % 1000 == 0:
+            #     params = optimizer_get_params(opt_state)
+            #     params, multipliers = params
+            #     y = time_march(train_x, model, params.theta)
+            #     x = [train_x, *y[:-1]]
+            #     params = ConstrainedParameters(params.theta, x)
+            #     initial_values = init_mult(params)
+            #     opt_state = optimizer_init(initial_values)
 
     else:
         opt_init, opt_update, get_params = jax.experimental.optimizers.momentum(lr, mass=0.9)
