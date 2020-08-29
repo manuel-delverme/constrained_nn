@@ -32,13 +32,13 @@ class ConstrainedParameters(collections.namedtuple("ConstrainedParameters", "the
 
 def block(out_dim, final_activation):
     return stax.serial(
-        stax.Dense(32, ),
+        stax.Dense(config.num_hidden, ),
         stax.LeakyRelu,
-        stax.Dense(32, ),
+        stax.Dense(config.num_hidden, ),
         stax.LeakyRelu,
-        stax.Dense(32, ),
+        stax.Dense(config.num_hidden, ),
         stax.LeakyRelu,
-        stax.Dense(32, ),
+        stax.Dense(config.num_hidden, ),
         stax.LeakyRelu,
         stax.Dense(out_dim, ),
         final_activation,
@@ -47,9 +47,9 @@ def block(out_dim, final_activation):
 
 def make_block_net(num_classes):
     return zip(*[
-        block(32, stax.LeakyRelu),
-        block(32, stax.LeakyRelu),
-        block(32, stax.LeakyRelu),
+        block(config.num_hidden, stax.LeakyRelu),
+        block(config.num_hidden, stax.LeakyRelu),
+        block(config.num_hidden, stax.LeakyRelu),
         block(num_classes, stax.Softmax),
     ])
 

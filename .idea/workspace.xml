@@ -26,8 +26,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c1573bcc-5047-4481-9756-ccbd31e5c97b" name="Default Changelist" comment="updated project name">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ssh.log" beforeDir="false" afterPath="$PROJECT_DIR$/ssh.log" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/stacked_FC_parallel.py" beforeDir="false" afterPath="$PROJECT_DIR$/stacked_FC_parallel.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -122,7 +122,7 @@
       <workItem from="1598393222031" duration="5281000" />
       <workItem from="1598493604742" duration="11871000" />
       <workItem from="1598640157818" duration="1192000" />
-      <workItem from="1598681796761" duration="941000" />
+      <workItem from="1598681796761" duration="1304000" />
     </task>
     <task id="LOCAL-00001" summary="updated project name">
       <created>1598399333776</created>
@@ -234,7 +234,7 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/config.py</url>
-          <line>123</line>
+          <line>115</line>
           <option name="timeStamp" value="3" />
         </line-breakpoint>
       </breakpoints>

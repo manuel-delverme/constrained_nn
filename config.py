@@ -35,14 +35,6 @@ use_sgd = False
 
 constrained = 1
 
-max_episode_steps = 10
-n_eval_episodes = 100
-max_samples = paper_evaluation_max_samples = int(1e6)
-paper_evaluation_n_eval_episodes = 100
-
-critic_math = True
-actor_math = True
-
 ################################################################
 # END OF PARAMETERS
 ################################################################
