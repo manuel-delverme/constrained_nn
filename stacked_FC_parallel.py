@@ -1,4 +1,5 @@
 # train_x, train_y, model, theta, x, y
+import gc
 import collections
 import os
 import time
@@ -139,9 +140,11 @@ def main():
     for outer_iter in range(config.optimization_iters):
         print("Iter", outer_iter)
         opt_state = update(outer_iter, opt_state)
-        if outer_iter % config.eval_every == 0:
+        if outer_iter % config.eval_every == 0 and outer_iter:
+            gc.collect()
             udpate_metrics(batches, equality_constraints, full_rollout_loss, model, opt_state, optimizer_get_params, outer_iter, update_time)
             update_time = time.time()
+
         # if outer_iter % 1000 == 0:
         #     params = optimizer_get_params(opt_state)
         #     params, multipliers = params
