@@ -25,9 +25,10 @@ RANDOM_SEED = 1337
 lr = jax.experimental.optimizers.inverse_time_decay(5e-3, 5000, 0.3, staircase=True)
 
 num_experiments = 1
-optimization_iters = 1000
-optimization_subiters = 1000
+optimization_iters = int(1e6)
+# optimization_subiters = 1000
 num_hidden = 32
+eval_every = 100
 batch_size = 32
 adam_betas = (0.3, 0.99)
 adam_eps = 1e-8

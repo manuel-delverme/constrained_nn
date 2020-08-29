@@ -139,7 +139,7 @@ def main():
     for outer_iter in range(config.optimization_iters):
         print("Iter", outer_iter)
         opt_state = update(outer_iter, opt_state)
-        if outer_iter % 10 == 0:
+        if outer_iter % config.eval_every == 0:
             udpate_metrics(batches, equality_constraints, full_rollout_loss, model, opt_state, optimizer_get_params, outer_iter, update_time)
             update_time = time.time()
         # if outer_iter % 1000 == 0:
