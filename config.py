@@ -22,7 +22,7 @@ else:
 RANDOM_SEED = 1337
 
 # lr = jax.experimental.optimizers.constant(1e-3)
-lr = jax.experimental.optimizers.inverse_time_decay(5e-3, 5000, 0.3, staircase=True)
+lr = jax.experimental.optimizers.inverse_time_decay(1e-4, 10000, 0.3, staircase=True)
 
 num_experiments = 1
 optimization_iters = int(1e6)
@@ -118,7 +118,7 @@ def commit_and_sendjob():
     command = f"ssh mila bash -l ./run_experiment.sh https://github.com/manuel-delverme/OptimalControlNeuralNet {main} {git_repo.commit().hexsha}"
     print(command)
     os.system(command)
-    with open("ssh.log", 'a') as fout:
+    with open("ssh.log", 'w') as fout:
         fout.write(command)
     # 4) logs on the server and pulls the latest version
     # 5) runs the experiment
