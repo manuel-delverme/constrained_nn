@@ -22,10 +22,11 @@ else:
 RANDOM_SEED = 1337
 
 # lr = jax.experimental.optimizers.constant(1e-3)
-lr = jax.experimental.optimizers.inverse_time_decay(1e-4, 10000, 0.3, staircase=True)
+optimization_iters = int(1e7)
 
-num_experiments = 1
-optimization_iters = int(1e6)
+initial_lr = 3e-5
+lr = jax.experimental.optimizers.inverse_time_decay(initial_lr, 10000, 0.3, staircase=True)
+
 # optimization_subiters = 1000
 num_hidden = 32
 eval_every = 100
