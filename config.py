@@ -24,14 +24,14 @@ RANDOM_SEED = 1337
 # lr = jax.experimental.optimizers.constant(1e-3)
 optimization_iters = int(1e7)
 
-initial_lr = 3e-5
+initial_lr = 1e-4
 lr = jax.experimental.optimizers.inverse_time_decay(initial_lr, 10000, 0.3, staircase=True)
 
 # optimization_subiters = 1000
-num_hidden = 32
+num_hidden = 512
 eval_every = 100
-batch_size = 32
-adam_betas = (0.3, 0.99)
+batch_size = 128
+adam_betas = (0.9, 0.99)
 adam_eps = 1e-8
 use_sgd = False
 
