@@ -18,7 +18,6 @@ if DEBUG:
     dataset = lambda: sklearn.datasets.load_iris()
 else:
     dataset = lambda: sklearn.datasets.fetch_openml('mnist_784')
-dataset = lambda: sklearn.datasets.load_iris()
 
 RANDOM_SEED = 1337
 
@@ -32,7 +31,10 @@ lr = jax.experimental.optimizers.inverse_time_decay(initial_lr, 1000, 0.3, stair
 num_hidden = 128
 eval_every = 100
 batch_size = 64
-adam_betas = (0.9, 0.99)
+
+adam1 = 0.9
+adam2 = 0.99
+adam_betas = adam1, adam2
 adam_eps = 1e-8
 use_sgd = False
 
@@ -117,7 +119,8 @@ def commit_and_sendjob():
     os.system("git push")
     main = sys.argv[0].split(os.getcwd())[-1].lstrip("/")
     # command = f"ssh mila ./run_experiment.sh {next(git_repo.remote().urls)} {main} {git_repo.commit().hexsha}"
-    command = f"ssh mila bash -l ./run_experiment.sh https://github.com/manuel-delverme/OptimalControlNeuralNet {main} {git_repo.commit().hexsha}"
+    # command = f"ssh mila bash -l ./run_experiment.sh https://github.com/manuel-delverme/OptimalControlNeuralNet {main} {git_repo.commit().hexsha}"
+    command = f"ssh mila bash -l ./run_sweep.sh https://github.com/manuel-delverme/OptimalControlNeuralNet {main} {git_repo.commit().hexsha}"
     print(command)
     os.system(command)
     with open("ssh.log", 'w') as fout:
