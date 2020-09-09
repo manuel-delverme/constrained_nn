@@ -18,19 +18,20 @@ if DEBUG:
     dataset = lambda: sklearn.datasets.load_iris()
 else:
     dataset = lambda: sklearn.datasets.fetch_openml('mnist_784')
+dataset = lambda: sklearn.datasets.load_iris()
 
 RANDOM_SEED = 1337
 
 # lr = jax.experimental.optimizers.constant(1e-3)
-optimization_iters = int(1e7)
+optimization_iters = int(1e6)
 
 initial_lr = 1e-4
-lr = jax.experimental.optimizers.inverse_time_decay(initial_lr, 10000, 0.3, staircase=True)
+lr = jax.experimental.optimizers.inverse_time_decay(initial_lr, 1000, 0.3, staircase=True)
 
 # optimization_subiters = 1000
-num_hidden = 512
+num_hidden = 128
 eval_every = 100
-batch_size = 128
+batch_size = 64
 adam_betas = (0.9, 0.99)
 adam_eps = 1e-8
 use_sgd = False
