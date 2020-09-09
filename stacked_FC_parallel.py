@@ -39,8 +39,8 @@ def block(out_dim, final_activation):
         stax.LeakyRelu,
         stax.Dense(config.num_hidden, ),
         stax.LeakyRelu,
-        stax.Dense(config.num_hidden, ),
-        stax.LeakyRelu,
+        # stax.Dense(config.num_hidden, ),
+        # stax.LeakyRelu,
         stax.Dense(out_dim, ),
         final_activation,
     )
@@ -48,8 +48,8 @@ def block(out_dim, final_activation):
 
 def make_block_net(num_classes):
     return zip(*[
-        block(config.num_hidden, stax.LeakyRelu),
-        block(config.num_hidden, stax.LeakyRelu),
+        # block(config.num_hidden, stax.LeakyRelu),
+        # block(config.num_hidden, stax.LeakyRelu),
         block(config.num_hidden, stax.LeakyRelu),
         block(num_classes, stax.Softmax),
     ])
