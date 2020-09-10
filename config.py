@@ -1,3 +1,4 @@
+import argparse
 import datetime
 import getpass
 import os
@@ -37,7 +38,6 @@ batch_size = 64
 
 adam1 = 0.9
 adam2 = 0.99
-adam_betas = adam1, adam2
 adam_eps = 1e-8
 use_sgd = False
 
@@ -48,11 +48,16 @@ constrained = 1
 ################################################################
 config_params = locals().copy()
 
-# everything below should not be here, what are you going to do? call the police?.
+# overwrite CLI parameters
+# fails on nested config object
+for arg in sys.argv[1:]:
+    assert arg[:2] == "--"
+    k, v = arg[2:].split("=")
+    k = k.lstrip("_")
+    locals()[k] = v
 
-params = config_params
-for k, v in params.items():
-    pass
+
+# everything below should not be here but refactored away
 
 
 class Wandb:
@@ -87,6 +92,7 @@ class Wandb:
                 key = prefix + "_" + _k
                 # if the parameter was not set by a sweep
                 if not key in wandb.config._items:
+                    print(f"setting")
                     setattr(wandb.config, key, str(_v))
                 else:
                     print(f"not setting {key} to {str(_v)}, str because its already {getattr(wandb.config, key)}, {type(getattr(wandb.config, key))}")

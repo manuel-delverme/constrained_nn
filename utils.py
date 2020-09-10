@@ -57,7 +57,7 @@ def sgd_solve(lagrangian, convergence_test, get_x, initial_values, max_iter=1000
     return *get_x(solution), history
 
 
-def adam_optimizer(step_size, betas=config.adam_betas, eps=config.adam_eps) -> (Callable, Callable, Callable):
+def adam_optimizer(step_size, betas=(config.adam1, config.adam2), eps=config.adam_eps) -> (Callable, Callable, Callable):
     step_size = jax.experimental.optimizers.make_schedule(step_size)
 
     def init(init_values):
