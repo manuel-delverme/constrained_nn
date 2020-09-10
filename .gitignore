@@ -5,3 +5,4 @@
 tensorboard/
 ssh.log
 .idea/
+wandb/

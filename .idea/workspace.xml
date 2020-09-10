@@ -26,11 +26,32 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c1573bcc-5047-4481-9756-ccbd31e5c97b" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/sweep.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/HowToTrainYourNet.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/HowToTrainYourNet.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ssh.log" beforeDir="false" afterPath="$PROJECT_DIR$/ssh.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wandb/debug.log" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wandb/run-20200910_092214-3jfg2egx/config.yaml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wandb/run-20200910_092214-3jfg2egx/output.log" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wandb/run-20200910_092214-3jfg2egx/requirements.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wandb/run-20200910_092214-3jfg2egx/wandb-events.jsonl" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wandb/run-20200910_092214-3jfg2egx/wandb-history.jsonl" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wandb/run-20200910_092214-3jfg2egx/wandb-metadata.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wandb/run-20200910_092554-3ppuhod8/config.yaml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wandb/run-20200910_092554-3ppuhod8/output.log" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wandb/run-20200910_092554-3ppuhod8/requirements.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wandb/run-20200910_092554-3ppuhod8/wandb-events.jsonl" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wandb/run-20200910_092554-3ppuhod8/wandb-history.jsonl" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wandb/run-20200910_092554-3ppuhod8/wandb-metadata.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wandb/run-20200910_092717-2cl7vlkj/config.yaml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wandb/run-20200910_092717-2cl7vlkj/output.log" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wandb/run-20200910_092717-2cl7vlkj/requirements.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wandb/run-20200910_092717-2cl7vlkj/wandb-events.jsonl" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wandb/run-20200910_092717-2cl7vlkj/wandb-history.jsonl" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wandb/run-20200910_092717-2cl7vlkj/wandb-metadata.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wandb/run-20200910_094917-dco2anly/config.yaml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wandb/run-20200910_094917-dco2anly/output.log" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wandb/run-20200910_094917-dco2anly/requirements.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wandb/run-20200910_094917-dco2anly/wandb-events.jsonl" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wandb/run-20200910_094917-dco2anly/wandb-history.jsonl" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wandb/run-20200910_094917-dco2anly/wandb-metadata.json" beforeDir="false" />
     </list>
     <list id="ae405ad7-4485-4495-9cfb-6f25fba0a730" name="ignored" comment="" />
     <option name="SHOW_DIALOG" value="false" />
@@ -55,7 +76,7 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../WhereDoOptionsLive" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
@@ -133,7 +154,7 @@
       <workItem from="1599119755345" duration="41000" />
       <workItem from="1599558529625" duration="4150000" />
       <workItem from="1599676235328" duration="1975000" />
-      <workItem from="1599739308884" duration="4816000" />
+      <workItem from="1599739308884" duration="6312000" />
     </task>
     <task id="LOCAL-00001" summary="updated project name">
       <created>1598399333776</created>
@@ -149,7 +170,14 @@
       <option name="project" value="LOCAL" />
       <updated>1598685332095</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="updated project name">
+      <created>1599744522218</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1599744522218</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -204,52 +232,54 @@
     </state>
     <state x="935" y="450" width="985" height="511" key="#xdebugger.evaluate/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599744420247" />
     <state x="2634" y="301" width="739" height="511" key="#xdebugger.evaluate/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598519860621" />
-    <state x="491" y="154" width="927" height="871" key="CommitChangelistDialog2" timestamp="1598685331920">
-      <screen x="0" y="27" width="1920" height="1053" />
+    <state x="2411" y="130" width="927" height="871" key="CommitChangelistDialog2" timestamp="1599744522117">
+      <screen x="1920" y="0" width="1920" height="1080" />
     </state>
     <state x="491" y="154" width="927" height="871" key="CommitChangelistDialog2/0.27.1920.1053/1920.0.1920.1080@0.27.1920.1053" timestamp="1598685331920" />
+    <state x="2411" y="130" key="CommitChangelistDialog2/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599744522117" />
     <state x="2411" y="130" width="927" height="853" key="CommitChangelistDialog2/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598506406832" />
     <state width="1918" height="480" key="DebuggerActiveHint" timestamp="1599744454760">
       <screen x="1920" y="0" width="1920" height="1080" />
     </state>
     <state width="1918" height="480" key="DebuggerActiveHint/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599744454760" />
     <state width="1918" height="480" key="DebuggerActiveHint/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598519828070" />
-    <state x="2020" y="101" width="1536" height="902" key="DiffContextDialog" timestamp="1599562683704">
+    <state x="2020" y="101" width="1536" height="902" key="DiffContextDialog" timestamp="1599744517829">
       <screen x="1920" y="0" width="1920" height="1080" />
     </state>
     <state x="100" y="125" width="1536" height="879" key="DiffContextDialog/0.27.1920.1053/1920.0.1920.1080@0.27.1920.1053" timestamp="1598685327813" />
-    <state x="2020" y="101" width="1536" height="902" key="DiffContextDialog/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599562683704" />
+    <state x="2020" y="101" width="1536" height="902" key="DiffContextDialog/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599744517829" />
     <state x="2020" y="100" width="1720" height="880" key="DiffContextDialog/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598523972282" />
-    <state x="739" y="311" key="FileChooserDialogImpl" timestamp="1599119792827">
-      <screen x="0" y="27" width="1920" height="1053" />
+    <state x="2659" y="291" key="FileChooserDialogImpl" timestamp="1599745083518">
+      <screen x="1920" y="0" width="1920" height="1080" />
     </state>
+    <state x="2659" y="291" key="FileChooserDialogImpl/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599745083518" />
     <state x="739" y="311" key="FileChooserDialogImpl/0.27.1920.1053@0.27.1920.1053" timestamp="1599119792827" />
-    <state width="1872" height="281" key="GridCell.Tab.0.bottom" timestamp="1599744435850">
+    <state width="1872" height="331" key="GridCell.Tab.0.bottom" timestamp="1599745970246">
       <screen x="1920" y="0" width="1920" height="1080" />
     </state>
     <state width="1872" height="279" key="GridCell.Tab.0.bottom/0.27.1920.1053/1920.0.1920.1080@0.27.1920.1053" timestamp="1598685342397" />
-    <state width="1872" height="281" key="GridCell.Tab.0.bottom/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599744435850" />
+    <state width="1872" height="331" key="GridCell.Tab.0.bottom/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599745970246" />
     <state width="1872" height="279" key="GridCell.Tab.0.bottom/0.27.3840.1053@0.27.3840.1053" timestamp="1598687091231" />
     <state width="1872" height="282" key="GridCell.Tab.0.bottom/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598522975724" />
-    <state width="1872" height="281" key="GridCell.Tab.0.center" timestamp="1599744435850">
+    <state width="1872" height="331" key="GridCell.Tab.0.center" timestamp="1599745970246">
       <screen x="1920" y="0" width="1920" height="1080" />
     </state>
     <state width="1872" height="279" key="GridCell.Tab.0.center/0.27.1920.1053/1920.0.1920.1080@0.27.1920.1053" timestamp="1598685342397" />
-    <state width="1872" height="281" key="GridCell.Tab.0.center/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599744435850" />
+    <state width="1872" height="331" key="GridCell.Tab.0.center/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599745970246" />
     <state width="1872" height="279" key="GridCell.Tab.0.center/0.27.3840.1053@0.27.3840.1053" timestamp="1598687091230" />
     <state width="1872" height="282" key="GridCell.Tab.0.center/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598522975724" />
-    <state width="1872" height="281" key="GridCell.Tab.0.left" timestamp="1599744435850">
+    <state width="1872" height="331" key="GridCell.Tab.0.left" timestamp="1599745970246">
       <screen x="1920" y="0" width="1920" height="1080" />
     </state>
     <state width="1872" height="279" key="GridCell.Tab.0.left/0.27.1920.1053/1920.0.1920.1080@0.27.1920.1053" timestamp="1598685342397" />
-    <state width="1872" height="281" key="GridCell.Tab.0.left/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599744435850" />
+    <state width="1872" height="331" key="GridCell.Tab.0.left/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599745970246" />
     <state width="1872" height="279" key="GridCell.Tab.0.left/0.27.3840.1053@0.27.3840.1053" timestamp="1598687091230" />
     <state width="1872" height="282" key="GridCell.Tab.0.left/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598522975724" />
-    <state width="1872" height="281" key="GridCell.Tab.0.right" timestamp="1599744435850">
+    <state width="1872" height="331" key="GridCell.Tab.0.right" timestamp="1599745970246">
       <screen x="1920" y="0" width="1920" height="1080" />
     </state>
     <state width="1872" height="279" key="GridCell.Tab.0.right/0.27.1920.1053/1920.0.1920.1080@0.27.1920.1053" timestamp="1598685342397" />
-    <state width="1872" height="281" key="GridCell.Tab.0.right/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599744435850" />
+    <state width="1872" height="331" key="GridCell.Tab.0.right/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599745970246" />
     <state width="1872" height="279" key="GridCell.Tab.0.right/0.27.3840.1053@0.27.3840.1053" timestamp="1598687091231" />
     <state width="1872" height="282" key="GridCell.Tab.0.right/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598522975724" />
     <state x="2354" y="188" width="1052" height="737" key="SettingsEditor" timestamp="1599561782422">
@@ -257,19 +287,20 @@
     </state>
     <state x="2354" y="188" key="SettingsEditor/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599561782422" />
     <state x="2354" y="188" width="1052" height="737" key="SettingsEditor/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598394841002" />
-    <state x="790" y="504" width="311" height="185" key="VCS.ChangelistChooser" timestamp="1598685315488">
-      <screen x="0" y="27" width="1920" height="1053" />
+    <state x="2710" y="489" width="311" height="197" key="VCS.ChangelistChooser" timestamp="1599744498900">
+      <screen x="1920" y="0" width="1920" height="1080" />
     </state>
     <state x="790" y="504" width="311" height="185" key="VCS.ChangelistChooser/0.27.1920.1053/1920.0.1920.1080@0.27.1920.1053" timestamp="1598685315488" />
+    <state x="2710" y="489" width="311" height="197" key="VCS.ChangelistChooser/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599744498900" />
     <state x="1166" y="172" width="754" height="644" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1599742948939">
       <screen x="0" y="27" width="1920" height="1053" />
     </state>
     <state x="1166" y="172" width="754" height="644" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599742948939" />
     <state x="2494" y="172" width="762" height="770" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598399851710" />
-    <state x="2562" y="292" width="636" height="522" key="find.popup" timestamp="1599558689838">
+    <state x="2437" y="275" width="636" height="522" key="find.popup" timestamp="1599745085745">
       <screen x="1920" y="0" width="1920" height="1080" />
     </state>
-    <state x="2562" y="292" width="636" height="522" key="find.popup/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599558689838" />
+    <state x="2437" y="275" width="636" height="522" key="find.popup/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599745085745" />
     <state x="2562" y="292" width="636" height="522" key="find.popup/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598506148624" />
     <state x="2590" y="247" width="569" height="619" key="git4idea.branch.GitSmartOperationDialog" timestamp="1598393190824">
       <screen x="1920" y="0" width="1920" height="1080" />
@@ -279,11 +310,11 @@
       <screen x="1920" y="0" width="1920" height="1080" />
     </state>
     <state x="2615" y="440" width="519" height="207" key="git4idea.ui.GitStashDialog/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599561789701" />
-    <state x="2543" y="259" width="672" height="679" key="search.everywhere.popup" timestamp="1599744490196">
+    <state x="2543" y="259" width="672" height="679" key="search.everywhere.popup" timestamp="1599745986870">
       <screen x="1920" y="0" width="1920" height="1080" />
     </state>
     <state x="623" y="280" width="672" height="662" key="search.everywhere.popup/0.27.1920.1053/1920.0.1920.1080@0.27.1920.1053" timestamp="1598685340503" />
-    <state x="2543" y="259" width="672" height="679" key="search.everywhere.popup/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599744490196" />
+    <state x="2543" y="259" width="672" height="679" key="search.everywhere.popup/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599745986870" />
     <state x="1246" y="280" width="1344" height="662" key="search.everywhere.popup/0.27.3840.1053@0.27.3840.1053" timestamp="1598688641194" />
     <state x="2543" y="259" width="672" height="678" key="search.everywhere.popup/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598511618383" />
   </component>
@@ -305,11 +336,16 @@
           <line>91</line>
           <option name="timeStamp" value="15" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/config.py</url>
+          <line>93</line>
+          <option name="timeStamp" value="17" />
+        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/HowToTrainYourNet$stacked_FC_parallel.coverage" NAME="stacked_FC_parallel Coverage Results" MODIFIED="1599744435831" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/HowToTrainYourNet$stacked_FC_parallel.coverage" NAME="stacked_FC_parallel Coverage Results" MODIFIED="1599745934453" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/HowToTrainYourNet$config.coverage" NAME="config Coverage Results" MODIFIED="1598394556637" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
