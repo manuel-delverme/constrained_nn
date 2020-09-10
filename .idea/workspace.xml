@@ -26,10 +26,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c1573bcc-5047-4481-9756-ccbd31e5c97b" name="Default Changelist" comment="updated project name">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ssh.log" beforeDir="false" afterPath="$PROJECT_DIR$/ssh.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/stacked_FC_parallel.py" beforeDir="false" afterPath="$PROJECT_DIR$/stacked_FC_parallel.py" afterDir="false" />
     </list>
     <list id="ae405ad7-4485-4495-9cfb-6f25fba0a730" name="ignored" comment="" />
     <option name="SHOW_DIALOG" value="false" />
@@ -144,6 +142,7 @@
       <workItem from="1599558529625" duration="4150000" />
       <workItem from="1599676235328" duration="1975000" />
       <workItem from="1599739308884" duration="9276000" />
+      <workItem from="1599770131182" duration="300000" />
     </task>
     <task id="LOCAL-00001" summary="updated project name">
       <created>1598399333776</created>
@@ -312,7 +311,7 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/config.py</url>
-          <line>132</line>
+          <line>133</line>
           <option name="timeStamp" value="9" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -322,17 +321,17 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/config.py</url>
-          <line>125</line>
+          <line>126</line>
           <option name="timeStamp" value="18" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/config.py</url>
-          <line>61</line>
+          <line>62</line>
           <option name="timeStamp" value="28" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/config.py</url>
-          <line>53</line>
+          <line>54</line>
           <option name="timeStamp" value="30" />
         </line-breakpoint>
       </breakpoints>
@@ -340,7 +339,7 @@
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/HowToTrainYourNet$am.coverage" NAME="am Coverage Results" MODIFIED="1599757850500" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/HowToTrainYourNet$stacked_FC_parallel.coverage" NAME="stacked_FC_parallel Coverage Results" MODIFIED="1599758040099" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/HowToTrainYourNet$stacked_FC_parallel.coverage" NAME="stacked_FC_parallel Coverage Results" MODIFIED="1599770430926" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/HowToTrainYourNet$config.coverage" NAME="config Coverage Results" MODIFIED="1598394556637" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

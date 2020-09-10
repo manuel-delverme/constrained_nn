@@ -22,6 +22,7 @@ if DEBUG:
     dataset = lambda: sklearn.datasets.load_iris()
 else:
     dataset = lambda: sklearn.datasets.fetch_openml('mnist_784')
+dataset = lambda: sklearn.datasets.load_iris()
 
 RANDOM_SEED = 1337
 
@@ -92,7 +93,7 @@ class Wandb:
                 key = prefix + "_" + _k
                 # if the parameter was not set by a sweep
                 if not key in wandb.config._items:
-                    print(f"setting")
+                    print(f"setting {key}={str(_v)}")
                     setattr(wandb.config, key, str(_v))
                 else:
                     print(f"not setting {key} to {str(_v)}, str because its already {getattr(wandb.config, key)}, {type(getattr(wandb.config, key))}")
@@ -162,6 +163,7 @@ else:
 
             root = tkinter.Tk()
             experiment_id = tkinter.simpledialog.askstring("experiment_id", "experiment_id")
+            experiment_id.replace(" ", "_")
             root.destroy()
         except Exception as e:
             pass
