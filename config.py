@@ -22,7 +22,6 @@ if DEBUG:
     dataset = lambda: sklearn.datasets.load_iris()
 else:
     dataset = lambda: sklearn.datasets.fetch_openml('mnist_784')
-dataset = lambda: sklearn.datasets.load_iris()
 
 RANDOM_SEED = 1337
 
