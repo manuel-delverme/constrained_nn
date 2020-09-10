@@ -67,6 +67,7 @@ class Wandb:
         self._global_step = value
 
     def __init__(self, _experiment_id):
+        print(f"wandb.init(project={PROJECT_NAME}, name={_experiment_id})")
         wandb.init(project=PROJECT_NAME, name=_experiment_id)
 
         def register_param(_k, _v, prefix=""):
@@ -117,16 +118,16 @@ def setup_tb(logdir):
 
 def commit_and_sendjob(experiment_id):
     # 2) commits everything to git with the name as message (so i can later reproduce the same experiment)
-    # os.system(f"git add .")
-    # os.system(f"git commit -m '[CLUSTER] {experiment_id}'")
+    os.system(f"git add .")
+    os.system(f"git commit -m '[CLUSTER] {experiment_id}'")
     # 3) pushes the changes to git
-    # os.system("git push")
+    os.system("git push")
 
     if RUN_SWEEP:
         wandb_stdout = subprocess.check_output(f"wandb sweep --name {experiment_id} -p {PROJECT_NAME} sweep.yaml".split(" "), stderr=subprocess.STDOUT).decode("utf-8")
         print(wandb_stdout)
         sweep_id = wandb_stdout.split("/")[-1].strip()
-        command = f"ssh mila /opt/slurm/bin/srun ./localenv_sweep.sh https://github.com/manuel-delverme/OptimalControlNeuralNet {sweep_id} {git_repo.commit().hexsha}"
+        command = f"ssh mila /opt/slurm/bin/sbatch ./localenv_sweep.sh https://github.com/manuel-delverme/OptimalControlNeuralNet {sweep_id} {git_repo.commit().hexsha}"
     else:
         main = sys.argv[0].split(os.getcwd())[-1].lstrip("/")
         command = f"ssh mila bash -l ./run_experiment.sh https://github.com/manuel-delverme/OptimalControlNeuralNet {main} {git_repo.commit().hexsha}"
