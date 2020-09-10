@@ -1,6 +1,7 @@
 import datetime
 import getpass
 import os
+import subprocess
 import sys
 import types
 
@@ -12,6 +13,8 @@ import tensorboardX
 import wandb
 
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
+RUN_SWEEP = True
+PROJECT_NAME = "constrained_nn"
 
 if DEBUG:
     print("USING IRIS DATASET")
@@ -64,7 +67,7 @@ class Wandb:
         self._global_step = value
 
     def __init__(self, _experiment_id):
-        wandb.init(project="constrained_nn", name=_experiment_id)
+        wandb.init(project=PROJECT_NAME, name=_experiment_id)
 
         def register_param(_k, _v, prefix=""):
             if _k.startswith("__") and _k.endswith("__"):
@@ -80,7 +83,12 @@ class Wandb:
                         __v = getattr(module, __k)
                         register_param(__k, __v, prefix=module.__name__.replace(".", "_"))
             else:
-                setattr(wandb.config, prefix + "_" + _k, str(_v))
+                key = prefix + "_" + _k
+                # if the parameter was not set by a sweep
+                if not key in wandb.config._items:
+                    setattr(wandb.config, key, str(_v))
+                else:
+                    print(f"not setting {key} to {str(_v)}, str because its already {getattr(wandb.config, key)}, {type(getattr(wandb.config, key))}")
 
         params = config_params
         for k, v in params.items():
@@ -107,20 +115,23 @@ def setup_tb(logdir):
     return tb
 
 
-def commit_and_sendjob():
-    global experiment_id
+def commit_and_sendjob(experiment_id):
     # 2) commits everything to git with the name as message (so i can later reproduce the same experiment)
-    print("git add")
-    os.system(f"git add .")
-    print("git commit")
-    os.system(f"git commit -m '[CLUSTER] {experiment_id}'")
+    # os.system(f"git add .")
+    # os.system(f"git commit -m '[CLUSTER] {experiment_id}'")
     # 3) pushes the changes to git
-    print("git push")
-    os.system("git push")
-    main = sys.argv[0].split(os.getcwd())[-1].lstrip("/")
+    # os.system("git push")
+
+    if RUN_SWEEP:
+        wandb_stdout = subprocess.check_output(f"wandb sweep --name {experiment_id} -p {PROJECT_NAME} sweep.yaml".split(" "), stderr=subprocess.STDOUT).decode("utf-8")
+        print(wandb_stdout)
+        sweep_id = wandb_stdout.split("/")[-1].strip()
+        command = f"ssh mila /opt/slurm/bin/srun ./localenv_sweep.sh https://github.com/manuel-delverme/OptimalControlNeuralNet {sweep_id} {git_repo.commit().hexsha}"
+    else:
+        main = sys.argv[0].split(os.getcwd())[-1].lstrip("/")
+        command = f"ssh mila bash -l ./run_experiment.sh https://github.com/manuel-delverme/OptimalControlNeuralNet {main} {git_repo.commit().hexsha}"
+
     # command = f"ssh mila ./run_experiment.sh {next(git_repo.remote().urls)} {main} {git_repo.commit().hexsha}"
-    # command = f"ssh mila bash -l ./run_experiment.sh https://github.com/manuel-delverme/OptimalControlNeuralNet {main} {git_repo.commit().hexsha}"
-    command = f"ssh mila bash -l ./run_sweep.sh https://github.com/manuel-delverme/OptimalControlNeuralNet {main} {git_repo.commit().hexsha}"
     print(command)
     os.system(command)
     with open("ssh.log", 'w') as fout:
@@ -154,7 +165,7 @@ else:
         # tb = torch.utils.tensorboard.SummaryWriter(log_dir=os.path.join(C.TENSORBOARD, experiment_id, dtm))
         tb = setup_tb(logdir=os.path.join("tensorboard/", experiment_id, dtm))
     else:
-        commit_and_sendjob()
+        commit_and_sendjob(experiment_id)
         sys.exit()
 
 print(f"experiment_id: {experiment_id}")

@@ -1,0 +1,32 @@
+method: bayes
+metric:
+  goal: maximize
+  name: train/train_accuracy
+parameters:
+  _adam1:
+    distribution: uniform
+    max: 0.95
+    min: 0.5
+  _adam2:
+    distribution: uniform
+    max: 0.999
+    min: 0.99
+  _batch_size:
+    distribution: categorical
+    values:
+    - "64"
+    - "128"
+    - "256"
+  _initial_lr:
+    distribution: categorical
+    values:
+    - 0.001
+    - 0.0001
+    - 1e-05
+  _num_hidden:
+    distribution: categorical
+    values:
+    - "128"
+    - "256"
+    - "512"
+program: stacked_FC_parallel.py
