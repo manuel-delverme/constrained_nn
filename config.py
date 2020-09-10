@@ -124,7 +124,8 @@ def commit_and_sendjob(experiment_id):
     os.system("git push")
 
     if RUN_SWEEP:
-        wandb_stdout = subprocess.check_output(f"wandb sweep --name {experiment_id} -p {PROJECT_NAME} sweep.yaml".split(" "), stderr=subprocess.STDOUT).decode("utf-8")
+        cmd_list = f"/home/esac/research/fax/venv/bin/wandb sweep --name {experiment_id} -p {PROJECT_NAME} sweep.yaml".split(" ")
+        wandb_stdout = subprocess.check_output(cmd_list, stderr=subprocess.STDOUT).decode("utf-8")
         print(wandb_stdout)
         sweep_id = wandb_stdout.split("/")[-1].strip()
         command = f"ssh mila /opt/slurm/bin/sbatch ./localenv_sweep.sh https://github.com/manuel-delverme/OptimalControlNeuralNet {sweep_id} {git_repo.commit().hexsha}"
