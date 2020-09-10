@@ -55,6 +55,14 @@ for arg in sys.argv[1:]:
     assert arg[:2] == "--"
     k, v = arg[2:].split("=")
     k = k.lstrip("_")
+    if "." in v:
+        v = float(v)
+    else:
+        try:
+            v = int(v)
+        except ValueError:
+            pass
+
     locals()[k] = v
 
 

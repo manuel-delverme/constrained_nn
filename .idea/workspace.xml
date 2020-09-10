@@ -26,7 +26,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c1573bcc-5047-4481-9756-ccbd31e5c97b" name="Default Changelist" comment="updated project name">
-      <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ssh.log" beforeDir="false" afterPath="$PROJECT_DIR$/ssh.log" afterDir="false" />
     </list>
     <list id="ae405ad7-4485-4495-9cfb-6f25fba0a730" name="ignored" comment="" />
@@ -142,7 +141,7 @@
       <workItem from="1599558529625" duration="4150000" />
       <workItem from="1599676235328" duration="1975000" />
       <workItem from="1599739308884" duration="9276000" />
-      <workItem from="1599770131182" duration="300000" />
+      <workItem from="1599770131182" duration="905000" />
     </task>
     <task id="LOCAL-00001" summary="updated project name">
       <created>1598399333776</created>
@@ -298,11 +297,11 @@
       <screen x="1920" y="0" width="1920" height="1080" />
     </state>
     <state x="2615" y="440" width="519" height="207" key="git4idea.ui.GitStashDialog/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599561789701" />
-    <state x="2543" y="259" width="672" height="679" key="search.everywhere.popup" timestamp="1599757965517">
+    <state x="2543" y="259" width="672" height="679" key="search.everywhere.popup" timestamp="1599770235317">
       <screen x="1920" y="0" width="1920" height="1080" />
     </state>
     <state x="623" y="280" width="672" height="662" key="search.everywhere.popup/0.27.1920.1053/1920.0.1920.1080@0.27.1920.1053" timestamp="1598685340503" />
-    <state x="2543" y="259" width="672" height="679" key="search.everywhere.popup/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599757965517" />
+    <state x="2543" y="259" width="672" height="679" key="search.everywhere.popup/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599770235317" />
     <state x="1246" y="280" width="1344" height="662" key="search.everywhere.popup/0.27.3840.1053@0.27.3840.1053" timestamp="1598688641194" />
     <state x="2543" y="259" width="672" height="678" key="search.everywhere.popup/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598511618383" />
   </component>
