@@ -18,15 +18,14 @@ parameters:
     - "128"
     - "256"
   _initial_lr:
-    distribution: categorical
-    values:
-    - 0.001
-    - 0.0001
-    - 1e-05
+    distribution: log_uniform
+    max: -2
+    min: -5
   _num_hidden:
     distribution: categorical
     values:
     - "128"
     - "256"
     - "512"
+    - "1024"
 program: stacked_FC_parallel.py
