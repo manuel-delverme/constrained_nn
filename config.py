@@ -32,7 +32,7 @@ initial_lr = 1e-4
 lr = jax.experimental.optimizers.inverse_time_decay(initial_lr, 1000, 0.3, staircase=True)
 
 # optimization_subiters = 1000
-num_hidden = 128
+num_hidden = 300
 eval_every = 100
 batch_size = 256
 

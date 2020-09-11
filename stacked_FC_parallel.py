@@ -33,12 +33,12 @@ class ConstrainedParameters(collections.namedtuple("ConstrainedParameters", "the
 
 def block(out_dim, final_activation):
     return stax.serial(
-        stax.Dense(config.num_hidden, ),
-        stax.LeakyRelu,
-        stax.Dense(config.num_hidden, ),
-        stax.LeakyRelu,
-        stax.Dense(config.num_hidden, ),
-        stax.LeakyRelu,
+        # stax.Dense(config.num_hidden, ),
+        # stax.LeakyRelu,
+        # stax.Dense(config.num_hidden, ),
+        # stax.LeakyRelu,
+        # stax.Dense(config.num_hidden, ),
+        # stax.LeakyRelu,
         # stax.Dense(config.num_hidden, ),
         # stax.LeakyRelu,
         stax.Dense(out_dim, ),
