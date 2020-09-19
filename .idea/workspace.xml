@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="BranchesTreeState">
     <expand>
       <path>
@@ -26,8 +29,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c1573bcc-5047-4481-9756-ccbd31e5c97b" name="Default Changelist" comment="updated project name">
+      <change afterPath="$PROJECT_DIR$/datasets.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/old_main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ssh.log" beforeDir="false" afterPath="$PROJECT_DIR$/ssh.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/stacked_FC_parallel.py" beforeDir="false" afterPath="$PROJECT_DIR$/stacked_FC_parallel.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils.py" afterDir="false" />
     </list>
     <list id="ae405ad7-4485-4495-9cfb-6f25fba0a730" name="ignored" comment="" />
     <option name="SHOW_DIALOG" value="false" />
@@ -59,13 +68,18 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../hs-spinoff/math_layer/config.py" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
     <property name="settings.editor.selected.configurable" value="vcs.Git" />
   </component>
-  <component name="RunManager" selected="Python.stacked_FC_parallel">
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Python.main">
     <configuration name="config" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="HowToTrainYourNet" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -88,7 +102,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="stacked_FC_parallel" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="HowToTrainYourNet" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -101,8 +115,8 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/stacked_FC_parallel.py" />
-      <option name="PARAMETERS" value="--_adam1=0.6499944469059281 --_adam2=0.9944018561105452 --_batch_size=128 --_initial_lr=0.001 --_num_hidden=128" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main.py" />
+      <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -112,13 +126,13 @@
     </configuration>
     <list>
       <item itemvalue="Python.config" />
-      <item itemvalue="Python.stacked_FC_parallel" />
+      <item itemvalue="Python.main" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.stacked_FC_parallel" />
+        <item itemvalue="Python.main" />
         <item itemvalue="Python.config" />
-        <item itemvalue="Python.stacked_FC_parallel" />
+        <item itemvalue="Python.main" />
       </list>
     </recent_temporary>
   </component>
@@ -143,7 +157,18 @@
       <workItem from="1599676235328" duration="1975000" />
       <workItem from="1599739308884" duration="9276000" />
       <workItem from="1599770131182" duration="1703000" />
-      <workItem from="1599815710223" duration="3641000" />
+      <workItem from="1599815710223" duration="7990000" />
+      <workItem from="1599842937537" duration="97000" />
+      <workItem from="1599848336317" duration="7944000" />
+      <workItem from="1600160954698" duration="12362000" />
+      <workItem from="1600191174699" duration="4144000" />
+      <workItem from="1600246416218" duration="21690000" />
+      <workItem from="1600278204106" duration="1529000" />
+      <workItem from="1600346359497" duration="5797000" />
+      <workItem from="1600363422610" duration="87000" />
+      <workItem from="1600421961360" duration="644000" />
+      <workItem from="1600422612262" duration="10615000" />
+      <workItem from="1600452822576" duration="9784000" />
     </task>
     <task id="LOCAL-00001" summary="updated project name">
       <created>1598399333776</created>
@@ -211,65 +236,100 @@
     <option name="LAST_COMMIT_MESSAGE" value="updated project name" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="2338" y="211" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1599758152692">
-      <screen x="1920" y="0" width="1920" height="1080" />
+    <state x="418" y="233" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1600267950425">
+      <screen x="0" y="27" width="1920" height="1053" />
     </state>
-    <state x="2338" y="211" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599758152692" />
+    <state x="2338" y="211" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599827146644" />
+    <state x="418" y="233" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.27.1920.1053@0.27.1920.1053" timestamp="1600267950425" />
     <state x="2338" y="211" key="#com.intellij.execution.impl.EditConfigurationsDialog/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598399392418" />
-    <state x="2450" y="129" width="985" height="511" key="#xdebugger.evaluate" timestamp="1599771450414">
-      <screen x="1920" y="0" width="1920" height="1080" />
+    <state x="2196" y="398" width="497" height="511" key="#xdebugger.evaluate" timestamp="1600459052173">
+      <screen x="1400" y="0" width="1920" height="1080" />
     </state>
-    <state x="2450" y="129" width="985" height="511" key="#xdebugger.evaluate/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599771450414" />
+    <state x="2450" y="129" width="985" height="511" key="#xdebugger.evaluate/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599857086789" />
+    <state x="796" y="415" width="980" height="555" key="#xdebugger.evaluate/0.27.1920.1053@0.27.1920.1053" timestamp="1600439105810" />
+    <state x="2196" y="398" width="497" height="511" key="#xdebugger.evaluate/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@1400.0.1920.1080" timestamp="1600459052173" />
+    <state x="386" y="696" width="715" height="354" key="#xdebugger.evaluate/1400.0.1920.1080/3320.0.1920.1080/0.696.1400.354@0.696.1400.354" timestamp="1600196573681" />
+    <state x="1899" y="272" width="1091" height="572" key="#xdebugger.evaluate/1400.485.1920.1080/3320.0.1080.1920/0.485.1400.1050@1400.485.1920.1080" timestamp="1600360562926" />
     <state x="2634" y="301" width="739" height="511" key="#xdebugger.evaluate/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598519860621" />
-    <state x="2411" y="130" width="927" height="871" key="CommitChangelistDialog2" timestamp="1599746432231">
-      <screen x="1920" y="0" width="1920" height="1080" />
+    <state x="491" y="154" width="927" height="871" key="CommitChangelistDialog2" timestamp="1600163375967">
+      <screen x="0" y="27" width="1920" height="1053" />
     </state>
     <state x="491" y="154" width="927" height="871" key="CommitChangelistDialog2/0.27.1920.1053/1920.0.1920.1080@0.27.1920.1053" timestamp="1598685331920" />
     <state x="2411" y="130" width="927" height="871" key="CommitChangelistDialog2/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599746432231" />
+    <state x="491" y="154" key="CommitChangelistDialog2/0.27.1920.1053@0.27.1920.1053" timestamp="1600163375967" />
     <state x="2411" y="130" width="927" height="853" key="CommitChangelistDialog2/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598506406832" />
-    <state width="1918" height="480" key="DebuggerActiveHint" timestamp="1599757472273">
-      <screen x="1920" y="0" width="1920" height="1080" />
+    <state width="1918" height="482" key="DebuggerActiveHint" timestamp="1600462997833">
+      <screen x="1400" y="0" width="1920" height="1080" />
     </state>
-    <state width="1918" height="480" key="DebuggerActiveHint/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599757472273" />
+    <state width="1918" height="480" key="DebuggerActiveHint/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599857041520" />
+    <state width="1918" height="469" key="DebuggerActiveHint/0.27.1920.1053@0.27.1920.1053" timestamp="1600270652728" />
+    <state width="1918" height="482" key="DebuggerActiveHint/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@1400.0.1920.1080" timestamp="1600462997833" />
+    <state width="1398" height="158" key="DebuggerActiveHint/1400.0.1920.1080/3320.0.1920.1080/0.696.1400.354@0.696.1400.354" timestamp="1600196775542" />
+    <state width="1918" height="482" key="DebuggerActiveHint/1400.485.1920.1080/3320.0.1080.1920/0.485.1400.1050@1400.485.1920.1080" timestamp="1600360024516" />
     <state width="1918" height="480" key="DebuggerActiveHint/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598519828070" />
-    <state x="2020" y="101" width="1536" height="902" key="DiffContextDialog" timestamp="1599744517829">
+    <state x="2020" y="101" width="1536" height="902" maximized="true" key="DiffContextDialog" timestamp="1599833075989">
       <screen x="1920" y="0" width="1920" height="1080" />
     </state>
     <state x="100" y="125" width="1536" height="879" key="DiffContextDialog/0.27.1920.1053/1920.0.1920.1080@0.27.1920.1053" timestamp="1598685327813" />
-    <state x="2020" y="101" width="1536" height="902" key="DiffContextDialog/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599744517829" />
+    <state x="2020" y="101" width="1536" height="902" maximized="true" key="DiffContextDialog/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599833075989" />
     <state x="2020" y="100" width="1720" height="880" key="DiffContextDialog/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598523972282" />
-    <state x="2647" y="216" width="492" height="756" key="FileChooserDialogImpl" timestamp="1599757106018">
-      <screen x="1920" y="0" width="1920" height="1080" />
+    <state x="2127" y="216" width="492" height="756" key="FileChooserDialogImpl" timestamp="1600363457101">
+      <screen x="1400" y="0" width="1920" height="1080" />
     </state>
     <state x="2647" y="216" width="492" height="756" key="FileChooserDialogImpl/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599757106018" />
     <state x="739" y="311" key="FileChooserDialogImpl/0.27.1920.1053@0.27.1920.1053" timestamp="1599119792827" />
-    <state width="1872" height="250" key="GridCell.Tab.0.bottom" timestamp="1599771979025">
-      <screen x="1920" y="0" width="1920" height="1080" />
+    <state x="2127" y="216" key="FileChooserDialogImpl/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@1400.0.1920.1080" timestamp="1600363457101" />
+    <state width="1872" height="241" key="GridCell.Tab.0.bottom" timestamp="1600463771025">
+      <screen x="1400" y="0" width="1920" height="1080" />
     </state>
     <state width="1872" height="279" key="GridCell.Tab.0.bottom/0.27.1920.1053/1920.0.1920.1080@0.27.1920.1053" timestamp="1598685342397" />
-    <state width="1872" height="250" key="GridCell.Tab.0.bottom/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599771979025" />
+    <state width="1872" height="366" key="GridCell.Tab.0.bottom/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599857090303" />
+    <state width="1872" height="232" key="GridCell.Tab.0.bottom/0.27.1920.1053@0.27.1920.1053" timestamp="1600440397841" />
     <state width="1872" height="279" key="GridCell.Tab.0.bottom/0.27.3840.1053@0.27.3840.1053" timestamp="1598687091231" />
+    <state width="1872" height="288" key="GridCell.Tab.0.bottom/1400.0.1920.1080/3320.0.1080.1920/0.512.1400.538@1400.0.1920.1080" timestamp="1600282313219" />
+    <state width="1872" height="241" key="GridCell.Tab.0.bottom/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@1400.0.1920.1080" timestamp="1600463771025" />
+    <state width="1872" height="222" key="GridCell.Tab.0.bottom/1400.0.1920.1080/3320.0.1920.1080/0.696.1400.354@0.696.1400.354" timestamp="1600197055071" />
+    <state width="1872" height="346" key="GridCell.Tab.0.bottom/1400.485.1920.1080/3320.0.1080.1920/0.485.1400.1050@1400.485.1920.1080" timestamp="1600363412213" />
+    <state width="1872" height="288" key="GridCell.Tab.0.bottom/1400.485.1920.1080/3320.0.1080.1920/0.512.1400.1023@1400.485.1920.1080" timestamp="1600358729650" />
     <state width="1872" height="282" key="GridCell.Tab.0.bottom/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598522975724" />
-    <state width="1872" height="250" key="GridCell.Tab.0.center" timestamp="1599771979025">
-      <screen x="1920" y="0" width="1920" height="1080" />
+    <state width="1872" height="241" key="GridCell.Tab.0.center" timestamp="1600463771025">
+      <screen x="1400" y="0" width="1920" height="1080" />
     </state>
     <state width="1872" height="279" key="GridCell.Tab.0.center/0.27.1920.1053/1920.0.1920.1080@0.27.1920.1053" timestamp="1598685342397" />
-    <state width="1872" height="250" key="GridCell.Tab.0.center/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599771979025" />
+    <state width="1872" height="366" key="GridCell.Tab.0.center/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599857090303" />
+    <state width="1872" height="232" key="GridCell.Tab.0.center/0.27.1920.1053@0.27.1920.1053" timestamp="1600440397840" />
     <state width="1872" height="279" key="GridCell.Tab.0.center/0.27.3840.1053@0.27.3840.1053" timestamp="1598687091230" />
+    <state width="1872" height="288" key="GridCell.Tab.0.center/1400.0.1920.1080/3320.0.1080.1920/0.512.1400.538@1400.0.1920.1080" timestamp="1600282313219" />
+    <state width="1872" height="241" key="GridCell.Tab.0.center/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@1400.0.1920.1080" timestamp="1600463771025" />
+    <state width="1872" height="222" key="GridCell.Tab.0.center/1400.0.1920.1080/3320.0.1920.1080/0.696.1400.354@0.696.1400.354" timestamp="1600197055071" />
+    <state width="1872" height="346" key="GridCell.Tab.0.center/1400.485.1920.1080/3320.0.1080.1920/0.485.1400.1050@1400.485.1920.1080" timestamp="1600363412213" />
+    <state width="1872" height="288" key="GridCell.Tab.0.center/1400.485.1920.1080/3320.0.1080.1920/0.512.1400.1023@1400.485.1920.1080" timestamp="1600358729650" />
     <state width="1872" height="282" key="GridCell.Tab.0.center/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598522975724" />
-    <state width="1872" height="250" key="GridCell.Tab.0.left" timestamp="1599771979025">
-      <screen x="1920" y="0" width="1920" height="1080" />
+    <state width="1872" height="241" key="GridCell.Tab.0.left" timestamp="1600463771025">
+      <screen x="1400" y="0" width="1920" height="1080" />
     </state>
     <state width="1872" height="279" key="GridCell.Tab.0.left/0.27.1920.1053/1920.0.1920.1080@0.27.1920.1053" timestamp="1598685342397" />
-    <state width="1872" height="250" key="GridCell.Tab.0.left/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599771979025" />
+    <state width="1872" height="366" key="GridCell.Tab.0.left/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599857090303" />
+    <state width="1872" height="232" key="GridCell.Tab.0.left/0.27.1920.1053@0.27.1920.1053" timestamp="1600440397840" />
     <state width="1872" height="279" key="GridCell.Tab.0.left/0.27.3840.1053@0.27.3840.1053" timestamp="1598687091230" />
+    <state width="1872" height="288" key="GridCell.Tab.0.left/1400.0.1920.1080/3320.0.1080.1920/0.512.1400.538@1400.0.1920.1080" timestamp="1600282313219" />
+    <state width="1872" height="241" key="GridCell.Tab.0.left/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@1400.0.1920.1080" timestamp="1600463771025" />
+    <state width="1872" height="222" key="GridCell.Tab.0.left/1400.0.1920.1080/3320.0.1920.1080/0.696.1400.354@0.696.1400.354" timestamp="1600197055071" />
+    <state width="1872" height="346" key="GridCell.Tab.0.left/1400.485.1920.1080/3320.0.1080.1920/0.485.1400.1050@1400.485.1920.1080" timestamp="1600363412213" />
+    <state width="1872" height="288" key="GridCell.Tab.0.left/1400.485.1920.1080/3320.0.1080.1920/0.512.1400.1023@1400.485.1920.1080" timestamp="1600358729650" />
     <state width="1872" height="282" key="GridCell.Tab.0.left/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598522975724" />
-    <state width="1872" height="250" key="GridCell.Tab.0.right" timestamp="1599771979025">
-      <screen x="1920" y="0" width="1920" height="1080" />
+    <state width="1872" height="241" key="GridCell.Tab.0.right" timestamp="1600463771025">
+      <screen x="1400" y="0" width="1920" height="1080" />
     </state>
     <state width="1872" height="279" key="GridCell.Tab.0.right/0.27.1920.1053/1920.0.1920.1080@0.27.1920.1053" timestamp="1598685342397" />
-    <state width="1872" height="250" key="GridCell.Tab.0.right/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599771979025" />
+    <state width="1872" height="366" key="GridCell.Tab.0.right/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599857090303" />
+    <state width="1872" height="232" key="GridCell.Tab.0.right/0.27.1920.1053@0.27.1920.1053" timestamp="1600440397841" />
     <state width="1872" height="279" key="GridCell.Tab.0.right/0.27.3840.1053@0.27.3840.1053" timestamp="1598687091231" />
+    <state width="1872" height="288" key="GridCell.Tab.0.right/1400.0.1920.1080/3320.0.1080.1920/0.512.1400.538@1400.0.1920.1080" timestamp="1600282313219" />
+    <state width="1872" height="241" key="GridCell.Tab.0.right/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@1400.0.1920.1080" timestamp="1600463771025" />
+    <state width="1872" height="222" key="GridCell.Tab.0.right/1400.0.1920.1080/3320.0.1920.1080/0.696.1400.354@0.696.1400.354" timestamp="1600197055071" />
+    <state width="1872" height="346" key="GridCell.Tab.0.right/1400.485.1920.1080/3320.0.1080.1920/0.485.1400.1050@1400.485.1920.1080" timestamp="1600363412213" />
+    <state width="1872" height="288" key="GridCell.Tab.0.right/1400.485.1920.1080/3320.0.1080.1920/0.512.1400.1023@1400.485.1920.1080" timestamp="1600358729650" />
     <state width="1872" height="282" key="GridCell.Tab.0.right/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598522975724" />
     <state x="2354" y="188" width="1052" height="737" key="SettingsEditor" timestamp="1599561782422">
       <screen x="1920" y="0" width="1920" height="1080" />
@@ -281,15 +341,28 @@
     </state>
     <state x="790" y="504" width="311" height="185" key="VCS.ChangelistChooser/0.27.1920.1053/1920.0.1920.1080@0.27.1920.1053" timestamp="1598685315488" />
     <state x="2710" y="489" width="311" height="197" key="VCS.ChangelistChooser/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599744498900" />
-    <state x="1166" y="172" width="754" height="644" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1599758150634">
+    <state width="960" height="528" key="XDebugger.FullValuePopup" timestamp="1600166909761">
       <screen x="0" y="27" width="1920" height="1053" />
     </state>
-    <state x="1166" y="172" width="754" height="644" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599758150634" />
+    <state width="960" height="528" key="XDebugger.FullValuePopup/0.27.1920.1053@0.27.1920.1053" timestamp="1600166909761" />
+    <state x="1500" y="101" width="1620" height="952" maximized="true" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1600460336990">
+      <screen x="1400" y="0" width="1920" height="1080" />
+    </state>
+    <state x="2020" y="100" width="1690" height="901" maximized="true" key="com.intellij.history.integration.ui.views.FileHistoryDialog/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599851715098" />
+    <state x="100" y="125" width="1630" height="921" maximized="true" key="com.intellij.history.integration.ui.views.FileHistoryDialog/0.27.1920.1053@0.27.1920.1053" timestamp="1600438636039" />
+    <state x="1500" y="101" width="1620" height="952" maximized="true" key="com.intellij.history.integration.ui.views.FileHistoryDialog/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@1400.0.1920.1080" timestamp="1600460336990" />
+    <state x="2566" y="419" width="754" height="644" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1600360117286">
+      <screen x="1400" y="485" width="1920" height="1080" />
+    </state>
+    <state x="1166" y="172" width="754" height="644" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599850620049" />
+    <state x="2566" y="419" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/1400.485.1920.1080/3320.0.1080.1920/0.485.1400.1050@1400.485.1920.1080" timestamp="1600360117286" />
     <state x="2494" y="172" width="762" height="770" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598399851710" />
-    <state x="2437" y="275" width="636" height="522" key="find.popup" timestamp="1599745085745">
-      <screen x="1920" y="0" width="1920" height="1080" />
+    <state x="1917" y="500" width="650" height="580" key="find.popup" timestamp="1600359729540">
+      <screen x="1400" y="485" width="1920" height="1080" />
     </state>
     <state x="2437" y="275" width="636" height="522" key="find.popup/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599745085745" />
+    <state x="517" y="295" width="636" height="522" key="find.popup/0.27.1920.1053@0.27.1920.1053" timestamp="1600262408129" />
+    <state x="1917" y="500" width="650" height="580" key="find.popup/1400.485.1920.1080/3320.0.1080.1920/0.485.1400.1050@1400.485.1920.1080" timestamp="1600359729540" />
     <state x="2562" y="292" width="636" height="522" key="find.popup/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598506148624" />
     <state x="2590" y="247" width="569" height="619" key="git4idea.branch.GitSmartOperationDialog" timestamp="1598393190824">
       <screen x="1920" y="0" width="1920" height="1080" />
@@ -299,12 +372,14 @@
       <screen x="1920" y="0" width="1920" height="1080" />
     </state>
     <state x="2615" y="440" width="519" height="207" key="git4idea.ui.GitStashDialog/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599561789701" />
-    <state x="2543" y="259" width="672" height="679" key="search.everywhere.popup" timestamp="1599816057592">
-      <screen x="1920" y="0" width="1920" height="1080" />
+    <state x="2023" y="259" width="672" height="680" key="search.everywhere.popup" timestamp="1600460035637">
+      <screen x="1400" y="0" width="1920" height="1080" />
     </state>
     <state x="623" y="280" width="672" height="662" key="search.everywhere.popup/0.27.1920.1053/1920.0.1920.1080@0.27.1920.1053" timestamp="1598685340503" />
-    <state x="2543" y="259" width="672" height="679" key="search.everywhere.popup/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599816057592" />
+    <state x="2543" y="259" width="672" height="679" key="search.everywhere.popup/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599851704161" />
+    <state x="623" y="280" width="672" height="663" key="search.everywhere.popup/0.27.1920.1053@0.27.1920.1053" timestamp="1600438408185" />
     <state x="1246" y="280" width="1344" height="662" key="search.everywhere.popup/0.27.3840.1053@0.27.3840.1053" timestamp="1598688641194" />
+    <state x="2023" y="259" width="672" height="680" key="search.everywhere.popup/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@1400.0.1920.1080" timestamp="1600460035637" />
     <state x="2543" y="259" width="672" height="678" key="search.everywhere.popup/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598511618383" />
   </component>
   <component name="XDebuggerManager">
@@ -312,7 +387,7 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/config.py</url>
-          <line>140</line>
+          <line>126</line>
           <option name="timeStamp" value="9" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -322,30 +397,31 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/config.py</url>
-          <line>133</line>
+          <line>119</line>
           <option name="timeStamp" value="18" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/config.py</url>
-          <line>69</line>
-          <option name="timeStamp" value="28" />
+          <url>file://$USER_HOME$/research/fax/fax/constrained/constrained.py</url>
+          <line>156</line>
+          <option name="timeStamp" value="66" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/config.py</url>
-          <line>53</line>
-          <option name="timeStamp" value="30" />
+          <url>file://$USER_HOME$/research/fax/venv/lib/python3.8/site-packages/jax/nn/functions.py</url>
+          <line>230</line>
+          <option name="timeStamp" value="111" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/config.py</url>
-          <line>60</line>
-          <option name="timeStamp" value="31" />
+          <url>file://$PROJECT_DIR$/stacked_FC_parallel.py</url>
+          <line>154</line>
+          <option name="timeStamp" value="165" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/HowToTrainYourNet$am.coverage" NAME="am Coverage Results" MODIFIED="1599757850500" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/HowToTrainYourNet$stacked_FC_parallel.coverage" NAME="stacked_FC_parallel Coverage Results" MODIFIED="1599816242823" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/HowToTrainYourNet$stacked_FC_parallel.coverage" NAME="main Coverage Results" MODIFIED="1600272117475" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/HowToTrainYourNet$config.coverage" NAME="config Coverage Results" MODIFIED="1598394556637" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/HowToTrainYourNet$main.coverage" NAME="main Coverage Results" MODIFIED="1600463771017" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

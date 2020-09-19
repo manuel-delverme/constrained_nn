@@ -1,4 +1,3 @@
-import argparse
 import datetime
 import getpass
 import os
@@ -7,41 +6,28 @@ import sys
 import types
 
 import git
-import jax.experimental.optimizers
 import matplotlib.pyplot as plt
-import sklearn.datasets
 import tensorboardX
 import wandb
 
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
-RUN_SWEEP = True
+RUN_SWEEP = False
 PROJECT_NAME = "constrained_nn"
-
-if DEBUG:
-    print("USING IRIS DATASET")
-    dataset = lambda: sklearn.datasets.load_iris()
-else:
-    dataset = lambda: sklearn.datasets.fetch_openml('mnist_784')
+LOCAL_RUN = True
 
 RANDOM_SEED = 1337
 
-# lr = jax.experimental.optimizers.constant(1e-3)
-optimization_iters = 30000
+# lr = jax.experimental.optimizers.inverse_time_decay(initial_lr, 1000, 0.3, staircase=True)
+# # optimization_subiters = 1000
+# num_hidden = 300
+eval_every = 1
 
-initial_lr = 1e-4
-lr = jax.experimental.optimizers.inverse_time_decay(initial_lr, 1000, 0.3, staircase=True)
+lr = 1e-2
+adam1 = 0.5
+adam2 = 0.9
 
-# optimization_subiters = 1000
-num_hidden = 300
-eval_every = 100
-batch_size = 256
-
-adam1 = 0.9
-adam2 = 0.99
-adam_eps = 1e-8
-use_sgd = False
-
-constrained = 1
+num_epochs = 10000
+batch_size = 64
 
 ################################################################
 # END OF PARAMETERS
@@ -175,17 +161,17 @@ else:
         except Exception as e:
             pass
 
-    if experiment_id is None:
+    if experiment_id is None or LOCAL_RUN:
         dtm = datetime.datetime.now().strftime("%b%d_%H-%M-%S") + ".pt/"
         # experiment_id = f"{git_repo.head.commit.message.strip()}"
-        experiment_id = f"DEBUG_RUN"
+        experiment_id = experiment_id or f"DEBUG_RUN"
         # tb = torch.utils.tensorboard.SummaryWriter(log_dir=os.path.join(C.TENSORBOARD, experiment_id, dtm))
         tb = setup_tb(logdir=os.path.join("tensorboard/", experiment_id, dtm))
     else:
         commit_and_sendjob(experiment_id)
         sys.exit()
 
-print(f"experiment_id: {experiment_id}")
+print(f"experiment_id: {experiment_id}", dtm)
 tb.global_step = 0
 
 if any((DEBUG,)):
