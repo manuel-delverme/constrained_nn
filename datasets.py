@@ -78,9 +78,8 @@ def mnist_raw():
 def iris(permute_train=False):
     """Download, parse and process MNIST data to unit scale and one-hot labels."""
     train_images, train_labels = sklearn.datasets.load_iris(return_X_y=True)
+    train_images, train_labels = np.array(train_images), np.array(train_labels)
 
-    train_images = _partial_flatten(train_images) / np.float32(255.)
-    # test_images = _partial_flatten(test_images) / np.float32(255.)
     train_labels = _one_hot(train_labels, 3)
     # test_labels = _one_hot(test_labels, 10)
 

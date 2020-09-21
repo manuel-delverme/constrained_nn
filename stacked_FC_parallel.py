@@ -1,5 +1,4 @@
 # train_x, train_y, model, theta, x, y
-import itertools
 import time
 from typing import List
 
@@ -9,7 +8,6 @@ import fax.constrained
 import fax.math
 import jax
 import jax.experimental.optimizers
-import jax.experimental.stax as stax
 import jax.lax
 import jax.numpy as np
 import jax.ops
@@ -19,262 +17,130 @@ import tqdm
 
 import config
 import datasets
-from utils import ConstrainedParameters, LagrangianParameters, TaskParameters, sub
-
-
-def block(out_dim, final_activation):
-    return stax.serial(
-        stax.Dense(out_dim, ),
-        final_activation,
-    )
-
-
-def time_march(train_x, model, theta):
-    y = []
-    x_t = train_x
-    for block, theta_t in zip(model, theta):
-        x_t = block(theta_t, x_t)
-        y.append(x_t)
-    return y
-
-
-def full_rollout(train_x, model, theta):
-    x_t = train_x
-    for block, theta_t in zip(model, theta):
-        x_t = block(theta_t, x_t)
-    return x_t
-
-
-# def make_n_step_loss(n, full_rollout_loss):
-#     def n_step_loss(batch, params):
-#         theta, activations = params
-#         train_x, train_y, indices = batch
-#         batch = activations[-n][indices], train_y, indices
-#         return full_rollout_loss(theta[-n:], batch)
-#     return n_step_loss
+from network import make_block_net
+from utils import ConstrainedParameters, TaskParameters, make_n_step_loss, n_step_accuracy, full_rollout, time_march, train_accuracy
 
 
 def main():
-    batch_generator, num_batches, equality_constraints, full_rollout_loss, initial_values, onestep, full_batch_loss, full_batch_defect = initialize()
+    batch_gen, model, params, train_x, train_y = initialize()
 
-    def lagrangian(task_params, task_multipliers, task):
-        defects = equality_constraints(task, task_params)
-        # task_multipliers = [mi[task[2], :] for mi in multipliers]
-        # return full_rollout_loss(task_params.theta, task) + fax.math.pytree_dot(task_multipliers, defects)
-        # return onestep(task, task_params) + fax.math.pytree_dot(task_multipliers, defects)  # + 0.1 * fax.math.pytree_dot(defects, defects)
-        return onestep(task, task_params) + fax.math.pytree_dot(task_multipliers, defects)  # + 0.01 * fax.math.pytree_dot(defects, defects)
-        # return onestep(task, task_params)#  + 0.1 * fax.math.pytree_dot(defects, defects)
-        # return full_rollout_loss(task_params.theta, task) + fax.math.pytree_dot(task_multipliers, defects)
+    def full_rollout_loss(theta: List[np.ndarray], batch):
+        train_x, batch_train_y, _indices = batch
+        pred_y = full_rollout(train_x, model, theta)
+        return np.linalg.norm(pred_y - batch_train_y, 2)
 
-    optimizer_init, optimizer_update, optimizer_get_params = fax.competitive.extragradient.adam_extragradient_optimizer(step_size=config.lr, betas=(config.adam1, config.adam2))
+    onestep = make_n_step_loss(1, full_rollout_loss, batch_gen)
+
+    def equality_constraints(params, task):
+        theta, x = params
+        task_x, _, task_indices = task
+
+        # Layer 1 -> 2
+        defects = [x[0][task_indices, :] - model[0](theta[0], task_x), ]
+
+        # Layer 2 onward
+        for t in range(len(x) - 1):
+            block_x = x[t][task_indices, :]
+            block_y = x[t + 1][task_indices, :]
+            block_y_hat = model[t + 1](theta[t + 1], block_x)
+            defects.append(np.square(block_y - block_y_hat))
+            # defects.append(0.)
+        return tuple(defects), task_indices
+
+    init_mult, lagrangian, get_x = fax.constrained.make_lagrangian(
+        objective_function=onestep,
+        # objective_function=lambda params: utils.make_full_rollout_loss(full_rollout_loss, batch_gen)(params),
+        equality_constraints=equality_constraints
+    )
+    initial_values = init_mult(params, (train_x, train_y, np.arange(train_x.shape[0])))
+    optimizer_init, optimizer_update, optimizer_get_params = fax.competitive.extragradient.adam_extragradient_optimizer(
+        betas=(config.adam1, config.adam2), step_size=config.lr)
     opt_state = optimizer_init(initial_values)
 
     @jax.jit
-    def update(i, global_opt_state, task):
-        def task_lagrangian(params, multipliers):
-            return lagrangian(params, multipliers, task)
+    def update(i, opt_state):
+        grad_fn = jax.grad(lagrangian, (0, 1))
+        return optimizer_update(i, grad_fn, opt_state)
 
-        grad_fn = jax.grad(task_lagrangian, (0, 1))
-        task_x, task_y, task_idx = task
-        global_parameters, global_grad_state = global_opt_state
-        dataset_size = global_parameters[1][0].shape[0]
-
-        def task_slice_param(global_parameters):
-            constr_param, global_multipliers = global_parameters
-
-            def slice_(p):
-                assert p.shape[0] == dataset_size
-                return p[task_idx, :]
-
-            task_x = jax.tree_util.tree_map(slice_, constr_param.x)
-            task_multipliers = [slice_(gi) for gi in global_multipliers]
-            return ConstrainedParameters(constr_param.theta, task_x), task_multipliers
-
-        task_opt_state = task_slice_param(global_parameters), tuple([task_slice_param(p) for p in global_grad_state])
-        new_local_state = optimizer_update(i, grad_fn, task_opt_state)
-
-        def task_update(globals, sampled):
-            global_params, global_multipliers = globals
-            local_params, local_multipliers = sampled
-
-            for time_step in range(len(global_params.x)):
-                global_params.x[time_step] = jax.ops.index_update(global_params.x[time_step], task_idx, local_params.x[time_step], unique_indices=True)
-                global_multipliers[time_step] = jax.ops.index_update(global_multipliers[time_step], jax.ops.index[task_idx, :], local_multipliers[time_step], unique_indices=True)
-
-            return ConstrainedParameters(local_params.theta, global_params.x), global_multipliers
-
-        new_local_parameters, new_local_grad_state = new_local_state
-
-        new_global_parameters = task_update(global_parameters, new_local_parameters)
-        new_global_grad_state = tuple([task_update(a, b) for a, b in zip(global_grad_state, new_local_grad_state)])
-        return new_global_parameters, new_global_grad_state
-
-    # print("optimize()")
-    itercount = itertools.count()
+    print("optimize()")
     update_time = time.time()
 
-    for epoch_num in tqdm.trange(config.num_epochs):
-        # iters = 100
-        iters = num_batches
-        for _ in tqdm.trange(iters, disable=True):
-            opt_state = update(next(itercount), opt_state, next(batch_generator))
+    for iter_num in tqdm.trange(config.num_epochs):
+        opt_state = update(iter_num, opt_state)
 
-        epoch_time = time.time() - update_time
-        # print("Epoch", epoch_num)
-
-        # gc.collect()
+        update_time = time.time() - update_time
         params = optimizer_get_params(opt_state)
-        update_metrics(full_batch_defect, full_batch_loss, params, epoch_num, epoch_time)
-        update_time = time.time()
-
-        # if outer_iter % 1000 == 0:
-        #     global_params = optimizer_get_params(opt_state)
-        #     global_params, multipliers = global_params
-        #     y = time_march(train_x, predict_fn, global_params.theta)
-        #     x = [train_x, *y[:-1]]
-        #     global_params = ConstrainedParameters(global_params.theta, x)
-        #     initial_values = init_mult(global_params)
-        #     opt_state = optimizer_init(initial_values)
+        if iter_num % config.eval_every == 0:
+            update_metrics(batch_gen, equality_constraints, full_rollout_loss, model, params, iter_num, update_time, train_x, train_y)
+            update_time = time.time()
 
     trained_params = optimizer_get_params(opt_state)
     return trained_params
 
 
-def update_metrics(defects, train_loss, params, outer_iter, epoch_time):
+def update_metrics(_batches, equality_constraints, full_rollout_loss, model, params, outer_iter, update_time, train_x, train_y):
     params, multipliers = params
+    # _train_x, _train_y, _indices = next(batches)
     metrics_time = time.time()
-    l1_loss, accuracy = train_loss(params.theta)
+    fullbatch = train_x, train_y, np.arange(train_x.shape[0])
+    h, _task = equality_constraints(params, fullbatch)
 
-    defects_ = defects(params=params)
-    # [defects(params=params)[0][idx], 2)) for idx in range(len(params.theta)]
+    def b():
+        while True:
+            yield fullbatch
+
+    batches = b()
 
     metrics = [
-                  ("train/train_accuracy", accuracy),
-                  ("train/train_l1_loss", l1_loss),
-                  # ("train/1step_loss", make_n_step_loss(1, train_loss)(params)),
-                  # ("train/multipliers", np.linalg.norm(multipliers, 2)),
-                  # ("train/update_time", epoch_time),
+                  ("train/train_accuracy", train_accuracy(train_x, train_y, model, params.theta)),
+                  ("train/full_rollout_loss", full_rollout_loss(params.theta, next(batches))),
+                  ("train/1step_loss", make_n_step_loss(1, full_rollout_loss, batches)(params)[0]),
+                  # ("train/multipliers", np.linalg.norm(multipliers, 1)),
+                  # ("train/update_time", time.time() - update_time),
               ] + [
-                  (f"constraints/defects_{idx}", np.linalg.norm(defects(params=params)[0][idx], 2)) for idx in range(len(params.theta))
+                  (f"constraints/multipliers_{idx}", np.linalg.norm(mi, 2)) for idx, mi in enumerate(multipliers)
               ] + [
-                  (f"constraints/multipliers{idx}", np.linalg.norm(multipliers[idx], 2)) for idx in range(len(params.x))
+                  (f"constraints/defects_{idx}", np.linalg.norm(hi, 2)) for idx, hi in enumerate(h)
+              ] + [
+                  (f"train/{t}_step_accuracy", n_step_accuracy(*fullbatch, model, params, t)) for t in range(1, len(params.theta))
                   # ] + [
-                  #     (f"rollouts/{idx}_step_prediction", make_n_step_loss(idx, train_loss, batches)(params)) for idx in range(len(params.theta))
+                  #     (f"constraints/{t}_step_loss", make_n_step_loss(t, full_rollout_loss, batches)(params)) for t in range(1, len(params.theta))
               ]
     # metrics.append(("train/metrics_time", time.time() - metrics_time))
     for tag, value in metrics:
         config.tb.add_scalar(tag, float(value), outer_iter)
-        # print(tag, value)
-
-
-def gen_batches():
-    # train_images, train_labels, _, _ = datasets.mnist()
-    train_images, train_labels, _, _ = datasets.iris()
-    num_train = train_images.shape[0]
-    bs = min(config.batch_size, num_train)
-
-    num_complete_batches, leftover = divmod(num_train, bs)
-    num_batches = num_complete_batches + bool(leftover)
-
-    def data_stream():
-        rng = npr.RandomState(0)
-        while True:
-            perm = rng.permutation(num_train)
-            for i in range(num_batches):
-                batch_idx = perm[i * bs:(i + 1) * bs]
-                batch_idx = np.sort(batch_idx)
-                yield TaskParameters(train_images[batch_idx, :], train_labels[batch_idx, :], batch_idx)
-
-    batches = data_stream()
-    return batches, train_images.shape, train_images, num_batches, train_labels
 
 
 def initialize():
-    batch_generator, input_shape, train_x, num_batches, train_y = gen_batches()
-    blocks_init, blocks_predict = zip(*[
-        # stax.serial(
-        #     # stax.Dense(1024, ),
-        #     stax.Dense(64, ),
-        #     stax.LeakyRelu,
-        # ),
-        stax.serial(
-            # stax.Dense(1024, ),
-            stax.Dense(64, ),
-            stax.LeakyRelu,
-        ),
-        stax.serial(
-            stax.Dense(3),
-            stax.LogSoftmax
-        ),
-    ])
+    # train_images, train_labels, _, _ = datasets.mnist()
+    train_x, train_y, _, _ = datasets.iris()
+    dataset_size = train_x.shape[0]
+    batch_size = min(config.batch_size, train_x.shape[0])
 
+    def gen_batches() -> (np.ndarray, np.ndarray, List[np.int_]):
+        rng = npr.RandomState(0)
+        while True:
+            indices = np.array(rng.randint(low=0, high=dataset_size, size=(batch_size,)))
+            images = np.array(train_x[indices, :])
+            labels = np.array(train_y[indices, :])
+            yield TaskParameters(images, labels, indices)
+
+    batches = gen_batches()
+
+    blocks_init, model = make_block_net(num_outputs=train_y.shape[1])
+    params = init_params(blocks_init, model, train_x)
+    return batches, model, params, train_x, train_y
+
+
+def init_params(blocks_init, model, train_x):
     rng_key = jax.random.PRNGKey(0)
     theta = []
-    output_shape = (-1, *input_shape[1:])
+    output_shape = train_x.shape
+
     for init in blocks_init:
         output_shape, init_params = init(rng_key, output_shape)
         theta.append(init_params)
 
-    y = time_march(train_x, blocks_predict, theta)
+    y = time_march(train_x, model, theta)
     x = y[:-1]
-    initial_solution = ConstrainedParameters(theta, x)
-
-    def full_rollout_loss(theta: List[np.ndarray], batch):
-        batch_train_x, batch_train_y, _indices = batch
-
-        pred_y = full_rollout(batch_train_x, blocks_predict, theta)
-        # error = batch_train_y - pred_y
-        # return np.linalg.norm(error, 2)
-        return -np.mean(np.sum(batch_train_y * pred_y, axis=1))
-
-    def one_step(batch, params):
-        theta, activations = params
-        train_x, train_y, indices = batch
-        if activations:
-            x0 = activations[-1][indices]
-        else:
-            x0 = train_x
-        batch = x0, train_y, indices
-        return full_rollout_loss(theta[-1:], batch)
-
-    def equality_constraints(task, params):
-        theta, task_activations = params
-        train_x, train_y, indices = task
-        batch_size = train_x.shape[0]
-        assert task_activations[0].shape[0] == batch_size
-        # task_activations = []
-        # for layer_act in activations:
-        #     xi = layer_act[indices]
-        #     batch_activations.append(xi)
-
-        defects = []
-        layer_inputs = [train_x, *task_activations[:-1]]
-        layer_targets = task_activations
-
-        # y = time_march(train_x, blocks_predict, theta)
-        for x_t, block_t, theta_t, y_t in zip(layer_inputs, blocks_predict, theta, layer_targets):
-           defects.append(np.power(y_t - block_t(theta_t, x_t), 2))
-        # return sub(y[:-1], task_activations)
-        return defects
-
-    def full_batch_loss(theta: List[np.ndarray]):
-        predicted = full_rollout(train_x, blocks_predict, theta)
-
-        target_class = np.argmax(train_y, axis=-1)
-        predicted_class = np.argmax(predicted, axis=-1)
-        return -np.mean(np.sum(train_y * predicted, axis=1)), np.mean(predicted_class == target_class)
-
-    # full_batch_loss = jax.partial(full_rollout_loss, batch=(train_x, train_y, None))
-    full_batch_defect = jax.partial(equality_constraints, task=(train_x, train_y, slice(None, None)))
-
-    initial_values = initialize_lagrangian(equality_constraints, initial_solution, train_x, y)
-    return batch_generator, num_batches, equality_constraints, full_rollout_loss, initial_values, one_step, full_batch_loss, full_batch_defect
-
-
-def initialize_lagrangian(equality_constraints, params, train_x, y):
-    task = TaskParameters(train_x, y[-1], np.arange(train_x.shape[0]))
-    h = jax.eval_shape(equality_constraints, task, params)
-    multipliers = [np.zeros(hi.shape) for hi in h]
-
-    initial_values = LagrangianParameters(params, multipliers)
-    return initial_values
+    return ConstrainedParameters(theta, x)
