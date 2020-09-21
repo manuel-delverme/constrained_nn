@@ -13,16 +13,16 @@ import wandb
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
 RUN_SWEEP = False
 PROJECT_NAME = "constrained_nn"
-LOCAL_RUN = True
+LOCAL_RUN = False
 
 RANDOM_SEED = 1337
 
 # lr = jax.experimental.optimizers.inverse_time_decay(initial_lr, 1000, 0.3, staircase=True)
 # # optimization_subiters = 1000
 # num_hidden = 300
-eval_every = 10000
+eval_every = 100
 
-lr = 1e-3
+lr = 1e-4
 adam1 = 0.5
 adam2 = 0.9
 

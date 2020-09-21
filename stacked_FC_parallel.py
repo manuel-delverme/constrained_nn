@@ -112,8 +112,8 @@ def update_metrics(_batches, equality_constraints, full_rollout_loss, model, par
 
 
 def initialize():
-    # train_images, train_labels, _, _ = datasets.mnist()
-    train_x, train_y, _, _ = datasets.iris()
+    train_x, train_y, _, _ = datasets.mnist()
+    # train_x, train_y, _, _ = datasets.iris()
     dataset_size = train_x.shape[0]
     batch_size = min(config.batch_size, train_x.shape[0])
 
