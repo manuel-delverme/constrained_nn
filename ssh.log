@@ -1,1 +1,1 @@
-ssh mila bash -l ./run_experiment.sh https://github.com/manuel-delverme/OptimalControlNeuralNet stacked_FC_parallel.py f0e1ccd2e24343aa958804cb1e40ea726db7d538
+ssh mila bash -l ./run_experiment.sh https://github.com/manuel-delverme/OptimalControlNeuralNet main.py 0982d4c76809aa0d30f41e7a7a2fca434d2c2eb4
