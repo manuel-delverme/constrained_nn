@@ -48,7 +48,7 @@ def main():
         return tuple(defects), task_indices
 
     init_mult, lagrangian, get_x = fax.constrained.make_lagrangian(
-        objective_function=onestep,
+        func=onestep,
         # objective_function=lambda params: utils.make_full_rollout_loss(full_rollout_loss, batch_gen)(params),
         equality_constraints=equality_constraints
     )
