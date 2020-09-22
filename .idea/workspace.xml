@@ -29,11 +29,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c1573bcc-5047-4481-9756-ccbd31e5c97b" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/adversarial.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/datasets.py" beforeDir="false" afterPath="$PROJECT_DIR$/datasets.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/stacked_FC_parallel.py" beforeDir="false" afterPath="$PROJECT_DIR$/stacked_FC_parallel.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ssh.log" beforeDir="false" afterPath="$PROJECT_DIR$/ssh.log" afterDir="false" />
     </list>
     <list id="ae405ad7-4485-4495-9cfb-6f25fba0a730" name="ignored" comment="" />
     <option name="SHOW_DIALOG" value="false" />
@@ -218,6 +215,7 @@
       <workItem from="1600521674307" duration="12806000" />
       <workItem from="1600538851698" duration="5895000" />
       <workItem from="1600674903711" duration="26639000" />
+      <workItem from="1600783969298" duration="677000" />
     </task>
     <task id="LOCAL-00001" summary="updated project name">
       <created>1598399333776</created>
@@ -526,6 +524,6 @@
     <SUITE FILE_PATH="coverage/HowToTrainYourNet$stacked_FC_parallel.coverage" NAME="stacked_FC_parallel Coverage Results" MODIFIED="1600681107274" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/HowToTrainYourNet$config.coverage" NAME="config Coverage Results" MODIFIED="1598394556637" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/HowToTrainYourNet$minmax.coverage" NAME="minmax Coverage Results" MODIFIED="1600680871661" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/HowToTrainYourNet$main.coverage" NAME="main Coverage Results" MODIFIED="1600706145435" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/HowToTrainYourNet$main.coverage" NAME="main Coverage Results" MODIFIED="1600785239763" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

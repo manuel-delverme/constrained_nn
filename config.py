@@ -117,7 +117,7 @@ def setup_tb(logdir):
 
 
 def commit_and_sendjob(experiment_id):
-    # 2) commits everything to git with the name as message (so i can later reproduce the same experiment)
+    # 2) commits everything to git with the name as message (so i r later reproduce the same experiment)
     os.system(f"git add .")
     os.system(f"git commit -m '[CLUSTER] {experiment_id}'")
     # 3) pushes the changes to git

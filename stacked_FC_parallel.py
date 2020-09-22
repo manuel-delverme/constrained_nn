@@ -101,10 +101,10 @@ def update_metrics(_batches, equality_constraints, full_rollout_loss, model, par
                   (f"constraints/multipliers_{idx}", np.linalg.norm(mi, 2)) for idx, mi in enumerate(multipliers)
               ] + [
                   (f"constraints/defects_{idx}", np.linalg.norm(hi, 2)) for idx, hi in enumerate(h)
-              ] + [
-                  (f"train/{t}_step_accuracy", n_step_accuracy(*fullbatch, model, params, t)) for t in range(1, len(params.theta))
-                  # ] + [
-                  #     (f"constraints/{t}_step_loss", make_n_step_loss(t, full_rollout_loss, batches)(params)) for t in range(1, len(params.theta))
+              # ] + [
+              #     (f"train/{t}_step_accuracy", n_step_accuracy(*fullbatch, model, params, t)) for t in range(1, len(params.theta))
+              #     # ] + [
+              #     #     (f"constraints/{t}_step_loss", make_n_step_loss(t, full_rollout_loss, batches)(params)) for t in range(1, len(params.theta))
               ]
     # metrics.append(("train/metrics_time", time.time() - metrics_time))
     for tag, value in metrics:
