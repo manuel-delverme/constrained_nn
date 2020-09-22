@@ -93,8 +93,8 @@ def update_metrics(_batches, equality_constraints, full_rollout_loss, model, par
 
     metrics = [
                   ("train/train_accuracy", train_accuracy(train_x, train_y, model, params.theta)),
-                  ("train/full_rollout_loss", full_rollout_loss(params.theta, next(batches))),
-                  ("train/1step_loss", make_n_step_loss(1, full_rollout_loss, batches)(params)[0]),
+                  # ("train/full_rollout_loss", full_rollout_loss(params.theta, next(batches))),
+                  # ("train/1step_loss", make_n_step_loss(1, full_rollout_loss, batches)(params)[0]),
                   # ("train/multipliers", np.linalg.norm(multipliers, 1)),
                   # ("train/update_time", time.time() - update_time),
               ] + [

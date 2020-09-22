@@ -1,1 +1,1 @@
-ssh mila bash -l ./run_experiment.sh https://github.com/manuel-delverme/OptimalControlNeuralNet main.py 0982d4c76809aa0d30f41e7a7a2fca434d2c2eb4
+ssh mila bash -l ./run_experiment.sh https://github.com/manuel-delverme/OptimalControlNeuralNet main.py 08f3fd81e96f8ccc09997a89ba4f262848f1fd79
