@@ -9,23 +9,16 @@ parameters:
     min: 0.5
   _adam2:
     distribution: uniform
-    max: 0.999
-    min: 0.99
+    max: 0.99
+    min: 0.9
   _batch_size:
     distribution: categorical
     values:
-    - "64"
-    - "128"
-    - "256"
-  _initial_lr:
-    distribution: log_uniform
-    max: -2
-    min: -5
-  _num_hidden:
-    distribution: categorical
-    values:
-    - "128"
     - "256"
     - "512"
     - "1024"
-program: stacked_FC_parallel.py
+  _initial_lr:
+    distribution: log_uniform
+    max: -3
+    min: -5
+program: main.py

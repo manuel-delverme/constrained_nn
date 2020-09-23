@@ -11,7 +11,7 @@ import tensorboardX
 import wandb
 
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
-RUN_SWEEP = False
+RUN_SWEEP = True
 PROJECT_NAME = "constrained_nn"
 LOCAL_RUN = False
 
@@ -25,9 +25,9 @@ eval_every = 1000
 lr = 1e-4
 adam1 = 0.5
 adam2 = 0.9
+batch_size = 256
 
 num_epochs = 100000
-batch_size = 256
 
 ################################################################
 # END OF PARAMETERS
