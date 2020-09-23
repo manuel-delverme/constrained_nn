@@ -26,6 +26,7 @@ lr = 1e-4
 adam1 = 0.5
 adam2 = 0.9
 batch_size = 256
+weight_norm = 1e-2
 
 num_epochs = 100000
 

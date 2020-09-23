@@ -11,6 +11,10 @@ parameters:
     distribution: uniform
     max: 0.99
     min: 0.9
+  _weight_norm:
+    distribution: log_uniform
+    max: -1
+    min: -5
   _batch_size:
     distribution: categorical
     values:

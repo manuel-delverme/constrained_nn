@@ -54,7 +54,7 @@ def main():
     )
     initial_values = init_mult(params, (train_x, train_y, np.arange(train_x.shape[0])))
     optimizer_init, optimizer_update, optimizer_get_params = fax.competitive.extragradient.adam_extragradient_optimizer(
-        betas=(config.adam1, config.adam2), step_size=config.lr)
+        betas=(config.adam1, config.adam2), step_size=config.lr, weight_norm=config.weight_norm)
     opt_state = optimizer_init(initial_values)
 
     @jax.jit
