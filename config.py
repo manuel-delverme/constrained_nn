@@ -38,11 +38,10 @@ config_params = locals().copy()
 # overwrite CLI parameters
 # fails on nested config object
 for arg in sys.argv[1:]:
-    if k not in config_params.keys():
-        raise ValueError(f"Trying to set {k}, but that's not one of {list(config_params.keys())}")
     assert arg[:2] == "--"
     k, v = arg[2:].split("=")
     k = k.lstrip("_")
+
     if "." in v:
         v = float(v)
     else:
@@ -51,6 +50,8 @@ for arg in sys.argv[1:]:
         except ValueError:
             pass
 
+    if k not in config_params.keys():
+        raise ValueError(f"Trying to set {k}, but that's not one of {list(config_params.keys())}")
     locals()[k] = v
 
 
