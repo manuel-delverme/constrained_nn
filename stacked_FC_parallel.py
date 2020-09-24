@@ -70,8 +70,20 @@ def main():
         opt_state = update(iter_num, opt_state)
 
         update_time = time.time() - update_time
-        params = optimizer_get_params(opt_state)
+        if iter_num % config.reset_state_every == 0:
+            old_params = optimizer_get_params(opt_state)
+            y = time_march(train_x, model, old_params[0].theta)
+
+            for t, xt in enumerate(y[:-1]):
+                opt_state[0][0].x[t] = y[:-1][t]
+
+                # reset adam mean
+                opt_state[1][0][0].x[t] = np.zeros_like(opt_state[1][0][0].x[t])
+                # reset adam var
+                opt_state[1][1][0].x[t] = np.zeros_like(opt_state[1][1][0].x[t])
+
         if iter_num % config.eval_every == 0:
+            params = optimizer_get_params(opt_state)
             update_metrics(batch_gen, equality_constraints, full_rollout_loss, model, params, iter_num, update_time, train_x, train_y)
             update_time = time.time()
 
@@ -106,8 +118,8 @@ def update_metrics(_batches, equality_constraints, full_rollout_loss, model, par
                   (f"constraints/defects_l1_{idx}", np.linalg.norm(hi, 1)) for idx, hi in enumerate(h)
               ] + [
                   (f"train/sampled_{t}_step_accuracy", utils.n_step_accuracy(*next(_batches), model, params, t)) for t in range(1, len(params.theta))
-             # ] + [
-             #      (f"constraints/{t}_step_loss", make_n_step_loss(t, full_rollout_loss, batches)(params)) for t in range(1, len(params.theta))
+                  # ] + [
+                  #      (f"constraints/{t}_step_loss", make_n_step_loss(t, full_rollout_loss, batches)(params)) for t in range(1, len(params.theta))
               ]
     # metrics.append(("train/metrics_time", time.time() - metrics_time))
     for tag, value in metrics:
