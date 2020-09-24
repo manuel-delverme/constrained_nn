@@ -28,7 +28,7 @@ adam2 = 0.99
 batch_size = 1024
 weight_norm = 1e-2
 
-num_epochs = 100000
+num_epochs = 50000
 
 ################################################################
 # END OF PARAMETERS

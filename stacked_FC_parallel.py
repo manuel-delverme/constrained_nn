@@ -84,8 +84,8 @@ def update_metrics(_batches, equality_constraints, full_rollout_loss, model, par
     # _train_x, _train_y, _indices = next(batches)
     # metrics_time = time.time()
     fullbatch = train_x, train_y, np.arange(train_x.shape[0])
-    h, _task = equality_constraints(params, fullbatch)
-    loss = full_rollout_loss(params.theta, fullbatch)
+    h, _task = equality_constraints(params, next(_batches))
+    loss = full_rollout_loss(params.theta, next(_batches))
 
     # def b():
     #     while True:
@@ -95,7 +95,7 @@ def update_metrics(_batches, equality_constraints, full_rollout_loss, model, par
 
     metrics = [
                   ("train/train_accuracy", train_accuracy(train_x, train_y, model, params.theta)),
-                  ("train/loss", loss),
+                  ("train/sampled_loss", loss),
                   # ("train/full_rollout_loss", full_rollout_loss(params.theta, next(_batches))),
                   # ("train/1step_loss", make_n_step_loss(1, full_rollout_loss, batches)(params)[0]),
                   # ("train/multipliers", np.linalg.norm(multipliers, 1)),
@@ -105,7 +105,7 @@ def update_metrics(_batches, equality_constraints, full_rollout_loss, model, par
               ] + [
                   (f"constraints/defects_l1_{idx}", np.linalg.norm(hi, 1)) for idx, hi in enumerate(h)
               ] + [
-                  (f"train/{t}_step_accuracy", utils.n_step_accuracy(*fullbatch, model, params, t)) for t in range(1, len(params.theta))
+                  (f"train/sampled_{t}_step_accuracy", utils.n_step_accuracy(*next(_batches), model, params, t)) for t in range(1, len(params.theta))
              # ] + [
              #      (f"constraints/{t}_step_loss", make_n_step_loss(t, full_rollout_loss, batches)(params)) for t in range(1, len(params.theta))
               ]
