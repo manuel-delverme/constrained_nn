@@ -24,8 +24,8 @@ eval_every = 1000
 
 lr = 1e-4
 adam1 = 0.5
-adam2 = 0.9
-batch_size = 256
+adam2 = 0.99
+batch_size = 1024
 weight_norm = 1e-2
 
 num_epochs = 100000
@@ -38,6 +38,8 @@ config_params = locals().copy()
 # overwrite CLI parameters
 # fails on nested config object
 for arg in sys.argv[1:]:
+    if k not in config_params.keys():
+        raise ValueError(f"Trying to set {k}, but that's not one of {list(config_params.keys())}")
     assert arg[:2] == "--"
     k, v = arg[2:].split("=")
     k = k.lstrip("_")

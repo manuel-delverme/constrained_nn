@@ -17,8 +17,9 @@ import tqdm
 
 import config
 import datasets
+import utils
 from network import make_block_net
-from utils import ConstrainedParameters, TaskParameters, make_n_step_loss, n_step_accuracy, full_rollout, time_march, train_accuracy
+from utils import ConstrainedParameters, TaskParameters, make_n_step_loss, full_rollout, time_march, train_accuracy
 
 
 def main():
@@ -81,30 +82,32 @@ def main():
 def update_metrics(_batches, equality_constraints, full_rollout_loss, model, params, outer_iter, update_time, train_x, train_y):
     params, multipliers = params
     # _train_x, _train_y, _indices = next(batches)
-    metrics_time = time.time()
+    # metrics_time = time.time()
     fullbatch = train_x, train_y, np.arange(train_x.shape[0])
     h, _task = equality_constraints(params, fullbatch)
+    loss = full_rollout_loss(params.theta, fullbatch)
 
-    def b():
-        while True:
-            yield fullbatch
+    # def b():
+    #     while True:
+    #         yield fullbatch
 
-    batches = b()
+    # batches = b()
 
     metrics = [
                   ("train/train_accuracy", train_accuracy(train_x, train_y, model, params.theta)),
-                  # ("train/full_rollout_loss", full_rollout_loss(params.theta, next(batches))),
+                  ("train/loss", loss),
+                  # ("train/full_rollout_loss", full_rollout_loss(params.theta, next(_batches))),
                   # ("train/1step_loss", make_n_step_loss(1, full_rollout_loss, batches)(params)[0]),
                   # ("train/multipliers", np.linalg.norm(multipliers, 1)),
                   # ("train/update_time", time.time() - update_time),
               ] + [
-                  (f"constraints/multipliers_{idx}", np.linalg.norm(mi, 1)) for idx, mi in enumerate(multipliers)
+                  (f"constraints/multipliers_l1_{idx}", np.linalg.norm(mi, 1)) for idx, mi in enumerate(multipliers)
               ] + [
-                  (f"constraints/defects_{idx}", np.linalg.norm(hi, 1)) for idx, hi in enumerate(h)
-              # ] + [
-              #     (f"train/{t}_step_accuracy", n_step_accuracy(*fullbatch, model, params, t)) for t in range(1, len(params.theta))
-              #     # ] + [
-              #     #     (f"constraints/{t}_step_loss", make_n_step_loss(t, full_rollout_loss, batches)(params)) for t in range(1, len(params.theta))
+                  (f"constraints/defects_l1_{idx}", np.linalg.norm(hi, 1)) for idx, hi in enumerate(h)
+              ] + [
+                  (f"train/{t}_step_accuracy", utils.n_step_accuracy(*fullbatch, model, params, t)) for t in range(1, len(params.theta))
+             # ] + [
+             #      (f"constraints/{t}_step_loss", make_n_step_loss(t, full_rollout_loss, batches)(params)) for t in range(1, len(params.theta))
               ]
     # metrics.append(("train/metrics_time", time.time() - metrics_time))
     for tag, value in metrics:
