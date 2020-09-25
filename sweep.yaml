@@ -1,7 +1,7 @@
 method: bayes
 metric:
   goal: maximize
-  name: train/train_accuracy
+  name: train_accuracy
 parameters:
   _adam1:
     distribution: uniform
