@@ -36,15 +36,17 @@ def main():
         task_x, _, task_indices = task
 
         # Layer 1 -> 2
-        defects = [x[0][task_indices, :] - model[0](theta[0], task_x), ]
+        defects = [model[0](theta[0], task_x) - x[0][task_indices, :], ]
 
         # Layer 2 onward
         for t in range(len(x) - 1):
             block_x = x[t][task_indices, :]
+            block_x = jax.lax.stop_gradient(block_x)
+
             block_y = x[t + 1][task_indices, :]
             block_y_hat = model[t + 1](theta[t + 1], block_x)
             # defects.append(block_y - jax.lax.stop_gradient(block_y_hat))
-            defects.append(jax.lax.stop_gradient(block_y) - block_y_hat)
+            defects.append(block_y_hat - block_y)
             # defects.append(0.)
         return tuple(defects), task_indices
 
