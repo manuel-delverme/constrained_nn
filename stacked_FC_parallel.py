@@ -1,5 +1,4 @@
 # train_x, train_y, model, theta, x, y
-import time
 from typing import List
 
 import fax
@@ -64,34 +63,19 @@ def main():
         return optimizer_update(i, grad_fn, opt_state)
 
     print("optimize()")
-    update_time = time.time()
 
     for iter_num in tqdm.trange(config.num_epochs):
         opt_state = update(iter_num, opt_state)
 
-        update_time = time.time() - update_time
-        if iter_num % config.reset_state_every == 0:
-            old_params = optimizer_get_params(opt_state)
-            y = time_march(train_x, model, old_params[0].theta)
-
-            for t, xt in enumerate(y[:-1]):
-                opt_state[0][0].x[t] = y[:-1][t]
-
-                # reset adam mean
-                opt_state[1][0][0].x[t] = np.zeros_like(opt_state[1][0][0].x[t])
-                # reset adam var
-                opt_state[1][1][0].x[t] = np.zeros_like(opt_state[1][1][0].x[t])
-
         if iter_num % config.eval_every == 0:
             params = optimizer_get_params(opt_state)
-            update_metrics(batch_gen, equality_constraints, full_rollout_loss, model, params, iter_num, update_time, train_x, train_y)
-            update_time = time.time()
+            update_metrics(batch_gen, equality_constraints, full_rollout_loss, model, params, iter_num, train_x, train_y)
 
     trained_params = optimizer_get_params(opt_state)
     return trained_params
 
 
-def update_metrics(_batches, equality_constraints, full_rollout_loss, model, params, outer_iter, update_time, train_x, train_y):
+def update_metrics(_batches, equality_constraints, full_rollout_loss, model, params, outer_iter, train_x, train_y):
     params, multipliers = params
     # _train_x, _train_y, _indices = next(batches)
     # metrics_time = time.time()
@@ -127,8 +111,8 @@ def update_metrics(_batches, equality_constraints, full_rollout_loss, model, par
 
 
 def initialize():
-    train_x, train_y, _, _ = datasets.mnist()
-    # train_x, train_y, _, _ = datasets.iris()
+    # train_x, train_y, _, _ = datasets.mnist()
+    train_x, train_y, _, _ = datasets.iris()
     dataset_size = train_x.shape[0]
     batch_size = min(config.batch_size, train_x.shape[0])
 

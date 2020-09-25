@@ -20,7 +20,6 @@ RANDOM_SEED = 1337
 # lr = jax.experimental.optimizers.inverse_time_decay(initial_lr, 1000, 0.3, staircase=True)
 # # optimization_subiters = 1000
 # num_hidden = 300
-reset_state_every = 100
 eval_every = 1000
 
 lr = 1e-4
@@ -29,7 +28,7 @@ adam2 = 0.99
 batch_size = 1024
 weight_norm = 1e-2
 
-num_epochs = 50000
+num_epochs = 5000# 0
 
 ################################################################
 # END OF PARAMETERS
