@@ -43,7 +43,7 @@ def main():
             block_x = x[t][task_indices, :]
             block_y = x[t + 1][task_indices, :]
             block_y_hat = model[t + 1](theta[t + 1], block_x)
-            defects.append(np.square(block_y - block_y_hat))
+            defects.append(block_y - jax.lax.stop_gradient(block_y_hat))
             # defects.append(0.)
         return tuple(defects), task_indices
 
