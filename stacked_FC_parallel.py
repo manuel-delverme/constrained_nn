@@ -37,7 +37,7 @@ def main():
 
         def constr_fn(d):
             # return d - np.clip(d, -config.constr_eps, config.constr_eps)
-            return np.power(d, 2)
+            return np.power(d, 3)  # preserve sign
 
         # Layer 1 -> 2
         defects = [
