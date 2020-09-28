@@ -1,1 +1,1 @@
-ssh mila /opt/slurm/bin/sbatch ./localenv_sweep.sh https://github.com/manuel-delverme/OptimalControlNeuralNet 0t3k9if9 8c1a84963725068710ecc93ded06025ff625bfaf
+ssh mila /opt/slurm/bin/sbatch ./localenv_sweep.sh https://github.com/manuel-delverme/OptimalControlNeuralNet idf74pdv 74c86cc1251566a14d5e9b5ee65b544104bd2caa

@@ -17,8 +17,12 @@ LOCAL_RUN = False
 
 RANDOM_SEED = 1337
 
-num_hidden = 1024
-dataset = "mnist"  # "iris"
+if LOCAL_RUN:
+    dataset = "iris"
+    num_hidden = 32
+else:
+    dataset = "mnist"
+    num_hidden = 1024
 
 lr = 1e-4
 adam1 = 0.5
