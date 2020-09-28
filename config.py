@@ -1,4 +1,5 @@
 import datetime
+import jax.experimental.optimizers
 import getpass
 import os
 import subprocess
@@ -15,22 +16,29 @@ RUN_SWEEP = True
 PROJECT_NAME = "constrained_nn"
 LOCAL_RUN = False
 
+sweep_yaml = "sweep_toy.yaml"
+
 RANDOM_SEED = 1337
 
 if LOCAL_RUN:
     dataset = "iris"
     num_hidden = 32
+    initial_lr = 1e-2
 else:
     dataset = "mnist"
     num_hidden = 1024
+    initial_lr = 1e-4
 
-lr = 1e-4
+decay_steps = 100000
+decay_factor = 0.1
+lr = jax.experimental.optimizers.inverse_time_decay(initial_lr, decay_steps, decay_factor, staircase=True)
+
 adam1 = 0.5
 adam2 = 0.99
 batch_size = 1024
 weight_norm = 1e-2
 
-num_epochs = 100000
+num_epochs = 1000000
 eval_every = 1000
 
 ################################################################
@@ -131,7 +139,7 @@ def commit_and_sendjob(experiment_id):
     os.system("git push")
 
     if RUN_SWEEP:
-        cmd_list = f"/home/esac/research/fax/venv/bin/wandb sweep --name {experiment_id} -p {PROJECT_NAME} sweep.yaml".split(" ")
+        cmd_list = f"/home/esac/research/fax/venv/bin/wandb sweep --name {experiment_id} -p {PROJECT_NAME} {sweep_yaml}".split(" ")
         wandb_stdout = subprocess.check_output(cmd_list, stderr=subprocess.STDOUT).decode("utf-8")
         print(wandb_stdout)
         sweep_id = wandb_stdout.split("/")[-1].strip()
@@ -149,6 +157,9 @@ def commit_and_sendjob(experiment_id):
     # 5) runs the experiment
     # 7) writes me on slack/telegram/email a link for the tensorboard
 
+
+if LOCAL_RUN and RUN_SWEEP:
+    raise ValueError("?!?!?")
 
 if getpass.getuser() == 'delvermm':
     print("using wandb")

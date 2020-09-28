@@ -35,8 +35,14 @@ def main():
         theta, x = params
         task_x, _, task_indices = task
 
+        def constr_fn(d):
+            # return d - np.clip(d, -config.constr_eps, config.constr_eps)
+            return np.power(d, 2)
+
         # Layer 1 -> 2
-        defects = [model[0](theta[0], task_x) - x[0][task_indices, :], ]
+        defects = [
+            model[0](theta[0], task_x) - x[0][task_indices, :],
+        ]
 
         # Layer 2 onward
         for t in range(len(x) - 1):
@@ -48,7 +54,8 @@ def main():
             # defects.append(block_y - jax.lax.stop_gradient(block_y_hat))
             defects.append(block_y_hat - block_y)
             # defects.append(0.)
-        return tuple(defects), task_indices
+        eps_defects = [constr_fn(d) for d in defects]
+        return tuple(eps_defects), task_indices
 
     init_mult, lagrangian, get_x = fax.constrained.make_lagrangian(
         func=onestep,
@@ -95,6 +102,7 @@ def update_metrics(_batches, equality_constraints, full_rollout_loss, model, par
     metrics = [
                   ("train_accuracy", train_accuracy(train_x, train_y, model, params.theta)),
                   ("train/sampled_loss", loss),
+                  ("train/lr", config.lr(outer_iter)),
                   # ("train/full_rollout_loss", full_rollout_loss(params.theta, next(_batches))),
                   # ("train/1step_loss", make_n_step_loss(1, full_rollout_loss, batches)(params)[0]),
                   # ("train/multipliers", np.linalg.norm(multipliers, 1)),

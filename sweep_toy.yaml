@@ -1,0 +1,22 @@
+method: bayes
+metric:
+  goal: maximize
+  name: train_accuracy
+parameters:
+  _weight_norm:
+    distribution: log_uniform
+    max: -1
+    min: -5
+  _initial_lr:
+    distribution: log_uniform
+    max: -3
+    min: -5
+  _decay_factor:
+    distribution: uniform
+    max: 0.5
+    min: 0.1
+  _decay_steps:
+    distribution: q_log_uniform
+    max: 6
+    min: 4
+program: main.py

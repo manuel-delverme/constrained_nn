@@ -27,7 +27,7 @@ parameters:
       - "512"
       - "1024"
       - "2048"
-  _lr:
+  _initial_lr:
     distribution: log_uniform
     max: -3
     min: -5
