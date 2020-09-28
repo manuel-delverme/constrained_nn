@@ -1,5 +1,4 @@
 import datetime
-import jax.experimental.optimizers
 import getpass
 import os
 import subprocess
@@ -7,27 +6,26 @@ import sys
 import types
 
 import git
+import jax.experimental.optimizers
 import matplotlib.pyplot as plt
 import tensorboardX
 import wandb
 
 sweep_yaml = "sweep_toy.yaml"
-RUN_SWEEP = 1
-LOCAL_RUN = 0
-
+RUN_SWEEP = 0
+LOCAL_RUN = 1
 
 PROJECT_NAME = "constrained_nn"
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
-
 
 RANDOM_SEED = 1337
 
 dataset = "iris"
 num_hidden = 32
-initial_lr = 1e-2
+initial_lr = 1e-4
 
-decay_steps = 100000
-decay_factor = 0.1
+decay_steps = 200000
+decay_factor = 1  # 1/2 at each step
 lr = jax.experimental.optimizers.inverse_time_decay(initial_lr, decay_steps, decay_factor, staircase=True)
 
 adam1 = 0.5
@@ -35,7 +33,7 @@ adam2 = 0.99
 batch_size = 1024
 weight_norm = 1e-2
 
-num_epochs = 1000000
+num_epochs = 300000
 eval_every = 1000
 
 ################################################################
