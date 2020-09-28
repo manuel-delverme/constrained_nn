@@ -11,12 +11,14 @@ import matplotlib.pyplot as plt
 import tensorboardX
 import wandb
 
-DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
-RUN_SWEEP = True
-PROJECT_NAME = "constrained_nn"
-LOCAL_RUN = False
-
 sweep_yaml = "sweep_toy.yaml"
+RUN_SWEEP = 1
+LOCAL_RUN = 0
+
+
+PROJECT_NAME = "constrained_nn"
+DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
+
 
 RANDOM_SEED = 1337
 
