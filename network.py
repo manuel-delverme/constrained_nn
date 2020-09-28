@@ -1,16 +1,17 @@
 from jax.experimental import stax as stax
 
+import config
+
 
 def make_block_net(num_outputs):
     return zip(*[
         stax.serial(
             # stax.Dense(1024, ),
-            stax.Dense(32, ),
+            stax.Dense(config.num_hidden, ),
             stax.LeakyRelu,
         ),
         stax.serial(
-            # stax.Dense(1024, ),
-            stax.Dense(32, ),
+            stax.Dense(config.num_hidden, ),
             stax.LeakyRelu,
         ),
         stax.serial(

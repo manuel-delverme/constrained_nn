@@ -17,9 +17,8 @@ LOCAL_RUN = False
 
 RANDOM_SEED = 1337
 
-# lr = jax.experimental.optimizers.inverse_time_decay(initial_lr, 1000, 0.3, staircase=True)
-# # optimization_subiters = 1000
-# num_hidden = 300
+num_hidden = 1024
+dataset = "mnist"  # "iris"
 
 lr = 1e-4
 adam1 = 0.5

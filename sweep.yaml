@@ -21,6 +21,12 @@ parameters:
     - "512"
     - "1024"
     - "2048"
+  _num_hidden:
+    distribution: categorical
+    values:
+      - "512"
+      - "1024"
+      - "2048"
   _lr:
     distribution: log_uniform
     max: -3

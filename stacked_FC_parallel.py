@@ -114,8 +114,13 @@ def update_metrics(_batches, equality_constraints, full_rollout_loss, model, par
 
 
 def initialize():
-    train_x, train_y, _, _ = datasets.mnist()
-    # train_x, train_y, _, _ = datasets.iris()
+    if config.dataset == "mnist":
+        train_x, train_y, _, _ = datasets.mnist()
+    elif config.dataset == "iris":
+        train_x, train_y, _, _ = datasets.iris()
+    else:
+        raise ValueError
+
     dataset_size = train_x.shape[0]
     batch_size = min(config.batch_size, train_x.shape[0])
 
