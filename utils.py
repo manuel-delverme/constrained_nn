@@ -173,8 +173,11 @@ def make_n_step_loss(n, full_rollout_loss, batches):
         theta, activations = params
         x0 = next(batches)
         _, train_y, indices = x0
-        xn = (activations[-n][indices], train_y, indices)
-        return full_rollout_loss(theta[-n:], xn), x0
+        x_n = jax.lax.stop_gradient(activations[-n][indices])
+        theta_n_T = jax.lax.stop_gradient(theta[-n:])
+
+        x_n = (x_n, train_y, indices)
+        return full_rollout_loss(theta_n_T, x_n), x0
 
     return n_step_loss
 

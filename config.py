@@ -22,19 +22,20 @@ RANDOM_SEED = 1337
 
 dataset = "iris"
 num_hidden = 32
-initial_lr = 1e-4
+initial_lr = 1e-5
 
-decay_steps = 200000
+# decay_steps = 200000
+decay_steps = 1000000
 decay_factor = 1  # 1/2 at each step
 lr = jax.experimental.optimizers.inverse_time_decay(initial_lr, decay_steps, decay_factor, staircase=True)
 
 adam1 = 0.5
 adam2 = 0.99
 batch_size = 1024
-weight_norm = 1e-2
+weight_norm = 0.
 
 num_epochs = 300000
-eval_every = 1000
+eval_every = 100
 
 ################################################################
 # END OF PARAMETERS
