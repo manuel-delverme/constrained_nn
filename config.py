@@ -20,14 +20,9 @@ sweep_yaml = "sweep_toy.yaml"
 
 RANDOM_SEED = 1337
 
-if LOCAL_RUN:
-    dataset = "iris"
-    num_hidden = 32
-    initial_lr = 1e-2
-else:
-    dataset = "mnist"
-    num_hidden = 1024
-    initial_lr = 1e-4
+dataset = "iris"
+num_hidden = 32
+initial_lr = 1e-2
 
 decay_steps = 100000
 decay_factor = 0.1
