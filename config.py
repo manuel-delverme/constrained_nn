@@ -22,7 +22,7 @@ RANDOM_SEED = 1337
 
 dataset = "iris"
 num_hidden = 32
-initial_lr = 1e-5
+initial_lr = 1e-2
 
 # decay_steps = 200000
 decay_steps = 1000000

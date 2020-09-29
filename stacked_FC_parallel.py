@@ -33,8 +33,8 @@ def main():
         theta, activations = params
         x0 = next(batch_gen)
         _, batch_train_y, indices = x0
-        x_n = jax.lax.stop_gradient(activations[-1][indices])
-        # theta_n_T = jax.lax.stop_gradient(theta[-1:])
+        x_n = jax.lax.stop_gradient(activations[-1][indices, :])
+        # jax.make_jaxpr(lambda x: x)(x_n)
         pred_y = full_rollout(x_n, model[-1:], theta[-1:])
         return np.linalg.norm(pred_y - batch_train_y, 2), x0
 
@@ -99,11 +99,15 @@ def update_metrics(_batches, equality_constraints, full_rollout_loss, model, par
                   ("train/sampled_loss", loss),
                   ("train/lr", config.lr(outer_iter)),
               ] + [
-                  (f"constraints/multipliers_l1_{idx}", np.linalg.norm(mi, 1)) for idx, mi in enumerate(multipliers)
+                  (f"constraints/{idx}_multipliers", np.linalg.norm(mi, 1)) for idx, mi in enumerate(multipliers)
               ] + [
-                  (f"constraints/defects_l1_{idx}", np.linalg.norm(hi, 1)) for idx, hi in enumerate(h)
+                  (f"constraints/{idx}_defects", np.linalg.norm(hi, 1)) for idx, hi in enumerate(h)
               ] + [
-                  (f"train/sampled_{t}_step_accuracy", utils.n_step_accuracy(*next(_batches), model, params, t)) for t in range(1, len(params.theta))
+                  (f"params/{idx}_x", np.linalg.norm(xi, 1)) for idx, xi in enumerate(params.x)
+              ] + [
+                  (f"params/{idx}_theta", (np.linalg.norm(p[0], 1) + np.linalg.norm(p[1], 1)) / 2) for idx, (p, _) in enumerate(params.theta)
+              ] + [
+                  (f"train/{t}_step_sampled_accuracy", utils.n_step_accuracy(*next(_batches), model, params, t)) for t in range(1, len(params.theta))
               ]
     for tag, value in metrics:
         config.tb.add_scalar(tag, float(value), outer_iter)
