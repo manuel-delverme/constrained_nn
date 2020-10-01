@@ -5,18 +5,20 @@ import utils
 from utils import train_accuracy
 
 
-def update_metrics(_batches, equality_constraints, full_rollout_loss, loss_function, model, params, outer_iter, train_x, train_y):
-    params, multipliers = params
+def update_metrics(_batches, lagrangian,  equality_constraints, full_rollout_loss, loss_function, model, params_lagr, outer_iter, train_x, train_y):
+    params, multipliers = params_lagr
     # _train_x, _train_y, _indices = next(batches)
     # metrics_time = time.time()
     # fullbatch = train_x, train_y, np.arange(train_x.shape[0])
     loss, task = loss_function(params)
+    lagr_val= lagrangian(*params_lagr)
     h, _task = equality_constraints(params, task)
     full_loss = full_rollout_loss(params.theta, task)
 
     metrics = [
                   ("train/train_accuracy", train_accuracy(train_x, train_y, model, params.theta)),
                   ("train/full_rollout_loss", full_loss),
+                  ("train/lagrangian", lagr_val),
                   ("train/loss", loss),
                   ("train/lr", config.lr(outer_iter)),
               ] + [

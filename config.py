@@ -7,33 +7,31 @@ import types
 
 import git
 import jax.experimental.optimizers
-import jax.numpy as np
 import matplotlib.pyplot as plt
 import tensorboardX
 import wandb
 
 sweep_yaml = "sweep_toy.yaml"
-RUN_SWEEP = 0
-LOCAL_RUN = 1
-
+RUN_SWEEP = True
+LOCAL_RUN = False
 PROJECT_NAME = "constrained_nn"
+
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
 
 RANDOM_SEED = 1337
 
 dataset = "iris"
 num_hidden = 32
-initial_lr = 1e-2
-dtype = np.float64
+initial_lr = 1e-3
 
 decay_steps = 1000000
 decay_factor = 1  # 1/2 at each step
 lr = jax.experimental.optimizers.inverse_time_decay(initial_lr, decay_steps, decay_factor, staircase=True)
 
-adam1 = 0.9  # 0.001
-adam2 = 0.99  # 0.001
+adam1 = 0.001  # 0.9  # 0.001
+adam2 = 0.001  # 0.99  # 0.001
 batch_size = 1024
-weight_norm = 0.
+weight_norm = 0.01
 
 num_epochs = 100000
 eval_every = 100

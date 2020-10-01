@@ -16,7 +16,7 @@ def make_block_net(num_outputs):
         # ),
         stax.serial(
             stax.Dense(num_outputs),
-            stax.Softmax
-            # stax.LogSoftmax
+            # stax.Softmax
+            stax.LogSoftmax
         ),
     ])
