@@ -1,5 +1,9 @@
 import os
 
+from jax.config import config as j_config
+
+j_config.update("jax_enable_x64", True)
+# j_config.update("jax_disable_jit", False)
 import jax
 
 import config

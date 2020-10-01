@@ -7,6 +7,7 @@ import types
 
 import git
 import jax.experimental.optimizers
+import jax.numpy as np
 import matplotlib.pyplot as plt
 import tensorboardX
 import wandb
@@ -23,18 +24,18 @@ RANDOM_SEED = 1337
 dataset = "iris"
 num_hidden = 32
 initial_lr = 1e-2
+dtype = np.float64
 
-# decay_steps = 200000
 decay_steps = 1000000
 decay_factor = 1  # 1/2 at each step
 lr = jax.experimental.optimizers.inverse_time_decay(initial_lr, decay_steps, decay_factor, staircase=True)
 
-adam1 = 0.5
-adam2 = 0.99
+adam1 = 0.9  # 0.001
+adam2 = 0.99  # 0.001
 batch_size = 1024
 weight_norm = 0.
 
-num_epochs = 300000
+num_epochs = 100000
 eval_every = 100
 
 ################################################################

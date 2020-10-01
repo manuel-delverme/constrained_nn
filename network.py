@@ -10,10 +10,10 @@ def make_block_net(num_outputs):
             stax.Dense(config.num_hidden, ),
             stax.LeakyRelu,
         ),
-        stax.serial(
-            stax.Dense(config.num_hidden, ),
-            stax.LeakyRelu,
-        ),
+        # stax.serial(
+        #     stax.Dense(config.num_hidden, ),
+        #     stax.LeakyRelu,
+        # ),
         stax.serial(
             stax.Dense(num_outputs),
             stax.Softmax
