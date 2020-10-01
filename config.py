@@ -12,7 +12,7 @@ import tensorboardX
 import wandb
 
 sweep_yaml = "sweep_toy.yaml"
-RUN_SWEEP = True
+RUN_SWEEP = False
 LOCAL_RUN = False
 PROJECT_NAME = "constrained_nn"
 
