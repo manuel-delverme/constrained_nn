@@ -1,5 +1,6 @@
 import datetime
 import getpass
+import math
 import os
 import subprocess
 import sys
@@ -7,13 +8,14 @@ import types
 
 import git
 import jax.experimental.optimizers
+import jax.numpy as np
 import matplotlib.pyplot as plt
 import tensorboardX
 import wandb
 
 sweep_yaml = "sweep_toy.yaml"
 RUN_SWEEP = False
-LOCAL_RUN = False
+LOCAL_RUN = True
 PROJECT_NAME = "constrained_nn"
 
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
@@ -22,19 +24,35 @@ RANDOM_SEED = 1337
 
 dataset = "iris"
 num_hidden = 32
-initial_lr = 1e-3
+initial_lr_x = 1e-1
+initial_lr_y = 1e-2  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
 
 decay_steps = 1000000
 decay_factor = 1  # 1/2 at each step
-lr = jax.experimental.optimizers.inverse_time_decay(initial_lr, decay_steps, decay_factor, staircase=True)
+lr_x = jax.experimental.optimizers.inverse_time_decay(initial_lr_x, decay_steps, decay_factor, staircase=True)
+lr_y = jax.experimental.optimizers.inverse_time_decay(initial_lr_y, decay_steps, decay_factor, staircase=True)
 
-adam1 = 0.001  # 0.9  # 0.001
-adam2 = 0.001  # 0.99  # 0.001
+
+# state_fn = lambda x: np.clip(x, -0.99, 0.99)
+
+
+def state_fn(x):
+    high = 10.
+    low = -10.
+    x = np.where(x <= high, x, high + (1e-2 * (x - high)))
+    x = np.where(x >= low, x, low + (1e-2 * (x - low)))
+    return x
+
+
+use_adam = False
+adam1 = 0.1
+adam2 = 0.1
+
 batch_size = 1024
-weight_norm = 0.01
+weight_norm = 0.00
 
-num_epochs = 100000
-eval_every = 100
+num_epochs = 1000000
+eval_every = math.ceil(num_epochs / 1000)
 
 ################################################################
 # END OF PARAMETERS

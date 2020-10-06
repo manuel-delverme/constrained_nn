@@ -8,12 +8,14 @@ def make_block_net(num_outputs):
         stax.serial(
             # stax.Dense(1024, ),
             stax.Dense(config.num_hidden, ),
+            # stax.Identity,
+            stax.LeakyRelu,
+            # stax.Tanh,
+        ),
+        stax.serial(
+            stax.Dense(config.num_hidden, ),
             stax.LeakyRelu,
         ),
-        # stax.serial(
-        #     stax.Dense(config.num_hidden, ),
-        #     stax.LeakyRelu,
-        # ),
         stax.serial(
             stax.Dense(num_outputs),
             # stax.Softmax

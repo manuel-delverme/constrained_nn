@@ -9,18 +9,20 @@ import jax.tree_util
 from jax import tree_util, numpy as np
 from matplotlib import pyplot as plt
 
+import config
 
-def time_march(train_x, model, theta):
+
+def time_march(x0, model, theta):
     y = []
-    x_t = train_x
+    x_t = x0
     for block, theta_t in zip(model, theta):
         x_t = block(theta_t, x_t)
         y.append(x_t)
     return y
 
 
-def full_rollout(train_x, model, theta):
-    x_t = train_x
+def forward_prop(x0, model, theta):
+    x_t = x0
     for block, theta_t in zip(model, theta):
         x_t = block(theta_t, x_t)
     return x_t
@@ -150,41 +152,17 @@ class LagrangianParameters(collections.namedtuple("LagrangianParameters", "const
 
 
 def train_accuracy(train_x, train_y, model, theta):
-    logits = full_rollout(train_x, model, theta)
+    logits = forward_prop(train_x, model, theta)
     predicted_class = np.argmax(logits, axis=-1)
     target_class = np.argmax(train_y, axis=-1)
     return np.mean(predicted_class == target_class)
 
 
-def n_step_accuracy(_train_x, train_y, indices, model, params, n):
+def n_step_accuracy(_train_x, train_y, model, params, n):
     assert 0 < n < len(model)
     return train_accuracy(
-        params.x[-n][indices, :],
+        config.state_fn(params.x[-n]),
         train_y,
         model[-n:],
         params.theta[-n:],
     )
-
-
-def make_n_step_loss(n, full_rollout_loss, batches):
-    assert n > 0
-
-    def n_step_loss(params):
-        theta, activations = params
-        x0 = next(batches)
-        _, train_y, indices = x0
-        x_n = jax.lax.stop_gradient(activations[-n][indices])
-        theta_n_T = jax.lax.stop_gradient(theta[-n:])
-
-        x_n = (x_n, train_y, indices)
-        return full_rollout_loss(theta_n_T, x_n), x0
-
-    return n_step_loss
-
-
-def make_full_rollout_loss(full_rollout_loss, batches):
-    def n_step_loss(params):
-        batch = next(batches)
-        return full_rollout_loss(params.theta, batch), batch
-
-    return n_step_loss

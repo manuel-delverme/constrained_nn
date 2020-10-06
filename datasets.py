@@ -23,6 +23,7 @@ from os import path
 
 import numpy as np
 import sklearn.datasets
+from sklearn.preprocessing import StandardScaler
 
 _DATA = "~/jax_example_data/"
 
@@ -78,12 +79,17 @@ def mnist_raw():
 def iris(permute_train=False):
     """Download, parse and process MNIST data to unit scale and one-hot labels."""
     train_images, train_labels = sklearn.datasets.load_iris(return_X_y=True)
-    train_images /= train_images.max(axis=0)
+
+    perm = np.random.RandomState(0).permutation(train_images.shape[0])
+    train_images = train_images[perm]
+    train_labels = train_labels[perm]
+
+    scaler = StandardScaler()
+    train_images = scaler.fit_transform(train_images)
 
     train_images, train_labels = np.array(train_images), np.array(train_labels)
 
-    train_labels = _one_hot(train_labels, 3)
-    # test_labels = _one_hot(test_labels, 10)
+    train_labels = _one_hot(train_labels, train_labels.max() + 1)
 
     if permute_train:
         perm = np.random.RandomState(0).permutation(train_images.shape[0])
