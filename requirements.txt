@@ -18,7 +18,7 @@ graphql-core
 hypothesis
 idna
 jax
--e git+git@github.com:manuel-delverme/fax.git@62dc91edd0fedbe6ab5352d4658c90cd75226bc8#egg=jax_fixedpoint
+-e git+git@github.com:manuel-delverme/fax.git@00f4e951e83ae342955f5e4ba9288e2c8c951234#egg=jax_fixedpoint
 jaxlib
 jeepney
 joblib

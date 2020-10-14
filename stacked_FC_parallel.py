@@ -131,7 +131,7 @@ def initialize():
     x = []
     output_shape = train_x.shape
 
-    x_init = jax.nn.initializers.xavier_normal()
+    x_init = jax.nn.initializers.xavier_normal(dtype=np.float64)
     for init in blocks_init:
         rng_key, k_out = jax.random.split(rng_key)
         output_shape, init_params = init(k_out, output_shape)

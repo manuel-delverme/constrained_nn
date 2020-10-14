@@ -1,5 +1,6 @@
 import datetime
 import getpass
+import math
 import os
 import subprocess
 import sys
@@ -12,8 +13,8 @@ import tensorboardX
 import wandb
 
 sweep_yaml = "sweep_toy.yaml"
-RUN_SWEEP = False
-LOCAL_RUN = True
+RUN_SWEEP = True
+LOCAL_RUN = False
 PROJECT_NAME = "constrained_nn"
 
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
@@ -22,14 +23,15 @@ RANDOM_SEED = 1337
 
 dataset = "iris"
 num_hidden = 32
-initial_lr_x = 1e-1
-initial_lr_y = 1e-2  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
+initial_lr_x = 1e-2
+initial_lr_y = 1e-3  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
 
-decay_steps = 1000000
+decay_steps = 10000
 decay_factor = 1  # 1/2 at each step
 lr_x = jax.experimental.optimizers.inverse_time_decay(initial_lr_x, decay_steps, decay_factor, staircase=True)
 lr_y = jax.experimental.optimizers.inverse_time_decay(initial_lr_y, decay_steps, decay_factor, staircase=True)
 blocks = [2, ] * 5
+# blocks = [2, 8]
 
 use_adam = False
 adam1 = 0.9
@@ -39,7 +41,7 @@ batch_size = 150
 weight_norm = 0.00
 
 num_epochs = 1000000
-eval_every = 10  # math.ceil(num_epochs / 1000)
+eval_every = math.ceil(num_epochs / 1000)
 
 ################################################################
 # END OF PARAMETERS
