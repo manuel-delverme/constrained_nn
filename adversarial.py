@@ -18,7 +18,7 @@ import tqdm
 import config
 import datasets
 from network import make_block_net
-from utils import ConstrainedParameters, TaskParameters, make_n_step_loss, n_step_accuracy, full_rollout, time_march, train_accuracy
+from utils import ConstrainedParameters, TaskParameters, make_n_step_loss, n_step_accuracy, forward_prop, time_march, train_accuracy
 
 
 def main():
@@ -26,7 +26,7 @@ def main():
 
     def full_rollout_loss(theta: List[np.ndarray], batch):
         train_x, batch_train_y, _indices = batch
-        pred_y = full_rollout(train_x, model, theta)
+        pred_y = forward_prop(train_x, model, theta)
         return np.linalg.norm(pred_y - batch_train_y, 2)
 
     onestep = make_n_step_loss(1, full_rollout_loss, batch_gen)

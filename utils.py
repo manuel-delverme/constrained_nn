@@ -9,8 +9,6 @@ import jax.tree_util
 from jax import tree_util, numpy as np
 from matplotlib import pyplot as plt
 
-import config
-
 
 def time_march(x0, model, theta):
     y = []
@@ -18,6 +16,14 @@ def time_march(x0, model, theta):
     for block, theta_t in zip(model, theta):
         x_t = block(theta_t, x_t)
         y.append(x_t)
+    return y
+
+
+def one_step(x0, x, model, theta):
+    y = []
+    for x_t, block, theta_t in zip([x0, *x], model, theta):
+        y_t = block(theta_t, x_t)
+        y.append(y_t)
     return y
 
 
@@ -125,21 +131,16 @@ def plot_model(model, trainX, trainY, title, i):
     fig.show()
 
 
+class Batch(collections.namedtuple("Batch", "x y indices")):
+    pass
+
+
 class ConstrainedParameters(collections.namedtuple("ConstrainedParameters", "theta x")):
     def __sub__(self, other):
         return jax.tree_util.tree_multimap(lambda _a, _b: _a - _b, self, other)
 
     def __add__(self, other):
         return jax.tree_util.tree_multimap(lambda _a, _b: _a + _b, self, other)
-
-
-class TaskParameters(collections.namedtuple("TaskParameters", "x y idx")):
-    pass
-
-
-class TaskParameters(tuple):
-    def __new__(cls, *args, **kwargs):
-        return tuple(args)
 
 
 class LagrangianParameters(collections.namedtuple("LagrangianParameters", "constr_params multipliers")):
@@ -161,7 +162,8 @@ def train_accuracy(train_x, train_y, model, theta):
 def n_step_accuracy(_train_x, train_y, model, params, n):
     assert 0 < n < len(model)
     return train_accuracy(
-        config.state_fn(params.x[-n]),
+        params.x[-n],
+        # config.state_fn(params.x[-n]),
         train_y,
         model[-n:],
         params.theta[-n:],

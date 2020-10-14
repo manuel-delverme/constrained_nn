@@ -13,7 +13,7 @@ import tqdm
 from jax.experimental import stax as stax
 
 import config
-from utils import full_rollout, ConstrainedParameters
+from utils import forward_prop, ConstrainedParameters
 
 
 def make_block_net(num_outputs):
@@ -37,12 +37,12 @@ def main():
         theta.append(init_params)
     params = ConstrainedParameters(theta, None)
 
-    player_1_obj = lambda params: full_rollout(train_x, model, params.theta)[0, 0]
+    player_1_obj = lambda params: forward_prop(train_x, model, params.theta)[0, 0]
 
     def h(params):
         indices = (0,)
         constr = [
-            full_rollout(train_x, model, params.theta)[0, 1].reshape(1, 1),
+            forward_prop(train_x, model, params.theta)[0, 1].reshape(1, 1),
         ]
         return np.array(constr), indices
 

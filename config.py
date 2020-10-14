@@ -1,6 +1,5 @@
 import datetime
 import getpass
-import math
 import os
 import subprocess
 import sys
@@ -8,7 +7,6 @@ import types
 
 import git
 import jax.experimental.optimizers
-import jax.numpy as np
 import matplotlib.pyplot as plt
 import tensorboardX
 import wandb
@@ -31,28 +29,17 @@ decay_steps = 1000000
 decay_factor = 1  # 1/2 at each step
 lr_x = jax.experimental.optimizers.inverse_time_decay(initial_lr_x, decay_steps, decay_factor, staircase=True)
 lr_y = jax.experimental.optimizers.inverse_time_decay(initial_lr_y, decay_steps, decay_factor, staircase=True)
-
-
-# state_fn = lambda x: np.clip(x, -0.99, 0.99)
-
-
-def state_fn(x):
-    high = 10.
-    low = -10.
-    x = np.where(x <= high, x, high + (1e-2 * (x - high)))
-    x = np.where(x >= low, x, low + (1e-2 * (x - low)))
-    return x
-
+blocks = [2, ] * 5
 
 use_adam = False
-adam1 = 0.1
-adam2 = 0.1
+adam1 = 0.9
+adam2 = 0.99
 
-batch_size = 1024
+batch_size = 150
 weight_norm = 0.00
 
 num_epochs = 1000000
-eval_every = math.ceil(num_epochs / 1000)
+eval_every = 10  # math.ceil(num_epochs / 1000)
 
 ################################################################
 # END OF PARAMETERS

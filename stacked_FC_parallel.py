@@ -1,4 +1,3 @@
-# train_x, train_y, model, theta, x, y
 from typing import List
 
 import fax
@@ -12,64 +11,86 @@ import jax.nn.initializers
 import jax.numpy as np
 import jax.ops
 import jax.tree_util
+import numpy.random as npr
 import tqdm
 
 import config
 import datasets
 from metrics import update_metrics
 from network import make_block_net
-from utils import ConstrainedParameters, forward_prop
+from utils import ConstrainedParameters, forward_prop, Batch
+
+
+def make_losses(batch_gen, model):
+    def full_rollout_loss(theta: List[np.ndarray], batch: Batch):
+        batch_x, batch_y, _indices = batch
+        pred_y = forward_prop(batch_x, model, theta)
+        return -np.mean(np.sum(pred_y * batch_y, axis=1))
+
+    def loss_function(params: ConstrainedParameters) -> (float, Batch):
+        theta_n, x_n = params.theta[-1:], params.x[-1]
+        x0 = next(batch_gen)
+        _, batch_train_y, batch_indices = x0
+
+        a_T = x_n[batch_indices, :]
+        pred_y = forward_prop(a_T, model[-1:], theta_n)
+        return -np.mean(np.sum(pred_y * batch_train_y, axis=1)), x0
+
+    def equality_constraints(params: ConstrainedParameters, batch: Batch) -> (np.array, Batch):
+        theta, x = params
+        a_0, _, batch_indices = batch
+        a = [a_0, ]
+        for xi in x:
+            a.append(xi[batch_indices, :])
+
+        defects = []
+        for t in range(0, len(x)):
+            defects.append(
+                model[t](theta[t], a[t], ) - a[t + 1]
+            )
+        return tuple(defects), batch
+
+    return full_rollout_loss, loss_function, equality_constraints
 
 
 def main():
-    model, params, train_x, train_y = initialize()
-
-    def full_rollout_loss(theta: List[np.ndarray]):
-        pred_y = forward_prop(train_x, model, theta)
-        return -np.mean(np.sum(pred_y * train_y, axis=1))
-
-    def loss_function(params):
-        theta, activations = params
-        x_n = config.state_fn(activations[-1])
-        pred_y = forward_prop(x_n, model[-1:], theta[-1:])
-        return -np.mean(np.sum(pred_y * train_y, axis=1))
-
-    def equality_constraints(params):
-        theta, x = params
-        # Layer 1 -> 2
-        h0 = model[0](theta[0], train_x) - config.state_fn(x[0])
-        defects = [h0, ]
-
-        # Layer 2 onward
-        for t in range(len(x) - 1):
-            block_x = config.state_fn(x[t])  # grad x
-            block_y = config.state_fn(x[t + 1])  # grad x_t+1
-            block_y_hat = model[t + 1](theta[t + 1], block_x)  # grad theta
-
-            defects.append(block_y_hat - block_y)
-        return tuple(defects)
-
-    init_mult, lagrangian, get_x = fax.constrained.make_lagrangian(
-        func=loss_function,
-        equality_constraints=equality_constraints
+    batch_gen, model, initial_parameters, full_batch = initialize()
+    full_rollout_loss, loss_function, equality_constraints = make_losses(
+        batch_gen, model
     )
 
-    initial_values = init_mult(params)
-    optimizer_init, optimizer_update, optimizer_get_params = fax.competitive.extragradient.adam_extragradient_optimizer(
-        betas=(config.adam1, config.adam2), step_sizes=(config.lr_x, config.lr_y), weight_norm=config.weight_norm, use_adam=config.use_adam)
+    init_multipliers, lagrangian, get_x = fax.constrained.make_lagrangian(
+        func=loss_function, equality_constraints=equality_constraints
+    )
+
+    initial_values = init_multipliers(initial_parameters, full_batch)
+    (
+        optimizer_init,
+        optimizer_update,
+        optimizer_get_params,
+    ) = fax.competitive.extragradient.adam_extragradient_optimizer(
+        betas=(config.adam1, config.adam2),
+        step_sizes=(config.lr_x, config.lr_y),
+        weight_norm=config.weight_norm,
+        use_adam=config.use_adam,
+    )
     opt_state = optimizer_init(initial_values)
 
     @jax.jit
-    def update(i, opt_state):
+    def update(i, opt_state_):
         grad_fn = jax.grad(lagrangian, (0, 1))
-        return optimizer_update(i, grad_fn, opt_state)
+        return optimizer_update(i, grad_fn, opt_state_)
 
-    print("optimize()")
+    next_eval = 0
+    rng_key = jax.random.PRNGKey(0)
 
     for iter_num in tqdm.trange(config.num_epochs):
-        if iter_num % config.eval_every == 0:
+        if next_eval == iter_num:
             params = optimizer_get_params(opt_state)
-            update_metrics(lagrangian, equality_constraints, full_rollout_loss, loss_function, model, params, iter_num, train_x, train_y)
+            update_metrics(lagrangian, equality_constraints, full_rollout_loss, loss_function, model, params, iter_num, full_batch)
+
+            rng_key, k_out = jax.random.split(rng_key)
+            next_eval += int(config.eval_every + jax.random.randint(k_out, (1,), 0, config.eval_every // 100))
 
         opt_state = update(iter_num, opt_state)
 
@@ -85,6 +106,25 @@ def initialize():
     else:
         raise ValueError
 
+    dataset_size = train_x.shape[0]
+    batch_size = min(config.batch_size, train_x.shape[0])
+
+    num_train = train_x.shape[0]
+    num_complete_batches, leftover = divmod(num_train, batch_size)
+    num_batches = num_complete_batches + bool(leftover)
+
+    def gen_batches() -> (np.ndarray, np.ndarray, List[np.int_]):
+        rng = npr.RandomState(0)
+        while True:
+            perm = rng.permutation(dataset_size)
+            for i in range(num_batches):
+                indices = perm[i * batch_size:(i + 1) * batch_size]
+                images = np.array(train_x[indices, :])
+                labels = np.array(train_y[indices, :])
+                yield Batch(images, labels, indices)
+
+    batches = gen_batches()
+
     blocks_init, model = make_block_net(num_outputs=train_y.shape[1])
     rng_key = jax.random.PRNGKey(0)
     theta = []
@@ -95,16 +135,11 @@ def initialize():
     for init in blocks_init:
         rng_key, k_out = jax.random.split(rng_key)
         output_shape, init_params = init(k_out, output_shape)
-
         theta.append(init_params)
 
         rng_key, k_out = jax.random.split(rng_key)
         xi = x_init(k_out, output_shape)
         x.append(xi)
 
-    # y = time_march(train_x, model, theta)
-    # x = []
-    # for xi in y[:-1]:
-    #     x.append(np.arctanh(np.clip(xi, -.9, .9)))
     params = ConstrainedParameters(theta, x[:-1])
-    return model, params, train_x, train_y
+    return batches, model, params, Batch(train_x, train_y, np.arange(train_x.shape[0]))
