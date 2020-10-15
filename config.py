@@ -13,8 +13,8 @@ import tensorboardX
 import wandb
 
 sweep_yaml = "sweep_toy.yaml"
-RUN_SWEEP = False
-LOCAL_RUN = False
+RUN_SWEEP = 1
+LOCAL_RUN = 0
 PROJECT_NAME = "constrained_nn"
 
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
