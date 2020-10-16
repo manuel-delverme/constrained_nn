@@ -1,16 +1,16 @@
 method: bayes
 metric:
   goal: maximize
-  name: train/train_accuracy
+  name: train/meta_obj
 parameters:
   _initial_lr_x:
-    distribution: uniform
-    min: 0.0001
-    max: 0.01
+    distribution: log_uniform
+    min: -6.9
+    max: -2.3
   _initial_lr_y:
-    distribution: uniform
-    min: 0.0001
-    max: 0.01
+    distribution: log_uniform
+    min: -6.9
+    max: -2.3
   _decay_factor:
     distribution: uniform
     min: 0.1
@@ -19,4 +19,5 @@ parameters:
     distribution: q_uniform
     min: 10000
     max: 1000000
+    q: 10000
 program: main.py

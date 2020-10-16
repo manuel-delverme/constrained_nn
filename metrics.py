@@ -22,6 +22,7 @@ def update_metrics(lagrangian, equality_constraints, full_rollout_loss, loss_fun
     for mi, hi in zip(multipliers, h):  # TODO: sample these
         rhs.append(math.pytree_dot(mi[constraints_batch.indices], hi))
 
+    n_step_acc = [utils.n_step_accuracy(full_batch.x, full_batch.y, model, constr_params, t) for t in range(1, len(constr_params.theta))]
     metrics = [
                   ("train/train_accuracy", train_accuracy(full_batch.x, full_batch.y, model, constr_params.theta)),
                   ("train/full_rollout_loss", full_loss),
@@ -48,7 +49,9 @@ def update_metrics(lagrangian, equality_constraints, full_rollout_loss, loss_fun
                   # ] + [
                   #     (f"params/theta_{idx}", (np.linalg.norm(p[0], 1) + np.linalg.norm(p[1], 1)) / 2) for idx, (p, _) in enumerate(constr_params.theta[:-1])
               ] + [
-                  (f"train/step_sampled_accuracy_{t}", utils.n_step_accuracy(full_batch.x, full_batch.y, model, constr_params, t)) for t in range(1, len(constr_params.theta))
+                  (f"train/step_sampled_accuracy_{t}", n_step_acc[t]) for t in range(1, len(constr_params.theta))
+              ] + [
+                  (f"train/meta_obj", np.cumproduct(np.array(n_step_acc))[-1])
               ]
     if False:
         (g_p, g_multi) = jax.grad(lagrangian, (0, 1))(*parameters)
