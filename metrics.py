@@ -23,6 +23,10 @@ def update_metrics(lagrangian, equality_constraints, full_rollout_loss, loss_fun
         rhs.append(math.pytree_dot(mi[constraints_batch.indices], hi))
 
     n_step_acc = [utils.n_step_accuracy(full_batch.x, full_batch.y, model, constr_params, t) for t in range(1, len(constr_params.theta))]
+    meta_obj = np.cumproduct(np.array(n_step_acc))[-1]
+    if old_metrics is not None:
+        meta_obj = dict(old_metrics)["train/meta_obj"] * 0.9 + meta_obj * 0.1
+
     metrics = [
                   ("train/train_accuracy", train_accuracy(full_batch.x, full_batch.y, model, constr_params.theta)),
                   ("train/full_rollout_loss", full_loss),
@@ -49,9 +53,9 @@ def update_metrics(lagrangian, equality_constraints, full_rollout_loss, loss_fun
                   # ] + [
                   #     (f"params/theta_{idx}", (np.linalg.norm(p[0], 1) + np.linalg.norm(p[1], 1)) / 2) for idx, (p, _) in enumerate(constr_params.theta[:-1])
               ] + [
-                  (f"train/step_sampled_accuracy_{t + 1}", t_acc) for t, t_acc in enumerate(n_step_acc)
+                  (f"train/step_accuracy_{t + 1}", t_acc) for t, t_acc in enumerate(n_step_acc)
               ] + [
-                  (f"train/meta_obj", np.cumproduct(np.array(n_step_acc))[-1])
+                  (f"train/meta_obj", meta_obj)
               ]
     if False:
         (g_p, g_multi) = jax.grad(lagrangian, (0, 1))(*parameters)

@@ -4,6 +4,7 @@ import math
 import os
 import subprocess
 import sys
+import time
 import types
 
 import git
@@ -24,7 +25,7 @@ RANDOM_SEED = 1337
 dataset = "iris"
 num_hidden = 32
 initial_lr_x = 1e-2
-initial_lr_y = 1e-3  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
+initial_lr_y = 1e-2  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
 
 decay_steps = 10000
 decay_factor = 1  # 1/2 at each step
@@ -65,12 +66,12 @@ for arg in sys.argv[1:]:
         raise ValueError(f"Trying to set {k}, but that's not one of {list(config_params.keys())}")
     locals()[k] = v
 
-
 ################################################################
 # Derivative parameters
 ################################################################
 lr_x = jax.experimental.optimizers.inverse_time_decay(initial_lr_x, decay_steps, decay_factor, staircase=True)
 lr_y = jax.experimental.optimizers.inverse_time_decay(initial_lr_y, decay_steps, decay_factor, staircase=True)
+
 
 # everything below should not be here but refactored away
 
@@ -150,13 +151,23 @@ def commit_and_sendjob(experiment_id):
         print(wandb_stdout)
         sweep_id = wandb_stdout.split("/")[-1].strip()
         command = f"ssh mila /opt/slurm/bin/sbatch ./localenv_sweep.sh https://github.com/manuel-delverme/OptimalControlNeuralNet {sweep_id} {git_repo.commit().hexsha}"
+        num_repeats = 1  # this should become > 1 for parallel sweeps
     else:
         main = sys.argv[0].split(os.getcwd())[-1].lstrip("/")
         command = f"ssh mila bash -l ./run_experiment.sh https://github.com/manuel-delverme/OptimalControlNeuralNet {main} {git_repo.commit().hexsha}"
+        num_repeats = 1  # this should become > 1 for parallel sweeps
 
     # command = f"ssh mila ./run_experiment.sh {next(git_repo.remote().urls)} {main} {git_repo.commit().hexsha}"
     print(command)
-    os.system(command)
+    for proc_num in range(num_repeats):
+        if proc_num > 0:
+            time.sleep(1)
+            raise NotImplemented
+        if proc_num > 1:
+            priority = "long"
+            raise NotImplemented("localenv_sweep.sh does not handle this yet")
+
+        os.system(command)
     with open("ssh.log", 'w') as fout:
         fout.write(command)
     # 4) logs on the server and pulls the latest version
