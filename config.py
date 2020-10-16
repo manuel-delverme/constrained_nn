@@ -28,8 +28,6 @@ initial_lr_y = 1e-3  # high lr_y make the lagrangian more responsive to sign cha
 
 decay_steps = 10000
 decay_factor = 1  # 1/2 at each step
-lr_x = jax.experimental.optimizers.inverse_time_decay(initial_lr_x, decay_steps, decay_factor, staircase=True)
-lr_y = jax.experimental.optimizers.inverse_time_decay(initial_lr_y, decay_steps, decay_factor, staircase=True)
 blocks = [2, ] * 5
 # blocks = [2, 8]
 
@@ -67,6 +65,12 @@ for arg in sys.argv[1:]:
         raise ValueError(f"Trying to set {k}, but that's not one of {list(config_params.keys())}")
     locals()[k] = v
 
+
+################################################################
+# Derivative parameters
+################################################################
+lr_x = jax.experimental.optimizers.inverse_time_decay(initial_lr_x, decay_steps, decay_factor, staircase=True)
+lr_y = jax.experimental.optimizers.inverse_time_decay(initial_lr_y, decay_steps, decay_factor, staircase=True)
 
 # everything below should not be here but refactored away
 
