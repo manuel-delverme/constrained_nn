@@ -12,10 +12,9 @@ def make_block_net(num_outputs):
                 if t == len(config.blocks) - 1:  # last net layer
                     block.append(stax.Dense(num_outputs, ), )
                     block.append(stax.LogSoftmax)
-                    block.append(stax.LeakyRelu)
-        else:
-            block.append(stax.Dense(config.num_hidden, ), )
-            block.append(stax.LeakyRelu)
+            else:
+                block.append(stax.Dense(config.num_hidden, ), )
+                block.append(stax.LeakyRelu)
         network.append(stax.serial(*block))
 
     return zip(*network)
