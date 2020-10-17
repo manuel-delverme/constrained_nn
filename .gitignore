@@ -5,4 +5,4 @@
 tensorboard/
 ssh.log
 .idea/
-wandb/
+wandb/__pycache__

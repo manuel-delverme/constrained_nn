@@ -12,6 +12,7 @@ import jax.experimental.optimizers
 import matplotlib.pyplot as plt
 import tensorboardX
 import wandb
+from jax.experimental import stax
 
 sweep_yaml = "sweep_toy.yaml"
 RUN_SWEEP = 1
@@ -24,13 +25,23 @@ RANDOM_SEED = 1337
 
 dataset = "iris"
 num_hidden = 32
-initial_lr_x = 1e-2
-initial_lr_y = 1e-2  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
+initial_lr_x = .005377794049483666
+initial_lr_y = .036469625408554515
+# 1e-2  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
 
-decay_steps = 10000
-decay_factor = 1  # 1/2 at each step
+decay_steps = 450000
+decay_factor = .3266333290925326  # 1/2 at each step
 blocks = [2, ] * 5
+
+
 # blocks = [2, 8]
+
+def state_fn(x):
+    # x = stax.softplus(x)
+    # x = stax.relu(x)
+    x = stax.leaky_relu(x)
+    return x
+
 
 use_adam = False
 adam1 = 0.9

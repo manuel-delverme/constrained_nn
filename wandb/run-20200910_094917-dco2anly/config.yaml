@@ -1,0 +1,55 @@
+wandb_version: 1
+
+_DEBUG:
+  desc: null
+  value: 'False'
+_PROJECT_NAME:
+  desc: null
+  value: constrained_nn
+_RANDOM_SEED:
+  desc: null
+  value: '1337'
+_RUN_SWEEP:
+  desc: null
+  value: 'True'
+_adam1:
+  desc: null
+  value: 0.6945590640466694
+_adam2:
+  desc: null
+  value: 0.9923022947209843
+_adam_betas:
+  desc: null
+  value: (0.9, 0.99)
+_adam_eps:
+  desc: null
+  value: 1e-08
+_batch_size:
+  desc: null
+  value: '128'
+_constrained:
+  desc: null
+  value: '1'
+_eval_every:
+  desc: null
+  value: '100'
+_initial_lr:
+  desc: null
+  value: 1.0e-05
+_num_hidden:
+  desc: null
+  value: '128'
+_optimization_iters:
+  desc: null
+  value: '1000000'
+_use_sgd:
+  desc: null
+  value: 'False'
+_wandb:
+  desc: null
+  value:
+    cli_version: 0.9.5
+    framework: sklearn
+    is_jupyter_run: false
+    is_kaggle_kernel: false
+    python_version: 3.8.1

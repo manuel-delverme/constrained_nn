@@ -22,7 +22,8 @@ def update_metrics(lagrangian, equality_constraints, full_rollout_loss, loss_fun
     for mi, hi in zip(multipliers, h):  # TODO: sample these
         rhs.append(math.pytree_dot(mi[constraints_batch.indices], hi))
 
-    n_step_acc = [utils.n_step_accuracy(full_batch.x, full_batch.y, model, constr_params, t) for t in range(1, len(constr_params.theta))]
+    n_step_acc = [utils.n_step_accuracy(full_batch.x, full_batch.y, model, constr_params, t + 1) for t, _ in enumerate(constr_params.theta)]
+    # TODO: track n_step_losses
     meta_obj = np.cumproduct(np.array(n_step_acc))[-1]
     if old_metrics is not None:
         meta_obj = dict(old_metrics)["train/meta_obj"] * 0.9 + meta_obj * 0.1
@@ -44,10 +45,12 @@ def update_metrics(lagrangian, equality_constraints, full_rollout_loss, loss_fun
                   (f"params/f(x,theta)_max_{idx}", np.max(ai)) for idx, ai in enumerate(a[:-1])
               ] + [
                   (f"params/f(x,theta)_min_{idx}", np.min(ai)) for idx, ai in enumerate(a[:-1])
-              ] + [
-                  (f"params/f(x,theta)_sum_{idx}", np.mean(np.sum(ai, 1))) for idx, ai in enumerate(a[:-1])
                   # ] + [
-                  #     (f"params/a_max_{idx}", np.max(config.state_fn(xi))) for idx, xi in enumerate(constr_params.x)
+                  #     (f"params/f(x,theta)_sum_{idx}", np.mean(np.sum(ai, 1))) for idx, ai in enumerate(a[:-1])
+              ] + [
+                  (f"params/x_min_{idx}", np.min(config.state_fn(xi))) for idx, xi in enumerate(constr_params.x)
+              ] + [
+                  (f"params/x_max_{idx}", np.max(config.state_fn(xi))) for idx, xi in enumerate(constr_params.x)
                   # ] + [
                   #     (f"params/a_sum_{idx}", np.mean(np.sum(config.state_fn(xi), 1))) for idx, xi in enumerate(constr_params.x)
                   # ] + [

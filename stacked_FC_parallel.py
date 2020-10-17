@@ -16,6 +16,7 @@ import tqdm
 
 import config
 import datasets
+import utils
 from metrics import update_metrics
 from network import make_block_net
 from utils import ConstrainedParameters, forward_prop, Batch
@@ -32,7 +33,7 @@ def make_losses(batch_gen, model):
         x0 = next(batch_gen)
         _, batch_train_y, batch_indices = x0
 
-        a_T = x_n[batch_indices, :]
+        a_T = config.state_fn(x_n[batch_indices, :])
         pred_y = forward_prop(a_T, model[-1:], theta_n)
         return -np.mean(np.sum(pred_y * batch_train_y, axis=1)), x0
 
@@ -41,7 +42,7 @@ def make_losses(batch_gen, model):
         a_0, _, batch_indices = batch
         a = [a_0, ]
         for xi in x:
-            a.append(xi[batch_indices, :])
+            a.append(config.state_fn(xi[batch_indices, :]))
 
         defects = []
         for t in range(0, len(x)):
@@ -124,22 +125,16 @@ def initialize():
                 yield Batch(images, labels, indices)
 
     batches = gen_batches()
-
     blocks_init, model = make_block_net(num_outputs=train_y.shape[1])
     rng_key = jax.random.PRNGKey(0)
     theta = []
-    x = []
     output_shape = train_x.shape
 
-    x_init = jax.nn.initializers.xavier_normal(dtype=np.float64)
     for init in blocks_init:
         rng_key, k_out = jax.random.split(rng_key)
         output_shape, init_params = init(k_out, output_shape)
         theta.append(init_params)
 
-        rng_key, k_out = jax.random.split(rng_key)
-        xi = x_init(k_out, output_shape)
-        x.append(xi)
-
+    x = utils.time_march(train_x, model, theta)
     params = ConstrainedParameters(theta, x[:-1])
     return batches, model, params, Batch(train_x, train_y, np.arange(train_x.shape[0]))

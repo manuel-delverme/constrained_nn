@@ -1,0 +1,29 @@
+{
+    "root": "/home/esac/projects/HowToTrainYourNet",
+    "program": "/home/esac/research/fax/venv/bin/wandb",
+    "git": {
+        "remote": "git@github.com:manuel-delverme/OptimalControlNeuralNet.git",
+        "commit": "ede8c7879c15473f43faaea355dbe6395d2c1960"
+    },
+    "email": "manuel.delverme@gmail.com",
+    "startedAt": "2020-09-10T13:49:19.624667",
+    "host": "kwisat",
+    "username": "esac",
+    "executable": "/home/esac/research/fax/venv/bin/python",
+    "os": "Linux-5.4.0-47-generic-x86_64-with-glibc2.27",
+    "python": "3.8.1",
+    "gpu": "GeForce RTX 2060",
+    "gpu_count": 1,
+    "cpu_count": 12,
+    "args": [
+        "agent",
+        "delvermm/constrained_nn/w0lioyta"
+    ],
+    "state": "finished",
+    "jobType": null,
+    "mode": "run",
+    "name": "updated project name_Sep10_09-49-19",
+    "project": "constrained_nn",
+    "heartbeatAt": "2020-09-10T13:49:54.891251",
+    "exitcode": 0
+}

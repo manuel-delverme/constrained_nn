@@ -1,0 +1,25 @@
+{
+    "root": "/home/esac/projects/HowToTrainYourNet",
+    "program": "/home/esac/projects/HowToTrainYourNet/stacked_FC_parallel.py",
+    "git": {
+        "remote": "git@github.com:manuel-delverme/OptimalControlNeuralNet.git",
+        "commit": "ee3bd649af8c151d4c802d23f4752a72104b2152"
+    },
+    "email": "manuel.delverme@gmail.com",
+    "startedAt": "2020-09-10T13:57:26.397321",
+    "host": "kwisat",
+    "username": "esac",
+    "executable": "/home/esac/research/fax/venv/bin/python",
+    "os": "Linux-5.4.0-47-generic-x86_64-with-glibc2.27",
+    "python": "3.8.1",
+    "gpu": "GeForce RTX 2060",
+    "gpu_count": 1,
+    "cpu_count": 12,
+    "args": [],
+    "state": "running",
+    "jobType": null,
+    "mode": "run",
+    "name": "[CLUSTER] abs path_Sep10_09-57-25",
+    "project": "constrained_nn",
+    "heartbeatAt": "2020-09-10T13:57:27.295687"
+}

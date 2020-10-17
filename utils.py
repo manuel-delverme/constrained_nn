@@ -7,7 +7,8 @@ import jax.experimental.optimizers
 import jax.lax
 import jax.tree_util
 from jax import tree_util, numpy as np
-from matplotlib import pyplot as plt
+
+import config
 
 
 def time_march(x0, model, theta):
@@ -22,13 +23,13 @@ def time_march(x0, model, theta):
 def one_step(x0, x, model, theta):
     y = []
     for x_t, block, theta_t in zip([x0, *x], model, theta):
-        y_t = block(theta_t, x_t)
+        y_t = block(theta_t, config.state_fn(x_t))
         y.append(y_t)
     return y
 
 
 def forward_prop(x0, model, theta):
-    x_t = x0
+    x_t = config.state_fn(x0)
     for block, theta_t in zip(model, theta):
         x_t = block(theta_t, x_t)
     return x_t
@@ -61,76 +62,6 @@ def mul(_a, _b):
 square = lambda _a: tree_util.tree_map(np.square, _a)
 
 
-def sgd_solve(lagrangian, convergence_test, get_x, initial_values, max_iter=100000000, metrics=(), lr=None):
-    optimizer_init, optimizer_update, optimizer_get_params = adam_optimizer(lr)
-
-    @jax.jit
-    def update(i, opt_state):
-        grad_fn = jax.grad(lagrangian, (0, 1))
-        return optimizer_update(i, grad_fn, opt_state)
-
-    solution, history = fax.loop.fixed_point_iteration(
-        init_x=optimizer_init(initial_values),
-        func=update,
-        convergence_test=convergence_test,
-        max_iter=max_iter,
-        get_params=optimizer_get_params,
-        metrics=metrics,
-    )
-    return *get_x(solution), history
-
-
-# def adam_optimizer(step_size, betas=(config.adam1, config.adam2), eps=config.adam_eps) -> (Callable, Callable, Callable):
-#     step_size = jax.experimental.optimizers.make_schedule(step_size)
-#
-#     def init(init_values):
-#         # Exponential moving average of gradient values
-#         # exp_avg = np.zeros_like(init_values)
-#         exp_avg = jax.tree_util.tree_map(lambda x: np.zeros(x.shape, x.dtype), init_values)
-#
-#         # Exponential moving average of gradient values
-#         exp_avg_sq = jax.tree_util.tree_map(lambda x: np.zeros(x.shape, x.dtype), init_values)
-#
-#         return init_values, (exp_avg, exp_avg_sq)
-#
-#     def update(step, grad_fns, state):
-#         (x0, y0), grad_state = state
-#         step_sizes = step_size(step)
-#
-#         (delta_x, delta_y), grad_state = fax.competitive.extragradient.adam_step(betas, eps, step_sizes, grad_fns, grad_state, x0, y0, step)
-#         x1 = sub(x0, delta_x)
-#         y1 = add(y0, delta_y)
-#         return (x1, y1), grad_state
-#
-#     def get_params(state):
-#         x, _ = state
-#         return x
-#
-#     return init, update, get_params
-
-
-def plot_model(model, trainX, trainY, title, i):
-    # xs = [0, 1, 2]
-
-    # block_outs = [*model.split_variables, trainY]
-    fig, ax = plt.subplots()
-    ax.set_title(title)
-    ax.set_xlim(-0.1, 2.1)
-    ax.set_ylim(-0.1, 3.1)
-    xs = np.array((
-        trainX[0][0],
-        model.split_variables[0][0][0],
-        trainY[0][0],
-    ))
-    ax.scatter(range(len(xs)), xs)
-
-    for t, (block, x_t) in enumerate(zip(model.blocks, xs)):
-        x_t1 = block(x_t)
-        ax.plot([t, t + 1], [x_t, x_t1])
-    fig.savefig(f"plots/{i}.png")
-    fig.show()
-
-
 class Batch(collections.namedtuple("Batch", "x y indices")):
     pass
 
@@ -159,10 +90,10 @@ def train_accuracy(train_x, train_y, model, theta):
     return np.mean(predicted_class == target_class)
 
 
-def n_step_accuracy(_train_x, train_y, model, params, n):
-    assert 0 < n < len(model)
+def n_step_accuracy(train_x, train_y, model, params, n):
+    assert 0 < n < len(model) + 1
     return train_accuracy(
-        params.x[-n],
+        [train_x, *[config.state_fn(xi) for xi in params.x]][-n],
         # config.state_fn(params.x[-n]),
         train_y,
         model[-n:],
