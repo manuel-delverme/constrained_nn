@@ -58,12 +58,13 @@ eval_every = math.ceil(num_epochs / 1000)
 ################################################################
 config_params = locals().copy()
 
+wandb_encoding = "^"
 # overwrite CLI parameters
 # fails on nested config object
 for arg in sys.argv[1:]:
     assert arg[:2] == "--"
     k, v = arg[2:].split("=")
-    k = k.lstrip("_")
+    k = k.lstrip(wandb_encoding)
 
     if "." in v:
         v = float(v)
@@ -116,7 +117,7 @@ class Wandb:
                         __v = getattr(module, __k)
                         register_param(__k, __v, prefix=module.__name__.replace(".", "_"))
             else:
-                key = prefix + "^" + _k
+                key = prefix + wandb_encoding + _k
                 # if the parameter was not set by a sweep
                 if not key in wandb.config._items:
                     print(f"setting {key}={str(_v)}")
