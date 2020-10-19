@@ -20,7 +20,6 @@ LOCAL_RUN = 0
 PROJECT_NAME = "constrained_nn"
 
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
-DEBUG = False
 
 RANDOM_SEED = 1337
 
