@@ -16,7 +16,7 @@ from jax.experimental import stax
 
 sweep_yaml = "sweep_toy.yaml"
 RUN_SWEEP = 1
-LOCAL_RUN = 0
+CLUSTER = 1
 PROJECT_NAME = "constrained_nn"
 
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
@@ -47,7 +47,7 @@ use_adam = False
 adam1 = 0.9
 adam2 = 0.99
 
-batch_size = 150
+batch_size = 32
 weight_norm = 0.00
 
 num_epochs = 1000000
@@ -153,7 +153,7 @@ def setup_tb(logdir):
 def commit_and_sendjob(experiment_id):
     # 2) commits everything to git with the name as message (so i r later reproduce the same experiment)
     os.system(f"git add .")
-    os.system(f"git commit -m '[CLUSTER] {experiment_id}'")
+    os.system(f"git commit -m '{experiment_id}'")
     # 3) pushes the changes to git
     os.system("git push")
 
@@ -187,7 +187,7 @@ def commit_and_sendjob(experiment_id):
     # 7) writes me on slack/telegram/email a link for the tensorboard
 
 
-if LOCAL_RUN and RUN_SWEEP:
+if (not CLUSTER) and RUN_SWEEP:
     raise ValueError("?!?!?")
 
 if getpass.getuser() == 'delvermm':
@@ -202,21 +202,25 @@ else:
             import tkinter.simpledialog
 
             root = tkinter.Tk()
-            experiment_id = tkinter.simpledialog.askstring("experiment_id", "experiment_id")
+            if CLUSTER:
+                experiment_id = tkinter.simpledialog.askstring("[CLUSTER]", "experiment_id")
+            else:
+                experiment_id = tkinter.simpledialog.askstring("[LOCAL]", "experiment_id")
             experiment_id.replace(" ", "_")
             root.destroy()
         except Exception as e:
             pass
 
-    if experiment_id is None or LOCAL_RUN:
+    if CLUSTER:
+        experiment_id = "[CLUSTER]" + experiment_id
+        commit_and_sendjob(experiment_id)
+        sys.exit()
+    else:
         dtm = datetime.datetime.now().strftime("%b%d_%H-%M-%S") + ".pt/"
         # experiment_id = f"{git_repo.head.commit.message.strip()}"
         experiment_id = experiment_id or f"DEBUG_RUN"
         # tb = torch.utils.tensorboard.SummaryWriter(log_dir=os.path.join(C.TENSORBOARD, experiment_id, dtm))
         tb = setup_tb(logdir=os.path.join("tensorboard/", experiment_id, dtm))
-    else:
-        commit_and_sendjob(experiment_id)
-        sys.exit()
 
 print(f"experiment_id: {experiment_id}", dtm)
 tb.global_step = 0
