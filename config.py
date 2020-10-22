@@ -44,6 +44,7 @@ def state_fn(x):
 
 
 use_adam = False
+grad_clip = 0.01
 adam1 = 0.9
 adam2 = 0.99
 

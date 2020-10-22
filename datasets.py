@@ -83,7 +83,7 @@ def iris(permute_train=False):
     perm = np.random.RandomState(0).permutation(train_images.shape[0])
     train_images = train_images[perm]
     train_labels = train_labels[perm]
-    # ds_ = 5
+    # ds_ = 50
     # train_images, train_labels = train_images[:ds_], train_labels[:ds_]
 
     scaler = StandardScaler()

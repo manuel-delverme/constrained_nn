@@ -74,6 +74,7 @@ def main():
         step_sizes=(config.lr_x, config.lr_y),
         weight_norm=config.weight_norm,
         use_adam=config.use_adam,
+        grad_clip=config.grad_clip,
     )
     opt_state = optimizer_init(initial_values)
 

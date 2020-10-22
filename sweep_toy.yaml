@@ -1,7 +1,7 @@
 method: bayes
 metric:
   goal: maximize
-  name: train/train_accuracy
+  name: train/meta_obj
 parameters:
   ^initial_lr_x:
     distribution: log_uniform

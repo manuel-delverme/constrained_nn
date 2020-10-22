@@ -88,23 +88,23 @@ def update_metrics(lagrangian, equality_constraints, full_rollout_loss, loss_fun
                     raise ValueError("config.num_hidden = 1")
                 metrics.append((f"AA/{idx}_x_hat_{jdx}", float(aij)))
 
-        # for idx, pi in enumerate(params.theta[0]):
+        # for idx, pi in enumerate(constr_params.theta[0]):
         #     for jdx, pij in enumerate(pi):
         #         metrics.append((f"AA/{idx}_p_{jdx}", pij))
 
-        # for idx, pi in enumerate(params.theta[0][0][0]):
-        #     for jdx, pij in enumerate(pi):
-        #         metrics.append((f"AA/{idx}_p0_{jdx}", pij))
+        for idx, pi in enumerate(constr_params.theta[0][0][0]):
+            for jdx, pij in enumerate(pi):
+                metrics.append((f"AA/{idx}_p0_{jdx}", pij))
 
-        # for idx, pi in enumerate(params.theta[0][0][1]):
-        #     metrics.append((f"AA/{idx}_b0", pi))
+        for idx, pi in enumerate(constr_params.theta[0][0][1]):
+            metrics.append((f"AA/{idx}_b0", pi))
 
-        # for idx, pi in enumerate(params.theta[1][0][0]):
-        #     for jdx, pij in enumerate(pi):
-        #         metrics.append((f"AA/{idx}_p1_{jdx}", pij))
+        for idx, pi in enumerate(constr_params.theta[1][0][0]):
+            for jdx, pij in enumerate(pi):
+                metrics.append((f"AA/{idx}_p1_{jdx}", pij))
 
-        # for idx, pi in enumerate(params.theta[1][0][1]):
-        #     metrics.append((f"AA/{idx}_b1", pi))
+        for idx, pi in enumerate(constr_params.theta[1][0][1]):
+            metrics.append((f"AA/{idx}_b1", pi))
 
     found_nan = False
     for tag, value in metrics:
