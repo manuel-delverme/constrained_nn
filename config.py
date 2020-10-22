@@ -26,7 +26,6 @@ RANDOM_SEED = 1337
 dataset = "iris"
 num_hidden = 32
 initial_lr_x = .001
-initial_lr_y = initial_lr_x * 10.
 # 1e-2  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
 
 decay_steps = 500000
@@ -82,6 +81,7 @@ for arg in sys.argv[1:]:
 ################################################################
 # Derivative parameters
 ################################################################
+initial_lr_y = initial_lr_x * 10.
 lr_x = jax.experimental.optimizers.inverse_time_decay(initial_lr_x, decay_steps, decay_factor, staircase=True)
 lr_y = jax.experimental.optimizers.inverse_time_decay(initial_lr_y, decay_steps, decay_factor, staircase=True)
 
