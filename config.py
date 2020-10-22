@@ -24,13 +24,13 @@ DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
 RANDOM_SEED = 1337
 
 dataset = "iris"
-num_hidden = 32
-initial_lr_x = .001
+num_hidden = 1
+initial_lr_x = .005
 # 1e-2  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
 
 decay_steps = 500000
 decay_factor = .5
-blocks = [2, ] * 5
+blocks = [2, ] * 2
 
 
 # blocks = [2, 8]
@@ -43,7 +43,7 @@ def state_fn(x):
 
 
 use_adam = False
-grad_clip = 0.01
+grad_clip = 0.1
 adam1 = 0.9
 adam2 = 0.99
 
