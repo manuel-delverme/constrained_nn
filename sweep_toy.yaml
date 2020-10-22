@@ -7,6 +7,10 @@ parameters:
     distribution: log_uniform
     min: -7.76804212
     max: -4.76804212
+  ^grad_clip:
+    distribution: log_uniform
+    min: -6.
+    max: -3.
   ^decay_factor:
     distribution: uniform
     min: 0.3
