@@ -4,35 +4,44 @@ from jax import numpy as np
 
 import config
 import utils
-from utils import train_accuracy
+from utils import train_acc
 
 old_metrics = None
 
 
-def update_metrics(lagrangian, equality_constraints, full_rollout_loss, loss_function, model, parameters: utils.LagrangianParameters, outer_iter, full_batch):
+def update_metrics(lagrangian, make_losses, model, parameters: utils.LagrangianParameters, outer_iter, full_batch):
     global old_metrics
+
+    def full_batch_gen():
+        while 1:
+            yield full_batch
+
+    full_rollout_loss, loss_function, equality_constraints = make_losses(full_batch_gen(), model)
     constr_params, multipliers = parameters
-    loss, batch = loss_function(constr_params)
+
+    full_batch_loss, full_batch = loss_function(constr_params)  # TODO: fullbatch
     lagr_val = lagrangian(*parameters)
-    h, constraints_batch = equality_constraints(constr_params, batch)
+    h, constraints_batch = equality_constraints(constr_params, full_batch)
     # a = time_march(full_batch.x, model, constr_params.theta)  # These are wrong, use 1 step forward prop
     a = utils.one_step(full_batch.x, constr_params.x, model, constr_params.theta)
-    full_loss = full_rollout_loss(constr_params.theta, batch)
+    # full_loss = full_rollout_loss(constr_params.theta, full_batch)
     rhs = []
     for mi, hi in zip(multipliers, h):  # TODO: sample these
         rhs.append(math.pytree_dot(mi[constraints_batch.indices], hi))
 
-    n_step_acc = [utils.n_step_accuracy(full_batch.x, full_batch.y, model, constr_params, t + 1) for t, _ in enumerate(constr_params.theta)]
+    n_step_loss, n_step_acc = zip(*[utils.n_step_acc(full_batch.x, full_batch.y, model, constr_params, t + 1) for t, _ in enumerate(constr_params.theta)])
     # TODO: track n_step_losses
     meta_obj = np.cumproduct(np.array(n_step_acc))[-1]
     if old_metrics is not None:
         meta_obj = dict(old_metrics)["train/meta_obj"] * 0.9 + meta_obj * 0.1
 
+    full_batch_loss, full_batch_train_acc = train_acc(full_batch.x, full_batch.y, model, constr_params.theta)
+
     metrics = [
-                  ("train/train_accuracy", train_accuracy(full_batch.x, full_batch.y, model, constr_params.theta)),
-                  ("train/full_rollout_loss", full_loss),
+                  ("train/full_rollout_loss", full_batch_loss),
                   ("train/lagrangian", lagr_val),
-                  ("train/loss", loss),
+                  ("train/full_batch_train_accuracy", full_batch_train_acc),
+                  # ("train/full_batch_loss", full_batch_loss),
                   ("train/lr_x", config.lr_x(outer_iter)),
                   ("train/lr_y", config.lr_y(outer_iter)),
               ] + [
@@ -58,6 +67,8 @@ def update_metrics(lagrangian, equality_constraints, full_rollout_loss, loss_fun
               ] + [
                   (f"train/step_accuracy_{t + 1}", t_acc) for t, t_acc in enumerate(n_step_acc)
               ] + [
+                  (f"train/step_loss_{t + 1}", t_acc) for t, t_acc in enumerate(n_step_loss)
+              ] + [
                   (f"train/meta_obj", meta_obj)
               ]
     if False:
@@ -82,11 +93,11 @@ def update_metrics(lagrangian, equality_constraints, full_rollout_loss, loss_fun
             for jdx, xij in enumerate(config.state_fn(xi)):
                 metrics.append((f"AA/{idx}_x_tar_{jdx}", xij))
 
-        for idx, ai in enumerate(a[:-1]):
-            for jdx, aij in enumerate(ai):
-                if aij.shape[0] != 1:
-                    raise ValueError("config.num_hidden = 1")
-                metrics.append((f"AA/{idx}_x_hat_{jdx}", float(aij)))
+        # for idx, ai in enumerate(a[:-1]):
+        #     for jdx, aij in enumerate(ai):
+        #         if aij.shape[0] != 1:
+        #             raise ValueError("config.num_hidden = 1")
+        #         metrics.append((f"AA/{idx}_x_hat_{jdx}", float(aij)))
 
         # for idx, pi in enumerate(constr_params.theta[0]):
         #     for jdx, pij in enumerate(pi):

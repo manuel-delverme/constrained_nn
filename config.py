@@ -1,6 +1,5 @@
 import datetime
 import getpass
-import math
 import os
 import subprocess
 import sys
@@ -24,8 +23,9 @@ DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
 RANDOM_SEED = 1337
 
 dataset = "iris"
-num_hidden = 1
-initial_lr_x = .005
+num_hidden = 32
+initial_lr_x = .001
+initial_lr_y = .01
 # 1e-2  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
 
 decay_steps = 500000
@@ -39,19 +39,20 @@ def state_fn(x):
     # x = stax.softplus(x)
     # x = stax.relu(x)
     x = stax.leaky_relu(x)
+    # x = stax.softplus(x)
     return x
 
 
 use_adam = False
-grad_clip = 0.1
+grad_clip = False  # avoid leaky_grad explosions
 adam1 = 0.9
 adam2 = 0.99
 
 batch_size = 32
-weight_norm = 0.00
+weight_norm = False  # avoid unbound targets
 
 num_epochs = 1000000
-eval_every = math.ceil(num_epochs / 1000)
+eval_every = 100  # math.ceil(num_epochs / 1000)
 
 ################################################################
 # END OF PARAMETERS
@@ -81,7 +82,7 @@ for arg in sys.argv[1:]:
 ################################################################
 # Derivative parameters
 ################################################################
-initial_lr_y = initial_lr_x * 10.
+# initial_lr_y = initial_lr_x * 10.
 lr_x = jax.experimental.optimizers.inverse_time_decay(initial_lr_x, decay_steps, decay_factor, staircase=True)
 lr_y = jax.experimental.optimizers.inverse_time_decay(initial_lr_y, decay_steps, decay_factor, staircase=True)
 

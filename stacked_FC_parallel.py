@@ -89,7 +89,7 @@ def main():
     for iter_num in tqdm.trange(config.num_epochs):
         if next_eval == iter_num:
             params = optimizer_get_params(opt_state)
-            update_metrics(lagrangian, equality_constraints, full_rollout_loss, loss_function, model, params, iter_num, full_batch)
+            update_metrics(lagrangian, make_losses, model, params, iter_num, full_batch)
 
             rng_key, k_out = jax.random.split(rng_key)
             next_eval += int(config.eval_every + jax.random.randint(k_out, (1,), 0, config.eval_every // 100))

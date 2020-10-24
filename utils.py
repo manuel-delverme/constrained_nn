@@ -1,7 +1,5 @@
 import collections
 
-import fax
-import fax.competitive.extragradient
 import jax
 import jax.experimental.optimizers
 import jax.lax
@@ -83,19 +81,38 @@ class LagrangianParameters(collections.namedtuple("LagrangianParameters", "const
 #         return tuple(args)
 
 
-def train_accuracy(train_x, train_y, model, theta):
+def train_acc(train_x, train_y, model, theta):
     logits = forward_prop(train_x, model, theta)
     predicted_class = np.argmax(logits, axis=-1)
     target_class = np.argmax(train_y, axis=-1)
-    return np.mean(predicted_class == target_class)
+    return -np.mean(np.sum(logits * train_y, axis=1)), np.mean(predicted_class == target_class)
 
 
-def n_step_accuracy(train_x, train_y, model, params, n):
+def n_step_acc(train_x, train_y, model, params, n):
     assert 0 < n < len(model) + 1
-    return train_accuracy(
+    return train_acc(
         [train_x, *[config.state_fn(xi) for xi in params.x]][-n],
         # config.state_fn(params.x[-n]),
         train_y,
         model[-n:],
         params.theta[-n:],
     )
+#
+#
+# def train_loss(train_x, train_y, model, theta):
+#     logits = forward_prop(train_x, model, theta)
+#     # predicted_class = np.argmax(logits, axis=-1)
+#     # target_class = np.argmax(train_y, axis=-1)
+#     # return np.mean(predicted_class == target_class)
+#     return -np.mean(np.sum(logits * train_y, axis=1))
+#
+
+# def n_step_loss(train_x, train_y, model, params, n):
+#     assert 0 < n < len(model) + 1
+#     return train_loss(
+#         [train_x, *[config.state_fn(xi) for xi in params.x]][-n],
+#         # config.state_fn(params.x[-n]),
+#         train_y,
+#         model[-n:],
+#         params.theta[-n:],
+#     )
