@@ -3,9 +3,11 @@ from jax.experimental import stax as stax
 import config
 
 
-def make_block_net(num_outputs):
+def make_block_net(num_outputs, blocks=False):
+    blocks = blocks or config.blocks
+
     network = []
-    for t, block_size in enumerate(config.blocks):
+    for t, block_size in enumerate(blocks):
         block = []
         for ti in range(block_size):
             block.append(stax.Dense(config.num_hidden, ), )

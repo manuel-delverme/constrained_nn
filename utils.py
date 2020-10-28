@@ -27,6 +27,7 @@ def one_step(x0, x, model, theta):
 
 
 def forward_prop(x0, model, theta):
+    assert len(model) == len(theta)
     x_t = config.state_fn(x0)
     for block, theta_t in zip(model, theta):
         x_t = block(theta_t, x_t)
@@ -97,6 +98,8 @@ def n_step_acc(train_x, train_y, model, params, n):
         model[-n:],
         params.theta[-n:],
     )
+
+
 #
 #
 # def train_loss(train_x, train_y, model, theta):
@@ -116,3 +119,5 @@ def n_step_acc(train_x, train_y, model, params, n):
 #         model[-n:],
 #         params.theta[-n:],
 #     )
+def tree_zero_like(a):
+    return tree_util.tree_map(lambda x: np.zeros(x.shape, x.dtype), a)

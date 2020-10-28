@@ -22,23 +22,20 @@ from network import make_block_net
 from utils import ConstrainedParameters, forward_prop, Batch
 
 
-def make_losses(batch_gen, model):
+def make_losses(model):
     def full_rollout_loss(theta: List[np.ndarray], batch: Batch):
         batch_x, batch_y, _indices = batch
         pred_y = forward_prop(batch_x, model, theta)
         return -np.mean(np.sum(pred_y * batch_y, axis=1))
 
-    def loss_function(params: ConstrainedParameters) -> (float, Batch):
-        theta_n, x_n = params.theta[-1:], params.x[-1]
-        x0 = next(batch_gen)
-        _, batch_train_y, batch_indices = x0
-
-        a_T = config.state_fn(x_n[batch_indices, :])
-        pred_y = forward_prop(a_T, model[-1:], theta_n)
-        return -np.mean(np.sum(pred_y * batch_train_y, axis=1)), x0
+    def one_step_loss(params: ConstrainedParameters, batch: Batch) -> float:
+        a_T = config.state_fn(params.x[-1][batch.indices, :])
+        pred_y = forward_prop(a_T, model[-1:], params.theta[-1:])
+        return -np.mean(np.sum(pred_y * batch.y, axis=1))
 
     def equality_constraints(params: ConstrainedParameters, batch: Batch) -> (np.array, Batch):
         theta, x = params
+        del params
         a_0, _, batch_indices = batch
         a = [a_0, ]
         for xi in x:
@@ -49,27 +46,19 @@ def make_losses(batch_gen, model):
             defects.append(
                 model[t](theta[t], a[t], ) - a[t + 1]
             )
-        return tuple(defects), batch
+        return tuple(defects)
 
-    return full_rollout_loss, loss_function, equality_constraints
+    return full_rollout_loss, one_step_loss, equality_constraints
 
 
 def main():
     batch_gen, model, initial_parameters, full_batch = initialize()
-    full_rollout_loss, loss_function, equality_constraints = make_losses(
-        batch_gen, model
-    )
+    full_rollout_loss, loss_function, equality_constraints = make_losses(model)
 
-    init_multipliers, lagrangian, get_x = fax.constrained.make_lagrangian(
-        func=loss_function, equality_constraints=equality_constraints
-    )
-
+    init_multipliers, lagrangian, get_x = fax.constrained.make_lagrangian(func=loss_function, equality_constraints=equality_constraints)
     initial_values = init_multipliers(initial_parameters, full_batch)
-    (
-        optimizer_init,
-        optimizer_update,
-        optimizer_get_params,
-    ) = fax.competitive.extragradient.adam_extragradient_optimizer(
+
+    optimizer_init, optimizer_update, optimizer_get_params = fax.competitive.extragradient.adam_extragradient_optimizer(
         betas=(config.adam1, config.adam2),
         step_sizes=(config.lr_x, config.lr_y),
         weight_norm=config.weight_norm,
@@ -80,7 +69,9 @@ def main():
 
     @jax.jit
     def update(i, opt_state_):
-        grad_fn = jax.grad(lagrangian, (0, 1))
+        grad_fn = jax.grad(
+            lambda *args: lagrangian(*args, next(batch_gen)),
+            (0, 1))
         return optimizer_update(i, grad_fn, opt_state_)
 
     next_eval = 0
@@ -100,7 +91,7 @@ def main():
     return trained_params
 
 
-def initialize():
+def initialize(blocks=False):
     if config.dataset == "mnist":
         train_x, train_y, _, _ = datasets.mnist()
     elif config.dataset == "iris":
@@ -126,7 +117,7 @@ def initialize():
                 yield Batch(images, labels, indices)
 
     batches = gen_batches()
-    blocks_init, model = make_block_net(num_outputs=train_y.shape[1])
+    blocks_init, model = make_block_net(train_y.shape[1], blocks)
     rng_key = jax.random.PRNGKey(0)
     theta = []
     output_shape = train_x.shape
@@ -138,4 +129,4 @@ def initialize():
 
     x = utils.time_march(train_x, model, theta)
     params = ConstrainedParameters(theta, x[:-1])
-    return batches, model, params, Batch(train_x, train_y, np.arange(train_x.shape[0]))
+    return batches, model, params, Batch(train_x, train_y, np.arange(train_x.shape[0])), num_batches
