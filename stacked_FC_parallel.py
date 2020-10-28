@@ -19,22 +19,25 @@ import datasets
 import utils
 from metrics import update_metrics
 from network import make_block_net
-from utils import ConstrainedParameters, forward_prop, Batch
+from utils import ConstrainedParameters, forward_prop, Batch, LagrangianParameters
 
 
 def make_losses(model):
     def full_rollout_loss(theta: List[np.ndarray], batch: Batch):
         batch_x, batch_y, _indices = batch
+
+        batch_x = jax.lax.stop_gradient(batch_x)
         pred_y = forward_prop(batch_x, model, theta)
         return -np.mean(np.sum(pred_y * batch_y, axis=1))
 
-    def one_step_loss(params: ConstrainedParameters, batch: Batch) -> float:
-        a_T = config.state_fn(params.x[-1][batch.indices, :])
-        pred_y = forward_prop(a_T, model[-1:], params.theta[-1:])
+    def last_layer_loss(params: LagrangianParameters, batch: Batch) -> float:
+        x_n = jax.lax.stop_gradient(params.constr_params.x[-1])
+        a_T = config.state_fn(x_n[batch.indices, :])
+        pred_y = forward_prop(a_T, model[-1:], params.constr_params.theta[-1:])
         return -np.mean(np.sum(pred_y * batch.y, axis=1))
 
-    def equality_constraints(params: ConstrainedParameters, batch: Batch) -> (np.array, Batch):
-        theta, x = params
+    def equality_constraints(params: LagrangianParameters, batch: Batch) -> (np.array, Batch):
+        theta, x = params.constr_params
         del params
         a_0, _, batch_indices = batch
         a = [a_0, ]
@@ -48,31 +51,16 @@ def make_losses(model):
             )
         return tuple(defects)
 
-    return full_rollout_loss, one_step_loss, equality_constraints
+    return full_rollout_loss, last_layer_loss, equality_constraints
 
 
 def main():
-    batch_gen, model, initial_parameters, full_batch = initialize()
-    full_rollout_loss, loss_function, equality_constraints = make_losses(model)
-
-    init_multipliers, lagrangian, get_x = fax.constrained.make_lagrangian(func=loss_function, equality_constraints=equality_constraints)
-    initial_values = init_multipliers(initial_parameters, full_batch)
-
-    optimizer_init, optimizer_update, optimizer_get_params = fax.competitive.extragradient.adam_extragradient_optimizer(
-        betas=(config.adam1, config.adam2),
-        step_sizes=(config.lr_x, config.lr_y),
-        weight_norm=config.weight_norm,
-        use_adam=config.use_adam,
-        grad_clip=config.grad_clip,
-    )
-    opt_state = optimizer_init(initial_values)
+    full_batch, model, opt_state, optimizer_get_params, lagrangian, optimizer_update, batch_gen, num_batches = init_opt_problem()
 
     @jax.jit
-    def update(i, opt_state_):
-        grad_fn = jax.grad(
-            lambda *args: lagrangian(*args, next(batch_gen)),
-            (0, 1))
-        return optimizer_update(i, grad_fn, opt_state_)
+    def update(i, opt_state_, batch):
+        grad_fn = jax.grad(lagrangian, 0)
+        return optimizer_update(i, grad_fn, opt_state_, batch)
 
     next_eval = 0
     rng_key = jax.random.PRNGKey(0)
@@ -85,10 +73,27 @@ def main():
             rng_key, k_out = jax.random.split(rng_key)
             next_eval += int(config.eval_every + jax.random.randint(k_out, (1,), 0, config.eval_every // 100))
 
-        opt_state = update(iter_num, opt_state)
+        opt_state = update(iter_num, opt_state, next(batch_gen))
 
     trained_params = optimizer_get_params(opt_state)
     return trained_params
+
+
+def init_opt_problem():
+    batch_gen, model, initial_parameters, full_batch, num_batches = initialize()
+    _, last_layer_loss, equality_constraints = make_losses(model)
+    init_multipliers, lagrangian, get_x = fax.constrained.make_lagrangian(
+        func=last_layer_loss, equality_constraints=equality_constraints)
+    initial_parameters = init_multipliers(initial_parameters, full_batch)
+    optimizer_init, optimizer_update, optimizer_get_params = fax.competitive.extragradient.adam_extragradient_optimizer(
+        betas=(config.adam1, config.adam2),
+        step_sizes=(config.lr_x, config.lr_y),
+        weight_norm=config.weight_norm,
+        use_adam=config.use_adam,
+        grad_clip=config.grad_clip,
+    )
+    opt_state = optimizer_init(initial_parameters)
+    return full_batch, model, opt_state, optimizer_get_params, lagrangian, optimizer_update, batch_gen, num_batches
 
 
 def initialize(blocks=False):

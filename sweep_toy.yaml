@@ -17,8 +17,8 @@ parameters:
     max: -3.
   ^weight_norm:
     distribution: log_uniform
-    min: -6.
-    max: -3.
+    min: -9.
+    max: -6.
   ^decay_factor:
     distribution: uniform
     min: 0.3

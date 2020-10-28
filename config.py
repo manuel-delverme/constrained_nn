@@ -14,8 +14,8 @@ import wandb
 from jax.experimental import stax
 
 sweep_yaml = "sweep_toy.yaml"
-RUN_SWEEP = 1
-CLUSTER = 1
+RUN_SWEEP = 0
+CLUSTER = 0
 PROJECT_NAME = "constrained_nn"
 
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
@@ -24,8 +24,8 @@ RANDOM_SEED = 1337
 
 dataset = "iris"
 num_hidden = 32
-initial_lr_x = .001
-initial_lr_y = .01
+initial_lr_x = .01
+initial_lr_y = .1
 # 1e-2  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
 
 decay_steps = 500000
@@ -33,26 +33,24 @@ decay_factor = .5
 blocks = [2, ] * 2
 
 
-# blocks = [2, 8]
-
 def state_fn(x):
     # x = stax.softplus(x)
-    # x = stax.relu(x)
-    x = stax.leaky_relu(x)
+    x = stax.relu(x)
+    # x = stax.leaky_relu(x)
     # x = stax.softplus(x)
     return x
 
 
 use_adam = False
-grad_clip = False  # avoid leaky_grad explosions
+grad_clip = False  # 0.5  # avoid leaky_grad explosions
 adam1 = 0.9
 adam2 = 0.99
 
 batch_size = 32
 weight_norm = False  # avoid unbound targets
 
-num_epochs = 1000000
-eval_every = 100  # math.ceil(num_epochs / 1000)
+num_epochs = 20000  # 000
+eval_every = 100  # 00  # math.ceil(num_epochs / 1000)
 
 ################################################################
 # END OF PARAMETERS
