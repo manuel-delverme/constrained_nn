@@ -25,29 +25,25 @@ from utils import ConstrainedParameters, forward_prop, Batch, LagrangianParamete
 def make_losses(model):
     def full_rollout_loss(theta: List[np.ndarray], batch: Batch):
         batch_x, batch_y, _indices = batch
-
-        batch_x = jax.lax.stop_gradient(batch_x)
         pred_y = forward_prop(batch_x, model, theta)
         return -np.mean(np.sum(pred_y * batch_y, axis=1))
 
     def last_layer_loss(params: LagrangianParameters, batch: Batch) -> float:
-        x_n = jax.lax.stop_gradient(params.constr_params.x[-1])
+        x_n = params.constr_params.x[-1]
         a_T = config.state_fn(x_n[batch.indices, :])
         pred_y = forward_prop(a_T, model[-1:], params.constr_params.theta[-1:])
         return -np.mean(np.sum(pred_y * batch.y, axis=1))
 
     def equality_constraints(params: LagrangianParameters, batch: Batch) -> (np.array, Batch):
-        theta, x = params.constr_params
-        del params
         a_0, _, batch_indices = batch
         a = [a_0, ]
-        for xi in x:
+        for xi in params.constr_params.x:
             a.append(config.state_fn(xi[batch_indices, :]))
 
         defects = []
-        for t in range(0, len(x)):
+        for t in range(0, len(params.constr_params.x)):
             defects.append(
-                model[t](theta[t], a[t], ) - a[t + 1]
+                model[t](params.constr_params.theta[t], a[t], ) - a[t + 1]
             )
         return tuple(defects)
 
@@ -87,7 +83,7 @@ def init_opt_problem():
     initial_parameters = init_multipliers(initial_parameters, full_batch)
     optimizer_init, optimizer_update, optimizer_get_params = fax.competitive.extragradient.adam_extragradient_optimizer(
         betas=(config.adam1, config.adam2),
-        step_sizes=(config.lr_x, config.lr_y),
+        step_sizes=(config.lr_theta, config.lr_x, config.lr_y),
         weight_norm=config.weight_norm,
         use_adam=config.use_adam,
         grad_clip=config.grad_clip,

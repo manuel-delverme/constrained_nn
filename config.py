@@ -1,5 +1,6 @@
 import datetime
 import getpass
+import math
 import os
 import subprocess
 import sys
@@ -11,7 +12,6 @@ import jax.experimental.optimizers
 import matplotlib.pyplot as plt
 import tensorboardX
 import wandb
-from jax.experimental import stax
 
 sweep_yaml = "sweep_toy.yaml"
 RUN_SWEEP = 0
@@ -24,18 +24,17 @@ RANDOM_SEED = 1337
 
 dataset = "iris"
 num_hidden = 32
+initial_lr_theta = .01
 initial_lr_x = .01
-initial_lr_y = .1
+initial_lr_y = .01
 # 1e-2  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
 
-decay_steps = 500000
-decay_factor = .5
-blocks = [2, ] * 2
+blocks = [2, ] * 25
 
 
 def state_fn(x):
     # x = stax.softplus(x)
-    x = stax.relu(x)
+    # x = stax.relu(x)
     # x = stax.leaky_relu(x)
     # x = stax.softplus(x)
     return x
@@ -49,8 +48,11 @@ adam2 = 0.99
 batch_size = 32
 weight_norm = False  # avoid unbound targets
 
-num_epochs = 20000  # 000
-eval_every = 100  # 00  # math.ceil(num_epochs / 1000)
+num_epochs = 100000  # 00
+eval_every = math.ceil(num_epochs / 1000)
+
+decay_steps = num_epochs // 4  # 500000
+decay_factor = 1.0
 
 ################################################################
 # END OF PARAMETERS
@@ -81,6 +83,7 @@ for arg in sys.argv[1:]:
 # Derivative parameters
 ################################################################
 # initial_lr_y = initial_lr_x * 10.
+lr_theta = jax.experimental.optimizers.inverse_time_decay(initial_lr_theta, decay_steps, decay_factor, staircase=True)
 lr_x = jax.experimental.optimizers.inverse_time_decay(initial_lr_x, decay_steps, decay_factor, staircase=True)
 lr_y = jax.experimental.optimizers.inverse_time_decay(initial_lr_y, decay_steps, decay_factor, staircase=True)
 
