@@ -29,7 +29,7 @@ initial_lr_x = .01
 initial_lr_y = .01
 # 1e-2  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
 
-blocks = [2, ] * 25
+blocks = [50, ] * 1
 
 
 def state_fn(x):
