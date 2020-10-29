@@ -14,7 +14,7 @@ import tensorboardX
 import wandb
 
 sweep_yaml = "sweep_toy.yaml"
-RUN_SWEEP = 0
+RUN_SWEEP = 1
 CLUSTER = 1
 PROJECT_NAME = "constrained_nn"
 
