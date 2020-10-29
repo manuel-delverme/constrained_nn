@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 
 import fax
 import fax.competitive.extragradient
@@ -77,6 +77,9 @@ def main():
 
 def init_opt_problem():
     batch_gen, model, initial_parameters, full_batch, num_batches = initialize()
+    if not isinstance(initial_parameters, ConstrainedParameters):
+        raise TypeError("nah")
+
     _, last_layer_loss, equality_constraints = make_losses(model)
     init_multipliers, lagrangian, get_x = fax.constrained.make_lagrangian(
         func=last_layer_loss, equality_constraints=equality_constraints)
@@ -92,7 +95,7 @@ def init_opt_problem():
     return full_batch, model, opt_state, optimizer_get_params, lagrangian, optimizer_update, batch_gen, num_batches
 
 
-def initialize(blocks=False):
+def initialize(blocks=False) -> Tuple[object, object, ConstrainedParameters, object, object]:
     if config.dataset == "mnist":
         train_x, train_y, _, _ = datasets.mnist()
     elif config.dataset == "iris":
