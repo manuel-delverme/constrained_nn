@@ -5,20 +5,24 @@ metric:
 parameters:
   ^initial_lr_x:
     distribution: log_uniform
-    min: -7.76804212
-    max: -4.76804212
+    min: -7
+    max: -2.3
   ^initial_lr_y:
     distribution: log_uniform
-    min: -7.76804212
-    max: -4.76804212
-  ^grad_clip:
+    min: -7
+    max: -2.3
+  ^initial_lr_theta:
     distribution: log_uniform
-    min: -6.
-    max: -3.
+    min: -7
+    max: -2.3
+  ^grad_clip:
+    distribution: uniform
+    min: 0.1
+    max: 5.
   ^weight_norm:
     distribution: log_uniform
-    min: -9.
-    max: -6.
+    min: -11.
+    max: -7.
   ^decay_factor:
     distribution: uniform
     min: 0.3

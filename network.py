@@ -11,8 +11,8 @@ def make_block_net(num_outputs, blocks=False):
         block = []
         for ti in range(block_size):
             block.append(stax.Dense(config.num_hidden, ), )
-            block.append(stax.LeakyRelu)
-            # block.append(stax.Relu)
+            # block.append(stax.LeakyRelu)
+            block.append(stax.Relu)
         network.append(block)
 
     network[-1][-2] = stax.Dense(num_outputs, )

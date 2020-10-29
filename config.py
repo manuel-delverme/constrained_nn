@@ -14,8 +14,8 @@ import tensorboardX
 import wandb
 
 sweep_yaml = "sweep_toy.yaml"
-RUN_SWEEP = 0
-CLUSTER = 0
+RUN_SWEEP = 1
+CLUSTER = 1
 PROJECT_NAME = "constrained_nn"
 
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
@@ -45,7 +45,7 @@ grad_clip = False  # 0.5  # avoid leaky_grad explosions
 adam1 = 0.9
 adam2 = 0.99
 
-batch_size = 32
+batch_size = 150
 weight_norm = False  # avoid unbound targets
 
 num_epochs = 100000  # 00

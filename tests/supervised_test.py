@@ -1,6 +1,5 @@
 import itertools
 
-import jax
 from jax import jit, grad
 from jax.experimental import optimizers
 
@@ -9,12 +8,11 @@ import utils
 
 
 def main():
-    step_size = 0.01
+    step_size = 0.1
     num_epochs = 100
-    momentum_mass = 0.9
+    momentum_mass = 0.0
 
-    batch_gen, model, initial_parameters, full_batch, num_batches = stacked_FC_parallel.initialize(blocks=[1, 1])
-    initial_parameters = utils.ConstrainedParameters(initial_parameters.theta, initial_parameters.x)
+    batch_gen, model, initial_parameters, full_batch, num_batches = stacked_FC_parallel.initialize()
     full_rollout_loss, last_layer_loss, equality_constraints = stacked_FC_parallel.make_losses(model)
 
     opt_init, opt_update, get_params = optimizers.momentum(step_size, mass=momentum_mass)
@@ -42,5 +40,6 @@ def main():
 
 
 if __name__ == "__main__":
-    with jax.disable_jit():
-        main()
+    main()
+    # with jax.disable_jit():
+    #     main()
