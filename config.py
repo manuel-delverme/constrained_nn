@@ -48,7 +48,7 @@ adam2 = 0.99
 batch_size = 150
 weight_norm = False  # avoid unbound targets
 
-num_epochs = 100000  # 00
+num_epochs = 1000000
 eval_every = math.ceil(num_epochs / 1000)
 
 decay_steps = num_epochs // 4  # 500000
