@@ -45,7 +45,7 @@ grad_clip = False  # 0.5  # avoid leaky_grad explosions
 adam1 = 0.9
 adam2 = 0.99
 
-batch_size = 150
+batch_size = 32
 weight_norm = False  # avoid unbound targets
 
 num_epochs = 1000000
