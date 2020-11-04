@@ -14,8 +14,8 @@ import tensorboardX
 import wandb
 
 sweep_yaml = "sweep_toy.yaml"
-RUN_SWEEP = 0
-CLUSTER = 0
+RUN_SWEEP = 1
+CLUSTER = 1
 PROJECT_NAME = "constrained_nn"
 
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
@@ -24,12 +24,12 @@ RANDOM_SEED = 1337
 
 dataset = "iris"
 num_hidden = 32
-initial_lr_theta = .002
+initial_lr_theta = .001
 initial_lr_x = .05
 initial_lr_y = .08
 # 1e-2  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
 
-blocks = [2, ] * 25
+blocks = [1024, ] * 3
 
 
 def state_fn(x):
@@ -45,10 +45,10 @@ grad_clip = 4.0  # avoid leaky_grad explosions
 adam1 = 0.9
 adam2 = 0.99
 
-batch_size = 32
+batch_size = 128
 weight_norm = False  # avoid unbound targets
 
-num_epochs = 1000000
+num_epochs = 5000000
 eval_every = math.ceil(num_epochs / 1000)
 
 decay_steps = num_epochs // 4  # 500000
