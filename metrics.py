@@ -1,3 +1,4 @@
+import fax.utils as fax_utils
 from fax import math
 from jax import numpy as np
 
@@ -8,7 +9,7 @@ from utils import train_acc
 old_metrics = None
 
 
-def update_metrics(lagrangian, make_losses, model, p: utils.LagrangianParameters, outer_iter, full_batch):
+def update_metrics(lagrangian, make_losses, model, p: fax_utils.LagrangianParameters, outer_iter, full_batch):
     global old_metrics
 
     full_rollout_loss, one_step_loss, equality_constraints = make_losses(model)
@@ -20,7 +21,7 @@ def update_metrics(lagrangian, make_losses, model, p: utils.LagrangianParameters
 
     n_step_loss, n_step_acc = zip(*[utils.n_step_acc(full_batch.x, full_batch.y, model, p.constr_params, t + 1) for t, _ in enumerate(p.constr_params.theta)])
     # TODO: track n_step_losses
-    meta_obj = np.cumproduct(np.array(n_step_acc))[-1]
+    meta_obj = np.mean(np.array(n_step_acc))
     if old_metrics is not None:
         meta_obj = dict(old_metrics)["train/meta_obj"] * 0.9 + meta_obj * 0.1
 

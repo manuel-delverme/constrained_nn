@@ -13,25 +13,25 @@ import jax.ops
 import jax.tree_util
 import numpy.random as npr
 import tqdm
+from fax.utils import ConstrainedParameters, Batch, LagrangianParameters
 
 import config
 import datasets
 import utils
 from metrics import update_metrics
 from network import make_block_net
-from utils import ConstrainedParameters, forward_prop, Batch, LagrangianParameters
 
 
 def make_losses(model):
     def full_rollout_loss(theta: List[np.ndarray], batch: Batch):
         batch_x, batch_y, _indices = batch
-        pred_y = forward_prop(batch_x, model, theta)
+        pred_y = utils.forward_prop(batch_x, model, theta)
         return -np.mean(np.sum(pred_y * batch_y, axis=1))
 
     def last_layer_loss(params: LagrangianParameters, batch: Batch) -> float:
         x_n = params.constr_params.x[-1]
         a_T = config.state_fn(x_n[batch.indices, :])
-        pred_y = forward_prop(a_T, model[-1:], params.constr_params.theta[-1:])
+        pred_y = utils.forward_prop(a_T, model[-1:], params.constr_params.theta[-1:])
         return -np.mean(np.sum(pred_y * batch.y, axis=1))
 
     def equality_constraints(params: LagrangianParameters, batch: Batch) -> (np.array, Batch):

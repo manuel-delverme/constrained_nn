@@ -1,5 +1,3 @@
-import collections
-
 import jax
 import jax.experimental.optimizers
 import jax.lax
@@ -61,22 +59,6 @@ def mul(_a, _b):
 square = lambda _a: tree_util.tree_map(np.square, _a)
 
 
-class Batch(collections.namedtuple("Batch", "x y indices")):
-    pass
-
-
-class ConstrainedParameters(collections.namedtuple("ConstrainedParameters", "theta x")):
-    def __sub__(self, other):
-        return jax.tree_util.tree_multimap(lambda _a, _b: _a - _b, self, other)
-
-    def __add__(self, other):
-        return jax.tree_util.tree_multimap(lambda _a, _b: _a + _b, self, other)
-
-
-class LagrangianParameters(collections.namedtuple("LagrangianParameters", "constr_params multipliers")):
-    pass
-
-
 # class LagrangianParameters(tuple):
 #     def __new__(cls, *args, **kwargs):
 #         return tuple(args)
@@ -119,5 +101,3 @@ def n_step_acc(train_x, train_y, model, params, n):
 #         model[-n:],
 #         params.theta[-n:],
 #     )
-def tree_zero_like(a):
-    return tree_util.tree_map(lambda x: np.zeros(x.shape, x.dtype), a)

@@ -1,9 +1,11 @@
+from typing import Optional
+
 from jax.experimental import stax as stax
 
 import config
 
 
-def make_block_net(num_outputs, blocks=False):
+def make_block_net(num_outputs: int, blocks: Optional[list] = None):
     blocks = blocks or config.blocks
 
     network = []

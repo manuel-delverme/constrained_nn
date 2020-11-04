@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 from jax.config import config as j_config
 
@@ -16,7 +16,6 @@ import tqdm
 
 import config
 import datasets
-import utils
 from metrics import update_metrics
 from network import make_block_net
 from utils import ConstrainedParameters, forward_prop, Batch, LagrangianParameters
@@ -51,11 +50,18 @@ def make_losses(model):
 
 
 def main():
-    full_batch, model, opt_state, optimizer_get_params, lagrangian, optimizer_update, batch_gen, num_batches = init_opt_problem()
+    batch_gen, model, initial_parameters, full_batch, num_batches = initialize(blocks=[sum(config.blocks), ])
+    optimizer_init, optimizer_update, optimizer_get_params = jax.experimental.optimizers.sgd(step_size=config.lr_y, )
+    opt_state = optimizer_init(initial_parameters)
+
+    def full_rollout_loss(theta: List[np.ndarray], batch: Batch):
+        batch_x, batch_y, _indices = batch
+        pred_y = forward_prop(batch_x, model, theta)
+        return -np.mean(np.sum(pred_y * batch_y, axis=1))
 
     @jax.jit
     def update(i, opt_state_, batch):
-        grad_fn = jax.grad(lagrangian, 0)
+        grad_fn = jax.grad(full_rollout_loss, 0)
         return optimizer_update(i, grad_fn, opt_state_, batch)
 
     next_eval = 0
@@ -64,7 +70,7 @@ def main():
     for iter_num in tqdm.trange(config.num_epochs):
         if next_eval == iter_num:
             params = optimizer_get_params(opt_state)
-            update_metrics(lagrangian, make_losses, model, params, iter_num, full_batch)
+            update_metrics(make_losses, model, params, iter_num, full_batch)
 
             rng_key, k_out = jax.random.split(rng_key)
             next_eval += int(config.eval_every + jax.random.randint(k_out, (1,), 0, config.eval_every // 100))
@@ -76,26 +82,9 @@ def main():
 
 
 def init_opt_problem():
-    batch_gen, model, initial_parameters, full_batch, num_batches = initialize()
-    if not isinstance(initial_parameters, ConstrainedParameters):
-        raise TypeError("nah")
-
-    _, last_layer_loss, equality_constraints = make_losses(model)
-    init_multipliers, lagrangian, get_x = fax.constrained.make_lagrangian(
-        func=last_layer_loss, equality_constraints=equality_constraints)
-    initial_parameters = init_multipliers(initial_parameters, full_batch)
-    optimizer_init, optimizer_update, optimizer_get_params = fax.competitive.extragradient.adam_extragradient_optimizer(
-        betas=(config.adam1, config.adam2),
-        step_sizes=(config.lr_theta, config.lr_x, config.lr_y),
-        weight_norm=config.weight_norm,
-        use_adam=config.use_adam,
-        grad_clip=config.grad_clip,
-    )
-    opt_state = optimizer_init(initial_parameters)
-    return full_batch, model, opt_state, optimizer_get_params, lagrangian, optimizer_update, batch_gen, num_batches
 
 
-def initialize(blocks=False) -> Tuple[object, object, ConstrainedParameters, object, object]:
+def initialize(blocks: Optional[list] = None) -> Tuple[object, object, ConstrainedParameters, object, object]:
     if config.dataset == "mnist":
         train_x, train_y, _, _ = datasets.mnist()
     elif config.dataset == "iris":
@@ -131,9 +120,7 @@ def initialize(blocks=False) -> Tuple[object, object, ConstrainedParameters, obj
         output_shape, init_params = init(k_out, output_shape)
         theta.append(init_params)
 
-    x = utils.time_march(train_x, model, theta)
-    params = ConstrainedParameters(theta, x[:-1])
-    return batches, model, params, Batch(train_x, train_y, np.arange(train_x.shape[0])), num_batches
+    return batches, model, theta, Batch(train_x, train_y, np.arange(train_x.shape[0])), num_batches
 
 
 if __name__ == '__main__':
