@@ -1,5 +1,4 @@
 import fax.utils as fax_utils
-from fax import math
 from jax import numpy as np
 
 import config
@@ -13,11 +12,12 @@ def update_metrics(lagrangian, make_losses, model, p: fax_utils.LagrangianParame
     global old_metrics
 
     full_rollout_loss, one_step_loss, equality_constraints = make_losses(model)
-    h = equality_constraints(p, full_batch)
-    a = utils.one_step(full_batch.x, p.constr_params.x, model, p.constr_params.theta)
-    rhs = []
-    for mi, hi in zip(p.multipliers, h):
-        rhs.append(math.pytree_dot(mi, hi))
+    h_1 = [np.mean(np.linalg.norm(hi, 1)) for hi in equality_constraints(p, full_batch)]
+
+    a_min, a_max = utils.one_step_minmax(full_batch.x, p.constr_params.x, model, p.constr_params.theta)
+    # rhs = []
+    # for mi, hi in zip(p.multipliers, h):
+    #     rhs.append(math.pytree_dot(mi, hi))
 
     n_step_loss, n_step_acc = zip(*[utils.n_step_acc(full_batch.x, full_batch.y, model, p.constr_params, t + 1) for t, _ in enumerate(p.constr_params.theta)])
     # TODO: track n_step_losses
@@ -34,16 +34,16 @@ def update_metrics(lagrangian, make_losses, model, p: fax_utils.LagrangianParame
                   # ("train/full_batch_loss", full_batch_loss),
                   ("train/lr_x", config.lr_x(outer_iter)),
                   ("train/lr_y", config.lr_y(outer_iter)),
-              ] + [
-                  (f"train/rhs_{idx}", rhsi) for idx, rhsi in enumerate(rhs)
+                  # ] + [
+                  #     (f"train/rhs_{idx}", rhsi) for idx, rhsi in enumerate(rhs)
               ] + [
                   (f"constraints/multipliers_{idx}", np.linalg.norm(mi, 1)) for idx, mi in enumerate(p.multipliers)
               ] + [
-                  (f"constraints/defects_{idx}", np.mean(np.linalg.norm(hi, 1))) for idx, hi in enumerate(h)
+                  (f"constraints/defects_{idx}", hi) for idx, hi in enumerate(h_1)
               ] + [
-                  (f"params/f(x,theta)_max_{idx}", np.max(ai)) for idx, ai in enumerate(a[:-1])
+                  (f"params/f(x,theta)_max_{idx}", ai) for idx, ai in enumerate(a_min[:-1])
               ] + [
-                  (f"params/f(x,theta)_min_{idx}", np.min(ai)) for idx, ai in enumerate(a[:-1])
+                  (f"params/f(x,theta)_min_{idx}", ai) for idx, ai in enumerate(a_max[:-1])
                   # ] + [
                   #     (f"params/f(x,theta)_sum_{t}", np.mean(np.sum(ai, 1))) for t, ai in enumerate(a[:-1])
               ] + [
@@ -108,8 +108,8 @@ def update_metrics(lagrangian, make_losses, model, p: fax_utils.LagrangianParame
     if found_nan:
         raise ValueError("Found NaN")
 
-    if outer_iter == 0:
-        print(f"constraints/defects", )
-        print([np.max(hi, 1) for idx, hi in enumerate(h)])
+    # if outer_iter == 0:
+    #     print(f"constraints/defects", )
+    #     print([np.max(hi, 1) for idx, hi in enumerate(h)])
 
     old_metrics = metrics

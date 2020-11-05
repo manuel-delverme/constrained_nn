@@ -16,6 +16,15 @@ def time_march(x0, model, theta):
     return y
 
 
+def one_step_minmax(x0, x, model, theta):
+    y_min, y_max = [], []
+    for x_t, block, theta_t in zip([x0, *x], model, theta):
+        y_t = block(theta_t, config.state_fn(x_t))
+        y_min.append(np.min(y_t))
+        y_max.append(np.max(y_t))
+    return y_min, y_max
+
+
 def one_step(x0, x, model, theta):
     y = []
     for x_t, block, theta_t in zip([x0, *x], model, theta):
@@ -80,7 +89,6 @@ def n_step_acc(train_x, train_y, model, params, n):
         model[-n:],
         params.theta[-n:],
     )
-
 
 #
 #

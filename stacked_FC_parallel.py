@@ -76,7 +76,7 @@ def main():
 
 
 def init_opt_problem():
-    batch_gen, model, initial_parameters, full_batch, num_batches = initialize()
+    batch_gen, model, initial_parameters, full_batch, num_batches = initialize(config.blocks)
     if not isinstance(initial_parameters, ConstrainedParameters):
         raise TypeError("nah")
 
@@ -95,7 +95,7 @@ def init_opt_problem():
     return full_batch, model, opt_state, optimizer_get_params, lagrangian, optimizer_update, batch_gen, num_batches
 
 
-def initialize(blocks=False) -> Tuple[object, object, ConstrainedParameters, object, object]:
+def initialize(blocks) -> Tuple[object, object, ConstrainedParameters, object, object]:
     if config.dataset == "mnist":
         train_x, train_y, _, _ = datasets.mnist()
     elif config.dataset == "iris":
@@ -126,11 +126,13 @@ def initialize(blocks=False) -> Tuple[object, object, ConstrainedParameters, obj
     theta = []
     output_shape = train_x.shape
 
-    for init in blocks_init:
+    for t, init in enumerate(blocks_init):
         rng_key, k_out = jax.random.split(rng_key)
+        print("init block", t)
         output_shape, init_params = init(k_out, output_shape)
         theta.append(init_params)
 
     x = utils.time_march(train_x, model, theta)
     params = ConstrainedParameters(theta, x[:-1])
+    print("init x")
     return batches, model, params, Batch(train_x, train_y, np.arange(train_x.shape[0])), num_batches

@@ -14,22 +14,22 @@ import tensorboardX
 import wandb
 
 sweep_yaml = "sweep_toy.yaml"
-RUN_SWEEP = 1
-CLUSTER = 1
+RUN_SWEEP = 0
+CLUSTER = 0
 PROJECT_NAME = "constrained_nn"
 
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
 
 RANDOM_SEED = 1337
 
-dataset = "iris"
-num_hidden = 32
+dataset = "mnist"
 initial_lr_theta = .001
 initial_lr_x = .05
 initial_lr_y = .08
 # 1e-2  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
 
-blocks = [256, ] * 5
+num_hidden = 1024
+blocks = [1, ] * 3
 
 
 def state_fn(x):
