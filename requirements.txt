@@ -1,5 +1,5 @@
 jax
 jaxlib
 tqdm
--e git+git@https://github.com/manuel-delverme/mila_tools.git#egg=mila_tools
--e git+git@github.com:manuel-delverme/fax.git@c7d2c53dc404a97391d8562dd45da3c7ca04b749#egg=jax_fixedpoint
+-e git+git@github.com:manuel-delverme/mila_tools.git#egg=mila_tools
+-e git+git@github.com:manuel-delverme/fax.git@extragradient_optimizer_personal#egg=jax_fixedpoint
