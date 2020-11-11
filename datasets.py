@@ -22,8 +22,6 @@ import urllib.request
 from os import path
 
 import numpy as np
-import sklearn.datasets
-from sklearn.preprocessing import StandardScaler
 
 _DATA = "~/jax_example_data/"
 
@@ -78,6 +76,8 @@ def mnist_raw():
 
 def iris(permute_train=False):
     """Download, parse and process MNIST data to unit scale and one-hot labels."""
+    import sklearn.datasets
+    from sklearn.preprocessing import StandardScaler
     train_images, train_labels = sklearn.datasets.load_iris(return_X_y=True)
 
     perm = np.random.RandomState(0).permutation(train_images.shape[0])

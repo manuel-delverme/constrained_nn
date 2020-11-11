@@ -1,5 +1,6 @@
 jax==0.1.75
 jaxlib==0.1.52
+sklearn
 tqdm
 -e git+git@github.com:manuel-delverme/mila_tools.git#egg=mila_tools
 -e git+git@github.com:manuel-delverme/fax.git@extragradient_optimizer_personal#egg=jax_fixedpoint
