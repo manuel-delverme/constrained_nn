@@ -30,7 +30,7 @@ def make_losses(model):
 
     def last_layer_loss(params: LagrangianParameters, batch: Batch) -> float:
         x_n = params.constr_params.x[-1]
-        a_T = config.state_fn(x_n[batch.indices, :])
+        a_T = x_n[batch.indices, :]
         pred_y = utils.forward_prop(a_T, model[-1:], params.constr_params.theta[-1:])
         return -np.mean(np.sum(pred_y * batch.y, axis=1))
 
@@ -38,7 +38,7 @@ def make_losses(model):
         a_0, _, batch_indices = batch
         a = [a_0, ]
         for xi in params.constr_params.x:
-            a.append(config.state_fn(xi[batch_indices, :]))
+            a.append(xi[batch_indices, :])
 
         defects = []
         for t in range(0, len(params.constr_params.x)):
