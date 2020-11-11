@@ -47,13 +47,9 @@ def update_metrics(lagrangian, make_losses, model, p: fax_utils.LagrangianParame
                   # ] + [
                   #     (f"params/f(x,theta)_sum_{t}", np.mean(np.sum(ai, 1))) for t, ai in enumerate(a[:-1])
               ] + [
-                  (f"params/x_min_{idx}", np.min(config.state_fn(xi))) for idx, xi in enumerate(p.constr_params.x)
+                  (f"params/x_min_{idx}", np.min(xi)) for idx, xi in enumerate(p.constr_params.x)
               ] + [
-                  (f"params/x_max_{idx}", np.max(config.state_fn(xi))) for idx, xi in enumerate(p.constr_params.x)
-                  # ] + [
-                  #     (f"params/a_sum_{t}", np.mean(np.sum(config.state_fn(xi), 1))) for t, xi in enumerate(constr_params.x)
-                  # ] + [
-                  #     (f"params/theta_{t}", (np.linalg.norm(p[0], 1) + np.linalg.norm(p[1], 1)) / 2) for t, (p, _) in enumerate(constr_params.theta[:-1])
+                  (f"params/x_max_{idx}", np.max(xi)) for idx, xi in enumerate(p.constr_params.x)
               ] + [
                   (f"train/step_accuracy_{t + 1}", t_acc) for t, t_acc in enumerate(n_step_acc)
               ] + [
@@ -81,7 +77,7 @@ def update_metrics(lagrangian, make_losses, model, p: fax_utils.LagrangianParame
                 metrics.append((f"AA/block_{t}_defect_{jdx}", hij))
 
         for t, xi in enumerate(p.constr_params.x):
-            for jdx, xij in enumerate(config.state_fn(xi)):
+            for jdx, xij in enumerate(xi):
                 metrics.append((f"AA/block_{t}_x_{jdx}", xij))
 
         for t, ai in enumerate(a[:-1]):

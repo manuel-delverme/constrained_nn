@@ -19,7 +19,7 @@ def time_march(x0, model, theta):
 def one_step_minmax(x0, x, model, theta):
     y_min, y_max = [], []
     for x_t, block, theta_t in zip([x0, *x], model, theta):
-        y_t = block(theta_t, config.state_fn(x_t))
+        y_t = block(theta_t, x_t)
         y_min.append(np.min(y_t))
         y_max.append(np.max(y_t))
     return y_min, y_max
@@ -28,14 +28,14 @@ def one_step_minmax(x0, x, model, theta):
 def one_step(x0, x, model, theta):
     y = []
     for x_t, block, theta_t in zip([x0, *x], model, theta):
-        y_t = block(theta_t, config.state_fn(x_t))
+        y_t = block(theta_t, x_t)
         y.append(y_t)
     return y
 
 
 def forward_prop(x0, model, theta):
     assert len(model) == len(theta)
-    x_t = config.state_fn(x0)
+    x_t = x0
     for block, theta_t in zip(model, theta):
         x_t = block(theta_t, x_t)
     return x_t
@@ -83,29 +83,8 @@ def train_acc(train_x, train_y, model, theta):
 def n_step_acc(train_x, train_y, model, params, n):
     assert 0 < n < len(model) + 1
     return train_acc(
-        [train_x, *[config.state_fn(xi) for xi in params.x]][-n],
-        # config.state_fn(params.x[-n]),
+        [train_x, *params.x][-n],
         train_y,
         model[-n:],
         params.theta[-n:],
     )
-
-#
-#
-# def train_loss(train_x, train_y, model, theta):
-#     logits = forward_prop(train_x, model, theta)
-#     # predicted_class = np.argmax(logits, axis=-1)
-#     # target_class = np.argmax(train_y, axis=-1)
-#     # return np.mean(predicted_class == target_class)
-#     return -np.mean(np.sum(logits * train_y, axis=1))
-#
-
-# def n_step_loss(train_x, train_y, model, params, n):
-#     assert 0 < n < len(model) + 1
-#     return train_loss(
-#         [train_x, *[config.state_fn(xi) for xi in params.x]][-n],
-#         # config.state_fn(params.x[-n]),
-#         train_y,
-#         model[-n:],
-#         params.theta[-n:],
-#     )
