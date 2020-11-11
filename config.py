@@ -4,7 +4,7 @@ import sys
 import jax.experimental.optimizers
 import mila_tools
 
-RUN_SWEEP = 1
+RUN_SWEEP = 0
 CLUSTER = 1
 # PROJECT_NAME = "constrained_nn"
 
