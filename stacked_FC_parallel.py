@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Callable, Any
 
 import fax
 import fax.competitive.extragradient
@@ -51,7 +51,7 @@ def make_losses(model):
 
 
 def main():
-    full_batch, model, opt_state, optimizer_get_params, lagrangian, optimizer_update, batch_gen, num_batches = init_opt_problem()
+    full_batch, model, opt_state, optimizer_get_params, lagrangian, optimizer_update, batch_gen, num_batches, test_batch = init_opt_problem()
 
     @jax.jit
     def update(i, opt_state_, batch):
@@ -64,7 +64,7 @@ def main():
     for iter_num in tqdm.trange(config.num_epochs):
         if next_eval == iter_num:
             params = optimizer_get_params(opt_state)
-            update_metrics(lagrangian, make_losses, model, params, iter_num, full_batch)
+            update_metrics(lagrangian, make_losses, model, params, iter_num, full_batch, test_batch)
 
             rng_key, k_out = jax.random.split(rng_key)
             next_eval += int(config.eval_every + jax.random.randint(k_out, (1,), 0, config.eval_every // 100))
@@ -75,8 +75,8 @@ def main():
     return trained_params
 
 
-def init_opt_problem():
-    batch_gen, model, initial_parameters, full_batch, num_batches = initialize(config.blocks)
+def init_opt_problem() -> Tuple[Batch, List[Callable], Any, Any, Any, Any, object, object, Batch]:
+    batch_gen, model, initial_parameters, full_batch, num_batches, test_batch = initialize(config.blocks)
     if not isinstance(initial_parameters, ConstrainedParameters):
         raise TypeError("nah")
 
@@ -92,14 +92,14 @@ def init_opt_problem():
         grad_clip=config.grad_clip,
     )
     opt_state = optimizer_init(initial_parameters)
-    return full_batch, model, opt_state, optimizer_get_params, lagrangian, optimizer_update, batch_gen, num_batches
+    return full_batch, model, opt_state, optimizer_get_params, lagrangian, optimizer_update, batch_gen, num_batches, test_batch
 
 
-def initialize(blocks) -> Tuple[object, object, ConstrainedParameters, object, object]:
+def initialize(blocks) -> Tuple[object, List[Callable], ConstrainedParameters, Batch, object, Batch]:
     if config.dataset == "mnist":
-        train_x, train_y, _, _ = datasets.mnist()
+        train_x, train_y, test_x, test_y = datasets.mnist()
     elif config.dataset == "iris":
-        train_x, train_y, _, _ = datasets.iris()
+        train_x, train_y, test_x, test_y = datasets.iris()
     else:
         raise ValueError
 
@@ -135,4 +135,4 @@ def initialize(blocks) -> Tuple[object, object, ConstrainedParameters, object, o
     x = utils.time_march(train_x, model, theta)
     params = ConstrainedParameters(theta, x[:-1])
     print("init x")
-    return batches, model, params, Batch(train_x, train_y, np.arange(train_x.shape[0])), num_batches
+    return batches, model, params, Batch(train_x, train_y, np.arange(train_x.shape[0])), num_batches, Batch(test_x, test_y, np.arange(test_x.shape[0]))

@@ -8,28 +8,29 @@ from utils import train_acc
 old_metrics = None
 
 
-def update_metrics(lagrangian, make_losses, model, p: fax_utils.LagrangianParameters, outer_iter, full_batch):
+def update_metrics(lagrangian, make_losses, model, p: fax_utils.LagrangianParameters, outer_iter, train_batch, test_batch):
     global old_metrics
 
     full_rollout_loss, one_step_loss, equality_constraints = make_losses(model)
-    h_1 = [np.mean(np.linalg.norm(hi, 1)) for hi in equality_constraints(p, full_batch)]
+    h_1 = [np.mean(np.linalg.norm(hi, 1)) for hi in equality_constraints(p, train_batch)]
 
-    a_min, a_max = utils.one_step_minmax(full_batch.x, p.constr_params.x, model, p.constr_params.theta)
+    a_min, a_max = utils.one_step_minmax(train_batch.x, p.constr_params.x, model, p.constr_params.theta)
     # rhs = []
     # for mi, hi in zip(p.multipliers, h):
     #     rhs.append(math.pytree_dot(mi, hi))
 
-    n_step_loss, n_step_acc = zip(*[utils.n_step_acc(full_batch.x, full_batch.y, model, p.constr_params, t + 1) for t, _ in enumerate(p.constr_params.theta)])
+    n_step_loss, n_step_acc = zip(*[utils.n_step_acc(train_batch.x, train_batch.y, model, p.constr_params, t + 1) for t, _ in enumerate(p.constr_params.theta)])
+    test_loss, test_acc = utils.n_step_acc(test_batch.x, test_batch.y, model, p.constr_params, len(p.constr_params.x) + 1)
     # TODO: track n_step_losses
     meta_obj = np.mean(np.array(n_step_acc))
     if old_metrics is not None:
         meta_obj = dict(old_metrics)["train/meta_obj"] * 0.9 + meta_obj * 0.1
 
-    full_batch_loss, full_batch_train_acc = train_acc(full_batch.x, full_batch.y, model, p.constr_params.theta)
+    full_batch_loss, full_batch_train_acc = train_acc(train_batch.x, train_batch.y, model, p.constr_params.theta)
 
     metrics = [
                   ("train/full_rollout_loss", full_batch_loss),
-                  ("train/lagrangian", lagrangian(p, full_batch)),
+                  ("train/lagrangian", lagrangian(p, train_batch)),
                   ("train/full_batch_train_accuracy", full_batch_train_acc),
                   # ("train/full_batch_loss", full_batch_loss),
                   ("train/lr_x", config.lr_x(outer_iter)),
@@ -54,6 +55,10 @@ def update_metrics(lagrangian, make_losses, model, p: fax_utils.LagrangianParame
                   (f"train/step_accuracy_{t + 1}", t_acc) for t, t_acc in enumerate(n_step_acc)
               ] + [
                   (f"train/step_loss_{t + 1}", t_acc) for t, t_acc in enumerate(n_step_loss)
+              ] + [
+                  (f"test/accuracy", test_acc)
+              ] + [
+                  (f"test/test_loss", test_loss)
               ] + [
                   (f"train/meta_obj", meta_obj)
               ]
