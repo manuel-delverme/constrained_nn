@@ -99,6 +99,7 @@ if __name__ == "__main__":
     opt_state = opt_init(init_params)
     itercount = itertools.count()
     next_eval = 0
+    rng_key = jax.random.PRNGKey(0)
 
     print("\nStarting training...")
     for iter_num in range(num_epochs):
@@ -114,4 +115,3 @@ if __name__ == "__main__":
 
         epoch_time = time.time() - start_time
 
-    rng_key = jax.random.PRNGKey(0)
