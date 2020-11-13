@@ -20,7 +20,7 @@ initial_lr_y = .08
 # 1e-2  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
 
 num_hidden = 256
-blocks = [20, ] * 5
+blocks = [5, ] * 2
 
 use_adam = False
 grad_clip = 4.0  # avoid leaky_grad explosions
@@ -30,7 +30,7 @@ adam2 = 0.99
 batch_size = 128
 weight_norm = False  # avoid unbound targets
 
-num_epochs = 5000000
+num_epochs = 50000# 00
 eval_every = math.ceil(num_epochs / 1000)
 
 decay_steps = num_epochs // 4  # 500000
