@@ -17,6 +17,6 @@ if __name__ == "__main__":
         with jax.disable_jit():
             stacked_FC_parallel.main()
     else:
-        if xla_bridge.get_backend().platform == "cpu":
-            raise ValueError("Need CPU")
+        # if xla_bridge.get_backend().platform == "cpu":
+        #     raise ValueError("Need CPU")
         stacked_FC_parallel.main()
