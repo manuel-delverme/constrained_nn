@@ -21,7 +21,7 @@ initial_lr_y = .08
 
 num_hidden = 256
 # blocks = [5, ] * 3
-blocks = [6, 5, 4, 3, 2]
+blocks = [3, 2, 1]
 
 use_adam = False
 grad_clip = 4.0  # avoid leaky_grad explosions
@@ -34,7 +34,7 @@ weight_norm = False  # avoid unbound targets
 num_epochs = 10000  # 00
 eval_every = math.ceil(num_epochs / 10000)
 
-decay_steps = num_epochs // 4  # 500000
+decay_steps = num_epochs # // 4  # 500000
 decay_factor = 1.0
 
 ################################################################
