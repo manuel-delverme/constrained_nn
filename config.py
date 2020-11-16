@@ -20,7 +20,7 @@ initial_lr_y = .08
 # 1e-2  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
 
 num_hidden = 256
-blocks = [5, ] * 5
+blocks = [5, ] * 3
 
 use_adam = False
 grad_clip = 4.0  # avoid leaky_grad explosions
@@ -50,5 +50,5 @@ lr_x = jax.experimental.optimizers.inverse_time_decay(initial_lr_x, decay_steps,
 lr_y = jax.experimental.optimizers.inverse_time_decay(initial_lr_y, decay_steps, decay_factor, staircase=True)
 
 tb = mila_tools.deploy(cluster=CLUSTER, sweep_yaml=sweep_yaml, extra_slurm_headers="""
-#SBATCH --mem=48GB
+#SBATCH --mem=24GB
 """)
