@@ -4,7 +4,7 @@ import sys
 import jax.experimental.optimizers
 import mila_tools
 
-RUN_SWEEP = 1
+RUN_SWEEP = 0
 CLUSTER = 1
 # PROJECT_NAME = "constrained_nn"
 
@@ -20,7 +20,8 @@ initial_lr_y = .08
 # 1e-2  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
 
 num_hidden = 256
-blocks = [5, ] * 3
+# blocks = [5, ] * 3
+blocks = [4, 3, 2]
 
 use_adam = False
 grad_clip = 4.0  # avoid leaky_grad explosions
