@@ -21,7 +21,7 @@ initial_lr_y = .08
 
 num_hidden = 256
 # blocks = [5, ] * 3
-blocks = [3, 2, 1]
+blocks = [6, 4, 2, 2]
 
 use_adam = False
 grad_clip = 4.0  # avoid leaky_grad explosions
