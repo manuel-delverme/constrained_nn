@@ -21,7 +21,10 @@ initial_lr_y = .08
 
 num_hidden = 256
 # blocks = [5, ] * 3
-blocks = [6, 4, 2, 2]
+block0 = 6
+block1 = 4
+block2 = 2
+block3 = 2
 
 use_adam = False
 grad_clip = 4.0  # avoid leaky_grad explosions
@@ -34,7 +37,7 @@ weight_norm = False  # avoid unbound targets
 num_epochs = 10000  # 00
 eval_every = math.ceil(num_epochs / 10000)
 
-decay_steps = num_epochs # // 4  # 500000
+decay_steps = num_epochs  # // 4  # 500000
 decay_factor = 1.0
 
 ################################################################
@@ -49,6 +52,7 @@ mila_tools.register(locals())
 lr_theta = jax.experimental.optimizers.inverse_time_decay(initial_lr_theta, decay_steps, decay_factor, staircase=True)
 lr_x = jax.experimental.optimizers.inverse_time_decay(initial_lr_x, decay_steps, decay_factor, staircase=True)
 lr_y = jax.experimental.optimizers.inverse_time_decay(initial_lr_y, decay_steps, decay_factor, staircase=True)
+blocks = [b for b in [block0, block1, block2, block3] if b > 0]
 
 tb = mila_tools.deploy(cluster=CLUSTER, sweep_yaml=sweep_yaml, extra_slurm_headers="""
 #SBATCH --mem=24GB

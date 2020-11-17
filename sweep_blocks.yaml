@@ -3,11 +3,24 @@ metric:
   goal: maximize
   name: train/meta_obj
 parameters:
-  ^blocks:
-    distribution: categorical
-    values:
-      - [4, 2]
-      - [4, 2, 2]
-      - [4, 4, 2]
-      - [6, 4, 2]
+  ^block0:
+    distribution: q_uniform
+    min: 1
+    max: 6
+    q: 1
+  ^block1:
+    distribution: q_uniform
+    min: 0
+    max: 6
+    q: 1
+  ^block2:
+    distribution: q_uniform
+    min: 0
+    max: 6
+    q: 1
+  ^block3:
+    distribution: q_uniform
+    min: 0
+    max: 6
+    q: 1
 program: main.py
