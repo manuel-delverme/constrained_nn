@@ -8,7 +8,7 @@ RUN_SWEEP = 0
 CLUSTER = 1
 # PROJECT_NAME = "constrained_nn"
 
-sweep_yaml = "sweep_blocks.yaml" if RUN_SWEEP else False
+sweep_yaml = "sweep_hyper.yaml" if RUN_SWEEP else False
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
 
 RANDOM_SEED = 1337
@@ -21,10 +21,10 @@ initial_lr_y = .08
 
 num_hidden = 256
 # blocks = [5, ] * 3
-block0 = 1
-block1 = 2
-block2 = 3
-block3 = 4
+block0 = 2
+block1 = 4
+block2 = 6
+block3 = 8
 
 use_adam = False
 grad_clip = 4.0  # avoid leaky_grad explosions
