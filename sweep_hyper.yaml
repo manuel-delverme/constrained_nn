@@ -1,6 +1,6 @@
 method: bayes
 metric:
-  goal: maximize
+  goal: minimize
   name: train/meta_obj
 parameters:
   ^initial_lr_x:

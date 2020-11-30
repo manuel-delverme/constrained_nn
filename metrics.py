@@ -22,7 +22,7 @@ def update_metrics(lagrangian, make_losses, model, p: fax_utils.LagrangianParame
     n_step_loss, n_step_acc = zip(*[utils.n_step_acc(train_batch.x, train_batch.y, model, p.constr_params, t + 1) for t, _ in enumerate(p.constr_params.theta)])
     test_loss, test_acc = utils.n_step_acc(test_batch.x, test_batch.y, model, p.constr_params, len(p.constr_params.x) + 1)
     # TODO: track n_step_losses
-    meta_obj = np.mean(np.array(n_step_acc))
+    meta_obj = np.mean(np.array(n_step_loss))
     if old_metrics is not None:
         meta_obj = dict(old_metrics)["train/meta_obj"] * 0.9 + meta_obj * 0.1
 
