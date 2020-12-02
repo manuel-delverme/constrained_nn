@@ -19,8 +19,8 @@ initial_lr_x = .05
 initial_lr_y = .08
 # 1e-2  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
 
-num_hidden = 256
-blocks = [4, ] * 5
+num_hidden = 512
+blocks = [2, ] * 3
 # block0 = 2
 # block1 = 4
 # block2 = 4
@@ -34,8 +34,8 @@ adam2 = 0.99
 batch_size = 128
 weight_norm = False  # avoid unbound targets
 
-num_epochs = 10_000  # 00
-eval_every = math.ceil(num_epochs / 10000)
+num_epochs = 100_000  # 00
+eval_every = math.ceil(num_epochs / 100)
 
 decay_steps = num_epochs  # // 4  # 500000
 decay_factor = 1.0
@@ -55,5 +55,5 @@ lr_y = jax.experimental.optimizers.inverse_time_decay(initial_lr_y, decay_steps,
 # blocks = [int(b) for b in [block0, block1, block2, block3] if b > 0]
 
 tb = mila_tools.deploy(cluster=CLUSTER, sweep_yaml=sweep_yaml, extra_slurm_headers="""
-#SBATCH --mem=48GB
+#SBATCH --mem=24GB
 """)

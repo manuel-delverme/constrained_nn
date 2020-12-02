@@ -14,7 +14,7 @@ def update_metrics(lagrangian, make_losses, model, p: fax_utils.LagrangianParame
     full_rollout_loss, one_step_loss, equality_constraints = make_losses(model)
     h_1 = [np.mean(np.linalg.norm(hi, 1)) for hi in equality_constraints(p, train_batch)]
 
-    a_min, a_max = utils.one_step_minmax(train_batch.x, p.constr_params.x, model, p.constr_params.theta)
+    # a_min, a_max = utils.one_step_minmax(train_batch.x, p.constr_params.x, model, p.constr_params.theta)
     # rhs = []
     # for mi, hi in zip(p.multipliers, h):
     #     rhs.append(math.pytree_dot(mi, hi))
@@ -22,7 +22,7 @@ def update_metrics(lagrangian, make_losses, model, p: fax_utils.LagrangianParame
     n_step_loss, n_step_acc = zip(*[utils.n_step_acc(train_batch.x, train_batch.y, model, p.constr_params, t + 1) for t, _ in enumerate(p.constr_params.theta)])
     test_loss, test_acc = utils.n_step_acc(test_batch.x, test_batch.y, model, p.constr_params, len(p.constr_params.x) + 1)
     # TODO: track n_step_losses
-    meta_obj = np.mean(np.array(n_step_loss))
+    meta_obj = np.mean(np.array(n_step_acc))
     if old_metrics is not None:
         meta_obj = dict(old_metrics)["train/meta_obj"] * 0.9 + meta_obj * 0.1
 
@@ -32,7 +32,7 @@ def update_metrics(lagrangian, make_losses, model, p: fax_utils.LagrangianParame
                   ("train/full_rollout_loss", full_batch_loss),
                   ("train/lagrangian", lagrangian(p, train_batch)),
                   ("train/full_batch_train_accuracy", full_batch_train_acc),
-                  # ("train/full_batch_loss", full_batch_loss),
+                  ("train/full_batch_loss", full_batch_loss),
                   ("train/lr_x", config.lr_x(outer_iter)),
                   ("train/lr_y", config.lr_y(outer_iter)),
                   # ] + [
@@ -42,9 +42,9 @@ def update_metrics(lagrangian, make_losses, model, p: fax_utils.LagrangianParame
               ] + [
                   (f"constraints/defects_{idx}", hi) for idx, hi in enumerate(h_1)
               ] + [
-                  (f"params/f(x,theta)_max_{idx}", ai) for idx, ai in enumerate(a_min[:-1])
-              ] + [
-                  (f"params/f(x,theta)_min_{idx}", ai) for idx, ai in enumerate(a_max[:-1])
+                  #     (f"params/f(x,theta)_max_{idx}", ai) for idx, ai in enumerate(a_min[:-1])
+                  # ] + [
+                  #     (f"params/f(x,theta)_min_{idx}", ai) for idx, ai in enumerate(a_max[:-1])
                   # ] + [
                   #     (f"params/f(x,theta)_sum_{t}", np.mean(np.sum(ai, 1))) for t, ai in enumerate(a[:-1])
               ] + [

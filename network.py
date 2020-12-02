@@ -19,3 +19,4 @@ def make_block_net(num_outputs: int, blocks: List[int]):
     network[-1][-1] = stax.LogSoftmax
     network = [stax.serial(*n) for n in network]
     return zip(*network)
+
