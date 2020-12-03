@@ -4,7 +4,7 @@ import sys
 import jax.experimental.optimizers
 import mila_tools
 
-RUN_SWEEP = 1
+RUN_SWEEP = 0
 CLUSTER = 1
 # PROJECT_NAME = "constrained_nn"
 
@@ -26,7 +26,7 @@ blocks = [2, ] * 3
 # block2 = 4
 # block3 = 4
 
-use_adam = False
+use_adam = True
 grad_clip = 4.0  # avoid leaky_grad explosions
 adam1 = 0.9
 adam2 = 0.99
