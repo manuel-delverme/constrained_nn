@@ -1,4 +1,3 @@
-# Created by .ignore support plugin (hsz.mobi)
 *.png
 *.npy
 /venv/
@@ -7,3 +6,4 @@ ssh.log
 .idea/
 wandb/
 __pycache__/
+*.pyc
