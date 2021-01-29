@@ -1,108 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="AutoImportSettings">
-    <option name="autoReloadType" value="SELECTIVE" />
-  </component>
-  <component name="BranchesTreeState">
-    <expand>
-      <path>
-        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
-        <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
-      </path>
-      <path>
-        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
-        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
-      </path>
-      <path>
-        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
-        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
-        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
-      </path>
-    </expand>
-    <select>
-      <path>
-        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
-        <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
-        <item name="BRANCH:extragradient_train" type="e8cecc67:BranchNodeDescriptor" />
-      </path>
-    </select>
-  </component>
   <component name="ChangeListManager">
-    <list default="true" id="c1573bcc-5047-4481-9756-ccbd31e5c97b" name="Default Changelist" comment="">
+    <list default="true" id="abe60487-ad2a-4db4-99e8-d56a69d4d87f" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ssh.log" beforeDir="false" afterPath="$PROJECT_DIR$/ssh.log" afterDir="false" />
     </list>
-    <list id="ae405ad7-4485-4495-9cfb-6f25fba0a730" name="ignored" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="FileTemplateManagerImpl">
-    <option name="RECENT_TEMPLATES">
-      <list>
-        <option value="Python Script" />
-      </list>
-    </option>
-  </component>
   <component name="Git.Settings">
-    <option name="RECENT_BRANCH_BY_REPOSITORY">
-      <map>
-        <entry key="$PROJECT_DIR$" value="extragradient_optimizer_personal" />
-      </map>
-    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="JupyterTrust" id="f4e0da39-6034-4ffe-a559-37fd129bb460" />
-  <component name="ProjectId" id="1gbpI5wXleHIQziqAhvgVQpMBPh" />
+  <component name="ProjectId" id="1nkweywcS77HIQRothigKw5xvn7" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="true" />
-    <property name="WebServerToolWindowPanel.toolwindow.highlight.mappings" value="true" />
-    <property name="WebServerToolWindowPanel.toolwindow.highlight.symlinks" value="true" />
-    <property name="WebServerToolWindowPanel.toolwindow.show.date" value="false" />
-    <property name="WebServerToolWindowPanel.toolwindow.show.permissions" value="false" />
-    <property name="WebServerToolWindowPanel.toolwindow.show.size" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
-    <property name="settings.editor.selected.configurable" value="vcs.Git" />
+    <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
+    <property name="nodejs_npm_path_reset_for_default_project" value="true" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
-  <component name="RecentsManager">
-    <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$" />
-    </key>
-  </component>
-  <component name="RunManager" selected="Python.main">
-    <configuration name="config" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="HowToTrainYourNet" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/config.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="main" type="PythonConfigurationType" factoryName="Python" singleton="true" temporary="true" nameIsGenerated="true">
-      <module name="HowToTrainYourNet" />
+  <component name="RunManager">
+    <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="constrained_nn" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -123,62 +54,8 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="minmax" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="HowToTrainYourNet" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/minmax.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="stacked_FC_parallel" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="HowToTrainYourNet" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/stacked_FC_parallel.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <list>
-      <item itemvalue="Python.config" />
-      <item itemvalue="Python.main" />
-      <item itemvalue="Python.minmax" />
-      <item itemvalue="Python.stacked_FC_parallel" />
-    </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.main" />
-        <item itemvalue="Python.stacked_FC_parallel" />
-        <item itemvalue="Python.minmax" />
-        <item itemvalue="Python.config" />
         <item itemvalue="Python.main" />
       </list>
     </recent_temporary>
@@ -186,360 +63,27 @@
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="c1573bcc-5047-4481-9756-ccbd31e5c97b" name="Default Changelist" comment="" />
-      <changelist id="ae405ad7-4485-4495-9cfb-6f25fba0a730" name="ignored" comment="" />
-      <created>1598393063502</created>
+      <changelist id="abe60487-ad2a-4db4-99e8-d56a69d4d87f" name="Default Changelist" comment="" />
+      <created>1611947496153</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1598393063502</updated>
-      <workItem from="1598393064514" duration="152000" />
-      <workItem from="1598393222031" duration="5281000" />
-      <workItem from="1598493604742" duration="11871000" />
-      <workItem from="1598640157818" duration="1192000" />
-      <workItem from="1598681796761" duration="3538000" />
-      <workItem from="1598685359789" duration="2449000" />
-      <workItem from="1598773449772" duration="990000" />
-      <workItem from="1599119755345" duration="41000" />
-      <workItem from="1599558529625" duration="4150000" />
-      <workItem from="1599676235328" duration="1975000" />
-      <workItem from="1599739308884" duration="9276000" />
-      <workItem from="1599770131182" duration="1703000" />
-      <workItem from="1599815710223" duration="7990000" />
-      <workItem from="1599842937537" duration="97000" />
-      <workItem from="1599848336317" duration="7944000" />
-      <workItem from="1600160954698" duration="12362000" />
-      <workItem from="1600191174699" duration="4144000" />
-      <workItem from="1600246416218" duration="21690000" />
-      <workItem from="1600278204106" duration="1529000" />
-      <workItem from="1600346359497" duration="5797000" />
-      <workItem from="1600363422610" duration="87000" />
-      <workItem from="1600421961360" duration="644000" />
-      <workItem from="1600422612262" duration="10615000" />
-      <workItem from="1600452822576" duration="9784000" />
-      <workItem from="1600500152049" duration="2163000" />
-      <workItem from="1600521674307" duration="12806000" />
-      <workItem from="1600538851698" duration="5895000" />
-      <workItem from="1600674903711" duration="26639000" />
-      <workItem from="1600783969298" duration="5701000" />
+      <updated>1611947496153</updated>
+      <workItem from="1611947497224" duration="56000" />
     </task>
-    <task id="LOCAL-00001" summary="updated project name">
-      <created>1598399333776</created>
-      <option name="number" value="00001" />
-      <option name="presentableId" value="LOCAL-00001" />
-      <option name="project" value="LOCAL" />
-      <updated>1598399333776</updated>
-    </task>
-    <task id="LOCAL-00002" summary="updated project name">
-      <created>1598685332095</created>
-      <option name="number" value="00002" />
-      <option name="presentableId" value="LOCAL-00002" />
-      <option name="project" value="LOCAL" />
-      <updated>1598685332095</updated>
-    </task>
-    <task id="LOCAL-00003" summary="updated project name">
-      <created>1599744522218</created>
-      <option name="number" value="00003" />
-      <option name="presentableId" value="LOCAL-00003" />
-      <option name="project" value="LOCAL" />
-      <updated>1599744522218</updated>
-    </task>
-    <task id="LOCAL-00004" summary="last commit before rollback; full rollout works, constrained does not">
-      <created>1600500465284</created>
-      <option name="number" value="00004" />
-      <option name="presentableId" value="LOCAL-00004" />
-      <option name="project" value="LOCAL" />
-      <updated>1600500465284</updated>
-    </task>
-    <task id="LOCAL-00005" summary="small scale has small defect values">
-      <created>1600701300420</created>
-      <option name="number" value="00005" />
-      <option name="presentableId" value="LOCAL-00005" />
-      <option name="project" value="LOCAL" />
-      <updated>1600701300420</updated>
-    </task>
-    <task id="LOCAL-00006" summary="small scale has small defect values">
-      <created>1600705248919</created>
-      <option name="number" value="00006" />
-      <option name="presentableId" value="LOCAL-00006" />
-      <option name="project" value="LOCAL" />
-      <updated>1600705248919</updated>
-    </task>
-    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
-  <component name="Vcs.Log.History.Properties">
-    <option name="COLUMN_ORDER">
-      <list>
-        <option value="0" />
-        <option value="2" />
-        <option value="3" />
-        <option value="1" />
-      </list>
-    </option>
-  </component>
-  <component name="Vcs.Log.Tabs.Properties">
-    <option name="TAB_STATES">
-      <map>
-        <entry key="MAIN">
-          <value>
-            <State>
-              <option name="FILTERS">
-                <map>
-                  <entry key="branch">
-                    <value>
-                      <list>
-                        <option value="extragradient_train" />
-                      </list>
-                    </value>
-                  </entry>
-                </map>
-              </option>
-            </State>
-          </value>
-        </entry>
-      </map>
-    </option>
-    <option name="oldMeFiltersMigrated" value="true" />
-  </component>
-  <component name="VcsManagerConfiguration">
-    <MESSAGE value="updated project name" />
-    <MESSAGE value="last commit before rollback; full rollout works, constrained does not" />
-    <MESSAGE value="small scale has small defect values" />
-    <option name="LAST_COMMIT_MESSAGE" value="small scale has small defect values" />
-  </component>
-  <component name="WindowStateProjectService">
-    <state x="1833" y="211" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1600788982954">
-      <screen x="1400" y="0" width="1920" height="1080" />
-    </state>
-    <state x="2338" y="211" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599827146644" />
-    <state x="418" y="233" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.27.1920.1053@0.27.1920.1053" timestamp="1600267950425" />
-    <state x="1400" y="233" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.27.5240.1053@0.27.5240.1053" timestamp="1600542715669" />
-    <state x="316" y="227" key="#com.intellij.execution.impl.EditConfigurationsDialog/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@0.27.1400.1023" timestamp="1600687533345" />
-    <state x="1833" y="211" key="#com.intellij.execution.impl.EditConfigurationsDialog/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@1400.0.1920.1080" timestamp="1600788982954" />
-    <state x="2338" y="211" key="#com.intellij.execution.impl.EditConfigurationsDialog/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598399392418" />
-    <state x="2132" y="268" width="446" height="537" key="#com.jetbrains.python.refactoring.move.PyMoveModuleMembersDialog" timestamp="1600676448278">
-      <screen x="1400" y="0" width="1920" height="1080" />
-    </state>
-    <state x="732" y="288" width="446" height="537" key="#com.jetbrains.python.refactoring.move.PyMoveModuleMembersDialog/0.27.1920.1053@0.27.1920.1053" timestamp="1600532995016" />
-    <state x="2132" y="268" key="#com.jetbrains.python.refactoring.move.PyMoveModuleMembersDialog/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@1400.0.1920.1080" timestamp="1600676448278" />
-    <state x="2586" y="73" width="804" height="497" key="#xdebugger.evaluate" timestamp="1600698336513">
-      <screen x="1400" y="0" width="1920" height="1080" />
-    </state>
-    <state x="2450" y="129" width="985" height="511" key="#xdebugger.evaluate/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599857086789" />
-    <state x="796" y="415" width="980" height="555" key="#xdebugger.evaluate/0.27.1920.1053@0.27.1920.1053" timestamp="1600534908180" />
-    <state x="2131" y="235" width="762" height="599" key="#xdebugger.evaluate/0.27.5240.1053@0.27.5240.1053" timestamp="1600545944831" />
-    <state x="580" y="404" width="804" height="497" key="#xdebugger.evaluate/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@0.27.1400.1023" timestamp="1600686007970" />
-    <state x="2586" y="73" width="497" height="511" key="#xdebugger.evaluate/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@1400.0.1920.1080" timestamp="1600698336513" />
-    <state x="386" y="696" width="715" height="354" key="#xdebugger.evaluate/1400.0.1920.1080/3320.0.1920.1080/0.696.1400.354@0.696.1400.354" timestamp="1600196573681" />
-    <state x="1899" y="272" width="1091" height="572" key="#xdebugger.evaluate/1400.485.1920.1080/3320.0.1080.1920/0.485.1400.1050@1400.485.1920.1080" timestamp="1600360562926" />
-    <state x="2634" y="301" width="739" height="511" key="#xdebugger.evaluate/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598519860621" />
-    <state x="1839" y="28" width="1253" height="941" key="CommitChangelistDialog2" timestamp="1600705248819">
-      <screen x="1400" y="0" width="1920" height="1080" />
-    </state>
-    <state x="491" y="154" width="927" height="871" key="CommitChangelistDialog2/0.27.1920.1053/1920.0.1920.1080@0.27.1920.1053" timestamp="1598685331920" />
-    <state x="2411" y="130" width="927" height="871" key="CommitChangelistDialog2/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599746432231" />
-    <state x="491" y="154" key="CommitChangelistDialog2/0.27.1920.1053@0.27.1920.1053" timestamp="1600163375967" />
-    <state x="1839" y="28" width="1253" height="941" key="CommitChangelistDialog2/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@1400.0.1920.1080" timestamp="1600705248819" />
-    <state x="2411" y="130" width="927" height="853" key="CommitChangelistDialog2/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598506406832" />
-    <state width="1918" height="482" key="DebuggerActiveHint" timestamp="1600698281816">
-      <screen x="1400" y="0" width="1920" height="1080" />
-    </state>
-    <state width="1918" height="480" key="DebuggerActiveHint/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599857041520" />
-    <state width="1918" height="469" key="DebuggerActiveHint/0.27.1920.1053@0.27.1920.1053" timestamp="1600535218506" />
-    <state width="5235" height="469" key="DebuggerActiveHint/0.27.5240.1053@0.27.5240.1053" timestamp="1600545964434" />
-    <state width="1398" height="457" key="DebuggerActiveHint/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@0.27.1400.1023" timestamp="1600685140525" />
-    <state width="1918" height="482" key="DebuggerActiveHint/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@1400.0.1920.1080" timestamp="1600698281816" />
-    <state width="1398" height="158" key="DebuggerActiveHint/1400.0.1920.1080/3320.0.1920.1080/0.696.1400.354@0.696.1400.354" timestamp="1600196775542" />
-    <state width="1918" height="482" key="DebuggerActiveHint/1400.485.1920.1080/3320.0.1080.1920/0.485.1400.1050@1400.485.1920.1080" timestamp="1600360024516" />
-    <state width="1918" height="480" key="DebuggerActiveHint/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598519828070" />
-    <state x="2020" y="101" width="1536" height="902" maximized="true" key="DiffContextDialog" timestamp="1600502626235">
-      <screen x="1400" y="0" width="1920" height="1080" />
-    </state>
-    <state x="100" y="125" width="1536" height="879" key="DiffContextDialog/0.27.1920.1053/1920.0.1920.1080@0.27.1920.1053" timestamp="1598685327813" />
-    <state x="2020" y="101" width="1536" height="902" maximized="true" key="DiffContextDialog/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599833075989" />
-    <state x="2020" y="100" width="1720" height="880" key="DiffContextDialog/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598523972282" />
-    <state x="2199" y="293" width="342" height="526" key="EnvironmentVariablesDialog" timestamp="1600788981380">
-      <screen x="1400" y="0" width="1920" height="1080" />
-    </state>
-    <state x="2199" y="293" width="342" height="526" key="EnvironmentVariablesDialog/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@1400.0.1920.1080" timestamp="1600788981380" />
-    <state x="2127" y="216" width="492" height="756" key="FileChooserDialogImpl" timestamp="1600363457101">
-      <screen x="1400" y="0" width="1920" height="1080" />
-    </state>
-    <state x="2647" y="216" width="492" height="756" key="FileChooserDialogImpl/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599757106018" />
-    <state x="739" y="311" key="FileChooserDialogImpl/0.27.1920.1053@0.27.1920.1053" timestamp="1599119792827" />
-    <state x="2127" y="216" key="FileChooserDialogImpl/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@1400.0.1920.1080" timestamp="1600363457101" />
-    <state width="1872" height="289" key="GridCell.Tab.0.bottom" timestamp="1600790379140">
-      <screen x="1400" y="0" width="1920" height="1080" />
-    </state>
-    <state width="1872" height="279" key="GridCell.Tab.0.bottom/0.27.1920.1053/1920.0.1920.1080@0.27.1920.1053" timestamp="1598685342397" />
-    <state width="1872" height="366" key="GridCell.Tab.0.bottom/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599857090303" />
-    <state width="1872" height="253" key="GridCell.Tab.0.bottom/0.27.1920.1053@0.27.1920.1053" timestamp="1600536325446" />
-    <state width="1872" height="279" key="GridCell.Tab.0.bottom/0.27.3840.1053@0.27.3840.1053" timestamp="1598687091231" />
-    <state width="1872" height="277" key="GridCell.Tab.0.bottom/0.27.5240.1053@0.27.5240.1053" timestamp="1600545865840" />
-    <state width="1872" height="288" key="GridCell.Tab.0.bottom/1400.0.1920.1080/3320.0.1080.1920/0.512.1400.538@1400.0.1920.1080" timestamp="1600282313219" />
-    <state width="1872" height="238" key="GridCell.Tab.0.bottom/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@0.27.1400.1023" timestamp="1600689311272" />
-    <state width="1872" height="289" key="GridCell.Tab.0.bottom/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@1400.0.1920.1080" timestamp="1600790379140" />
-    <state width="1872" height="178" key="GridCell.Tab.0.bottom/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@3320.0.1920.1080" timestamp="1600706145457" />
-    <state width="1872" height="222" key="GridCell.Tab.0.bottom/1400.0.1920.1080/3320.0.1920.1080/0.696.1400.354@0.696.1400.354" timestamp="1600197055071" />
-    <state width="1872" height="346" key="GridCell.Tab.0.bottom/1400.485.1920.1080/3320.0.1080.1920/0.485.1400.1050@1400.485.1920.1080" timestamp="1600363412213" />
-    <state width="1872" height="288" key="GridCell.Tab.0.bottom/1400.485.1920.1080/3320.0.1080.1920/0.512.1400.1023@1400.485.1920.1080" timestamp="1600358729650" />
-    <state width="1872" height="282" key="GridCell.Tab.0.bottom/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598522975724" />
-    <state width="1872" height="289" key="GridCell.Tab.0.center" timestamp="1600790379139">
-      <screen x="1400" y="0" width="1920" height="1080" />
-    </state>
-    <state width="1872" height="279" key="GridCell.Tab.0.center/0.27.1920.1053/1920.0.1920.1080@0.27.1920.1053" timestamp="1598685342397" />
-    <state width="1872" height="366" key="GridCell.Tab.0.center/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599857090303" />
-    <state width="1872" height="253" key="GridCell.Tab.0.center/0.27.1920.1053@0.27.1920.1053" timestamp="1600536325445" />
-    <state width="1872" height="279" key="GridCell.Tab.0.center/0.27.3840.1053@0.27.3840.1053" timestamp="1598687091230" />
-    <state width="1872" height="277" key="GridCell.Tab.0.center/0.27.5240.1053@0.27.5240.1053" timestamp="1600545865840" />
-    <state width="1872" height="288" key="GridCell.Tab.0.center/1400.0.1920.1080/3320.0.1080.1920/0.512.1400.538@1400.0.1920.1080" timestamp="1600282313219" />
-    <state width="1872" height="238" key="GridCell.Tab.0.center/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@0.27.1400.1023" timestamp="1600689311272" />
-    <state width="1872" height="289" key="GridCell.Tab.0.center/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@1400.0.1920.1080" timestamp="1600790379139" />
-    <state width="1872" height="178" key="GridCell.Tab.0.center/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@3320.0.1920.1080" timestamp="1600706145456" />
-    <state width="1872" height="222" key="GridCell.Tab.0.center/1400.0.1920.1080/3320.0.1920.1080/0.696.1400.354@0.696.1400.354" timestamp="1600197055071" />
-    <state width="1872" height="346" key="GridCell.Tab.0.center/1400.485.1920.1080/3320.0.1080.1920/0.485.1400.1050@1400.485.1920.1080" timestamp="1600363412213" />
-    <state width="1872" height="288" key="GridCell.Tab.0.center/1400.485.1920.1080/3320.0.1080.1920/0.512.1400.1023@1400.485.1920.1080" timestamp="1600358729650" />
-    <state width="1872" height="282" key="GridCell.Tab.0.center/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598522975724" />
-    <state width="1872" height="289" key="GridCell.Tab.0.left" timestamp="1600790379139">
-      <screen x="1400" y="0" width="1920" height="1080" />
-    </state>
-    <state width="1872" height="279" key="GridCell.Tab.0.left/0.27.1920.1053/1920.0.1920.1080@0.27.1920.1053" timestamp="1598685342397" />
-    <state width="1872" height="366" key="GridCell.Tab.0.left/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599857090303" />
-    <state width="1872" height="253" key="GridCell.Tab.0.left/0.27.1920.1053@0.27.1920.1053" timestamp="1600536325445" />
-    <state width="1872" height="279" key="GridCell.Tab.0.left/0.27.3840.1053@0.27.3840.1053" timestamp="1598687091230" />
-    <state width="1872" height="277" key="GridCell.Tab.0.left/0.27.5240.1053@0.27.5240.1053" timestamp="1600545865839" />
-    <state width="1872" height="288" key="GridCell.Tab.0.left/1400.0.1920.1080/3320.0.1080.1920/0.512.1400.538@1400.0.1920.1080" timestamp="1600282313219" />
-    <state width="1872" height="238" key="GridCell.Tab.0.left/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@0.27.1400.1023" timestamp="1600689311272" />
-    <state width="1872" height="289" key="GridCell.Tab.0.left/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@1400.0.1920.1080" timestamp="1600790379139" />
-    <state width="1872" height="178" key="GridCell.Tab.0.left/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@3320.0.1920.1080" timestamp="1600706145456" />
-    <state width="1872" height="222" key="GridCell.Tab.0.left/1400.0.1920.1080/3320.0.1920.1080/0.696.1400.354@0.696.1400.354" timestamp="1600197055071" />
-    <state width="1872" height="346" key="GridCell.Tab.0.left/1400.485.1920.1080/3320.0.1080.1920/0.485.1400.1050@1400.485.1920.1080" timestamp="1600363412213" />
-    <state width="1872" height="288" key="GridCell.Tab.0.left/1400.485.1920.1080/3320.0.1080.1920/0.512.1400.1023@1400.485.1920.1080" timestamp="1600358729650" />
-    <state width="1872" height="282" key="GridCell.Tab.0.left/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598522975724" />
-    <state width="1872" height="289" key="GridCell.Tab.0.right" timestamp="1600790379140">
-      <screen x="1400" y="0" width="1920" height="1080" />
-    </state>
-    <state width="1872" height="279" key="GridCell.Tab.0.right/0.27.1920.1053/1920.0.1920.1080@0.27.1920.1053" timestamp="1598685342397" />
-    <state width="1872" height="366" key="GridCell.Tab.0.right/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599857090303" />
-    <state width="1872" height="253" key="GridCell.Tab.0.right/0.27.1920.1053@0.27.1920.1053" timestamp="1600536325446" />
-    <state width="1872" height="279" key="GridCell.Tab.0.right/0.27.3840.1053@0.27.3840.1053" timestamp="1598687091231" />
-    <state width="1872" height="277" key="GridCell.Tab.0.right/0.27.5240.1053@0.27.5240.1053" timestamp="1600545865840" />
-    <state width="1872" height="288" key="GridCell.Tab.0.right/1400.0.1920.1080/3320.0.1080.1920/0.512.1400.538@1400.0.1920.1080" timestamp="1600282313219" />
-    <state width="1872" height="238" key="GridCell.Tab.0.right/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@0.27.1400.1023" timestamp="1600689311272" />
-    <state width="1872" height="289" key="GridCell.Tab.0.right/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@1400.0.1920.1080" timestamp="1600790379140" />
-    <state width="1872" height="178" key="GridCell.Tab.0.right/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@3320.0.1920.1080" timestamp="1600706145457" />
-    <state width="1872" height="222" key="GridCell.Tab.0.right/1400.0.1920.1080/3320.0.1920.1080/0.696.1400.354@0.696.1400.354" timestamp="1600197055071" />
-    <state width="1872" height="346" key="GridCell.Tab.0.right/1400.485.1920.1080/3320.0.1080.1920/0.485.1400.1050@1400.485.1920.1080" timestamp="1600363412213" />
-    <state width="1872" height="288" key="GridCell.Tab.0.right/1400.485.1920.1080/3320.0.1080.1920/0.512.1400.1023@1400.485.1920.1080" timestamp="1600358729650" />
-    <state width="1872" height="282" key="GridCell.Tab.0.right/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598522975724" />
-    <state x="2354" y="188" width="1052" height="737" key="SettingsEditor" timestamp="1599561782422">
-      <screen x="1920" y="0" width="1920" height="1080" />
-    </state>
-    <state x="2354" y="188" key="SettingsEditor/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599561782422" />
-    <state x="2354" y="188" width="1052" height="737" key="SettingsEditor/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598394841002" />
-    <state x="2710" y="489" width="311" height="197" key="VCS.ChangelistChooser" timestamp="1599744498900">
-      <screen x="1920" y="0" width="1920" height="1080" />
-    </state>
-    <state x="790" y="504" width="311" height="185" key="VCS.ChangelistChooser/0.27.1920.1053/1920.0.1920.1080@0.27.1920.1053" timestamp="1598685315488" />
-    <state x="2710" y="489" width="311" height="197" key="VCS.ChangelistChooser/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599744498900" />
-    <state x="1955" y="289" width="800" height="535" key="Vcs.Push.Dialog.v2" timestamp="1600705250390">
-      <screen x="1400" y="0" width="1920" height="1080" />
-    </state>
-    <state x="1955" y="289" width="800" height="535" key="Vcs.Push.Dialog.v2/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@1400.0.1920.1080" timestamp="1600705250390" />
-    <state x="2135" y="270" width="440" height="573" key="VcsDiffUtil.ChangesDialog" timestamp="1600502123607">
-      <screen x="1400" y="0" width="1920" height="1080" />
-    </state>
-    <state x="2135" y="270" width="440" height="573" key="VcsDiffUtil.ChangesDialog/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@1400.0.1920.1080" timestamp="1600502123607" />
-    <state width="2620" height="528" key="XDebugger.FullValuePopup" timestamp="1600545879710">
-      <screen x="0" y="27" width="5240" height="1053" />
-    </state>
-    <state width="960" height="528" key="XDebugger.FullValuePopup/0.27.1920.1053@0.27.1920.1053" timestamp="1600166909761" />
-    <state width="2620" height="528" key="XDebugger.FullValuePopup/0.27.5240.1053@0.27.5240.1053" timestamp="1600545879710" />
-    <state x="1500" y="101" width="1600" height="966" maximized="true" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1600789437569">
-      <screen x="1400" y="0" width="1920" height="1080" />
-    </state>
-    <state x="2020" y="100" width="1690" height="901" maximized="true" key="com.intellij.history.integration.ui.views.FileHistoryDialog/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599851715098" />
-    <state x="100" y="125" width="1610" height="935" maximized="true" key="com.intellij.history.integration.ui.views.FileHistoryDialog/0.27.1920.1053@0.27.1920.1053" timestamp="1600531608669" />
-    <state x="1500" y="101" width="1600" height="966" maximized="true" key="com.intellij.history.integration.ui.views.FileHistoryDialog/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@1400.0.1920.1080" timestamp="1600789437569" />
-    <state x="1500" y="103" width="1720" height="875" maximized="true" key="com.intellij.history.integration.ui.views.SelectionHistoryDialog" timestamp="1600789810548">
-      <screen x="1400" y="0" width="1920" height="1080" />
-    </state>
-    <state x="100" y="127" width="1720" height="853" key="com.intellij.history.integration.ui.views.SelectionHistoryDialog/0.27.1920.1053@0.27.1920.1053" timestamp="1600522804824" />
-    <state x="1500" y="103" width="1720" height="875" maximized="true" key="com.intellij.history.integration.ui.views.SelectionHistoryDialog/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@1400.0.1920.1080" timestamp="1600789810548" />
-    <state x="2566" y="27" width="546" height="623" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1600786725250">
-      <screen x="1400" y="0" width="1920" height="1080" />
-    </state>
-    <state x="1166" y="172" width="754" height="644" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599850620049" />
-    <state x="1166" y="27" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/0.27.1920.1053@0.27.1920.1053" timestamp="1600534163919" />
-    <state x="2566" y="27" width="546" height="623" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@1400.0.1920.1080" timestamp="1600786725250" />
-    <state x="2566" y="419" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/1400.485.1920.1080/3320.0.1080.1920/0.485.1400.1050@1400.485.1920.1080" timestamp="1600360117286" />
-    <state x="2494" y="172" width="762" height="770" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598399851710" />
-    <state x="1917" y="27" width="650" height="580" key="find.popup" timestamp="1600695272084">
-      <screen x="1400" y="0" width="1920" height="1080" />
-    </state>
-    <state x="2437" y="275" width="636" height="522" key="find.popup/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599745085745" />
-    <state x="517" y="295" width="636" height="522" key="find.popup/0.27.1920.1053@0.27.1920.1053" timestamp="1600262408129" />
-    <state x="1917" y="27" width="650" height="580" key="find.popup/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@1400.0.1920.1080" timestamp="1600695272084" />
-    <state x="1917" y="500" width="650" height="580" key="find.popup/1400.485.1920.1080/3320.0.1080.1920/0.485.1400.1050@1400.485.1920.1080" timestamp="1600359729540" />
-    <state x="2562" y="292" width="636" height="522" key="find.popup/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598506148624" />
-    <state x="2590" y="247" width="569" height="619" key="git4idea.branch.GitSmartOperationDialog" timestamp="1598393190824">
-      <screen x="1920" y="0" width="1920" height="1080" />
-    </state>
-    <state x="2590" y="247" width="569" height="619" key="git4idea.branch.GitSmartOperationDialog/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598393190823" />
-    <state x="2615" y="440" width="519" height="207" key="git4idea.ui.GitStashDialog" timestamp="1599561789702">
-      <screen x="1920" y="0" width="1920" height="1080" />
-    </state>
-    <state x="2615" y="440" width="519" height="207" key="git4idea.ui.GitStashDialog/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599561789701" />
-    <state x="2023" y="259" width="672" height="680" key="search.everywhere.popup" timestamp="1600789442678">
-      <screen x="1400" y="0" width="1920" height="1080" />
-    </state>
-    <state x="623" y="280" width="672" height="662" key="search.everywhere.popup/0.27.1920.1053/1920.0.1920.1080@0.27.1920.1053" timestamp="1598685340503" />
-    <state x="2543" y="259" width="672" height="679" key="search.everywhere.popup/0.27.1920.1053/1920.0.1920.1080@1920.0.1920.1080" timestamp="1599851704161" />
-    <state x="623" y="280" width="672" height="663" key="search.everywhere.popup/0.27.1920.1053@0.27.1920.1053" timestamp="1600536218655" />
-    <state x="1246" y="280" width="1344" height="662" key="search.everywhere.popup/0.27.3840.1053@0.27.3840.1053" timestamp="1598688641194" />
-    <state x="454" y="272" width="672" height="645" key="search.everywhere.popup/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@0.27.1400.1023" timestamp="1600687508908" />
-    <state x="2023" y="259" width="672" height="680" key="search.everywhere.popup/1400.0.1920.1080/3320.0.1920.1080/0.27.1400.1023@1400.0.1920.1080" timestamp="1600789442678" />
-    <state x="2543" y="259" width="672" height="678" key="search.everywhere.popup/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1598511618383" />
-  </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/config.py</url>
-          <line>126</line>
-          <option name="timeStamp" value="9" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$APPLICATION_HOME_DIR$/plugins/python/helpers/pydev/_pydev_bundle/pydev_monkey.py</url>
-          <line>94</line>
-          <option name="timeStamp" value="10" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/config.py</url>
-          <line>119</line>
-          <option name="timeStamp" value="18" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/minmax.py</url>
-          <line>66</line>
-          <option name="timeStamp" value="149" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/stacked_FC_parallel.py</url>
-          <line>116</line>
-          <option name="timeStamp" value="150" />
+          <url>file://$PROJECT_DIR$/main.py</url>
+          <line>2</line>
+          <option name="timeStamp" value="1" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
-  </component>
-  <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/HowToTrainYourNet$am.coverage" NAME="am Coverage Results" MODIFIED="1599757850500" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/HowToTrainYourNet$stacked_FC_parallel.coverage" NAME="stacked_FC_parallel Coverage Results" MODIFIED="1600681107274" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/HowToTrainYourNet$config.coverage" NAME="config Coverage Results" MODIFIED="1598394556637" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/HowToTrainYourNet$minmax.coverage" NAME="minmax Coverage Results" MODIFIED="1600680871661" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/HowToTrainYourNet$main.coverage" NAME="main Coverage Results" MODIFIED="1600789539760" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
