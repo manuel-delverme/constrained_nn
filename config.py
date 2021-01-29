@@ -4,8 +4,8 @@ import sys
 import jax.experimental.optimizers
 import mila_tools
 
-RUN_SWEEP = 1
-CLUSTER = 1
+RUN_SWEEP = 0
+HOST = "" # "mila"
 # PROJECT_NAME = "constrained_nn"
 
 sweep_yaml = "sweep_hyper.yaml" if RUN_SWEEP else False
@@ -54,6 +54,6 @@ lr_x = jax.experimental.optimizers.inverse_time_decay(initial_lr_x, decay_steps,
 lr_y = jax.experimental.optimizers.inverse_time_decay(initial_lr_y, decay_steps, decay_factor, staircase=True)
 # blocks = [int(b) for b in [block0, block1, block2, block3] if b > 0]
 
-tb = mila_tools.deploy(cluster=CLUSTER, sweep_yaml=sweep_yaml, extra_slurm_headers="""
+tb = mila_tools.deploy(host=HOST, sweep_yaml=sweep_yaml, extra_slurm_headers="""
 #SBATCH --mem=24GB
 """)

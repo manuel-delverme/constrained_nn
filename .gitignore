@@ -7,3 +7,6 @@ ssh.log
 wandb/
 __pycache__/
 *.pyc
+/wandb/
+/runs/
+/tensorboard/
