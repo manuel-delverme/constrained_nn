@@ -5,10 +5,11 @@ import jax.experimental.optimizers
 import mila_tools
 
 RUN_SWEEP = 0
-HOST = "" # "mila"
+REMOTE = 1
 # PROJECT_NAME = "constrained_nn"
 
 sweep_yaml = "sweep_hyper.yaml" if RUN_SWEEP else False
+HOST = "mila" if REMOTE else ""
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
 
 RANDOM_SEED = 1337
