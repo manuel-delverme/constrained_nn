@@ -1,35 +1,33 @@
 import math
 import sys
+import torch
 
 import mila_tools
 
-RUN_SWEEP = 0
+RUN_SWEEP = 1
 REMOTE = 1
 
-sweep_yaml = "sweep_hyper.yaml" if RUN_SWEEP else False
+sweep_yaml = "pytorch/sweep_hyper.yaml" if RUN_SWEEP else False
 HOST = "mila" if REMOTE else ""
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
 
-RANDOM_SEED = 1337
+random_seed = 1337
 
-dataset = "mnist"
 initial_lr_theta = .001
-initial_lr_x = .05
-initial_lr_y = .08
+# initial_lr_x = .05
+# initial_lr_y = .08
 # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
 
-batch_size = 512
+batch_size = 1024
+num_epochs = 150
 
-num_epochs = 100_000  # 00
-eval_every = math.ceil(num_epochs / 100)
-
-decay_steps = num_epochs  # // 4  # 500000
-decay_factor = 0.7
+use_cuda = not DEBUG
 
 ################################################################
 # END OF PARAMETERS
 ################################################################
 mila_tools.register(locals())
+device = torch.device("cuda" if use_cuda else "cpu")
 
 ################################################################
 # Derivative parameters

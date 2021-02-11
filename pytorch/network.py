@@ -10,21 +10,10 @@ class ConstrNetwork(nn.Module):
         super().__init__()
         self.conv1 = nn.Conv2d(1, 32, 3, 1)
         self.conv2 = nn.Conv2d(32, 64, 3, 1)
-        # self.dropout1 = nn.Dropout(0.25)
-        # self.dropout2 = nn.Dropout(0.5)
-
         self.fc1 = nn.Linear(9216, 128)
         self.fc2 = nn.Linear(128, 10)
 
-        # raise NotImplementedError("this is too big")
-        # self.states = nn.ParameterList([
-        #     nn.Parameter(torch.zeros(dataset_size, 9216), requires_grad=True),
-        #     nn.Parameter(torch.zeros(dataset_size, 128), requires_grad=True),
-        # ])
         dataset_size = len(train_loader.dataset)
-        # self.states = nn.ModuleList([
-        #     nn.Embedding(dataset_size, 128, _weight=self.block1(train_loader.dataset), sparse=True),
-        # ])
         weight = torch.zeros(dataset_size, 128)
         with torch.no_grad():
             for batch_idx, (data, target, indices) in tqdm.tqdm(enumerate(train_loader), total=len(train_loader)):
@@ -34,13 +23,6 @@ class ConstrNetwork(nn.Module):
             nn.Embedding(dataset_size, 128, _weight=weight, sparse=True),
             nn.ReLU()
         )
-        print("initd")
-        # raise NotImplementedError("this is too big")
-        # self.multipliers = nn.ParameterList([
-        #     nn.Parameter(torch.zeros(dataset_size, 9216), requires_grad=True),
-        #     nn.Parameter(torch.zeros(dataset_size, 128), requires_grad=True),
-        # ])
-        # self.multipliers = nn.ModuleList([nn.Embedding(dataset_size, 128, sparse=True)])
 
     def step(self, x0, states):
         # x1, x2 = self.states
