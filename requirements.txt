@@ -1,6 +1,8 @@
-jax==0.1.75
-jaxlib==0.1.52
-sklearn
+# jax==0.1.75
+# jaxlib==0.1.52
+# sklearn
 tqdm
-git+git@github.com:manuel-delverme/mila_tools.git#egg=mila_tools
-git+git@github.com:manuel-delverme/fax.git@extragradient_optimizer_personal#egg=jax_fixedpoint
+torch
+torchvision
+git+ssh://git@github.com/manuel-delverme/mila_tools.git#egg=mila_tools
+git+ssh://git@github.com/manuel-delverme/fax.git@extragradient_optimizer_personal#egg=jax_fixedpoint
