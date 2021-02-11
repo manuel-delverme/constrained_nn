@@ -7,7 +7,7 @@ j_config.update("jax_enable_x64", True)
 import jax
 
 import config
-import stacked_FC_parallel
+import train
 
 from jax.lib import xla_bridge
 
@@ -15,8 +15,8 @@ if __name__ == "__main__":
     print("CWD:", os.getcwd())
     if config.DEBUG:
         with jax.disable_jit():
-            stacked_FC_parallel.main()
+            train.main()
     else:
         # if xla_bridge.get_backend().platform == "cpu":
         #     raise ValueError("Need CPU")
-        stacked_FC_parallel.main()
+        train.main()

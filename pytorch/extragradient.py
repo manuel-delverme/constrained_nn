@@ -1,6 +1,7 @@
 import math
 import torch
 from torch.optim import Optimizer
+from torch.optim import Adam
 
 
 class Extragradient(Optimizer):
@@ -24,11 +25,11 @@ class Extragradient(Optimizer):
         """Performs the extrapolation step and save a copy of the current parameters for the update step.
         """
         # Check if a copy of the parameters was already made.
-        is_empty = len(self.params_copy) == 0
+        stored_params = not self.params_copy
         for group in self.param_groups:
             for p in group['params']:
                 u = self.update(p, group)
-                if is_empty:
+                if not stored_params:
                     # Save the current parameters for the update step.
                     # Several extrapolation step can be made before each update but only the parameters before the first extrapolation step are saved.
                     self.params_copy.append(p.data.clone())
@@ -38,12 +39,6 @@ class Extragradient(Optimizer):
                 p.data.add_(u)
 
     def step(self, closure=None):
-        """Performs a single optimization step.
-
-        Arguments:
-            closure (callable, optional): A closure that reevaluates the model
-                and returns the loss.
-        """
         if len(self.params_copy) == 0:
             raise RuntimeError('Need to call extrapolation before calling step.')
 
@@ -229,8 +224,9 @@ class ExtraAdam(Extragradient):
             grad = grad.add(group['weight_decay'], p.data)
 
         # Decay the first and second moment running average coefficient
-        exp_avg.mul_(beta1).add_(1 - beta1, grad)
-        exp_avg_sq.mul_(beta2).addcmul_(1 - beta2, grad, grad)
+        exp_avg.mul_(beta1).add_(grad, alpha=1 - beta1)
+        exp_avg_sq.mul_(beta2).addcmul_(grad, grad, value=1 - beta2)
+
         if amsgrad:
             # Maintains the maximum of all 2nd moment running avg. till now
             torch.max(max_exp_avg_sq, exp_avg_sq, out=max_exp_avg_sq)
