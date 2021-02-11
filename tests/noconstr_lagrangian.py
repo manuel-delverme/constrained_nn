@@ -2,14 +2,14 @@ import itertools
 
 from jax import jit, grad
 
-import stacked_FC_parallel
+import train
 import utils
 
 num_epochs = 100
 
 
 def main():
-    full_batch, model, opt_state, optimizer_get_params, lagrangian, optimizer_update, batch_gen, num_batches = stacked_FC_parallel.init_opt_problem()
+    full_batch, model, opt_state, optimizer_get_params, lagrangian, optimizer_update, batch_gen, num_batches = train.init_opt_problem()
 
     @jit
     def update(i, opt_state, batch):
