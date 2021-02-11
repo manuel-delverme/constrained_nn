@@ -5,7 +5,7 @@ import torch.optim
 import torch.utils.data
 from torchvision import datasets, transforms
 
-import pytorch.config as config
+from pytorch import config
 from pytorch.network import ConstrNetwork
 
 
