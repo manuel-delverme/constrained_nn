@@ -61,7 +61,7 @@ def plot(loss, model):
     os.system("evince /tmp/plot.gv.pdf")
 
 
-def test(model, device, test_loader):
+def test(model, device, test_loader, step):
     model.eval()
     test_loss = 0
     correct = 0
@@ -75,6 +75,8 @@ def test(model, device, test_loader):
             correct += pred.eq(target.view_as(pred)).sum().item()
 
     test_loss /= len(test_loader.dataset)
+    config.tb.add_scalar("test/loss", test_loss, step)
+    config.tb.add_scalar("test/accuracy", correct / len(test_loader.dataset), step)
 
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset),
@@ -83,17 +85,12 @@ def test(model, device, test_loader):
 
 def main():
     # Training settings
-    use_cuda = torch.cuda.is_available()
-    use_cuda = not config.DEBUG
-    use_cuda = True
+    torch.manual_seed(config.random_seed)
 
-    torch.manual_seed(1337)
-    device = torch.device("cuda" if use_cuda else "cpu")
-
-    train_kwargs = {'batch_size': 512}
-    test_kwargs = {'batch_size': 2048}
-    if use_cuda:
-        cuda_kwargs = {'num_workers': 1, 'pin_memory': True, 'shuffle': True}
+    train_kwargs = {'batch_size': config.batch_size}
+    test_kwargs = {'batch_size': config.batch_size * 4}
+    if config.use_cuda:
+        cuda_kwargs = {'num_workers': 1, 'pin_memory': True}
         train_kwargs.update(cuda_kwargs)
         test_kwargs.update(cuda_kwargs)
 
@@ -103,23 +100,22 @@ def main():
     ])
     dataset1 = MNIST('../data', train=True, download=True, transform=transform)
     dataset2 = MNIST('../data', train=False, transform=transform)
-    train_loader = torch.utils.data.DataLoader(dataset1, **train_kwargs)
+    train_loader = torch.utils.data.DataLoader(dataset1, shuffle=True, **train_kwargs)
     test_loader = torch.utils.data.DataLoader(dataset2, **test_kwargs)
 
-    model = ConstrNetwork(torch.utils.data.DataLoader(dataset1, batch_size=2048)).to(device)
+    model = ConstrNetwork(
+        torch.utils.data.DataLoader(dataset1, batch_size=test_kwargs['batch_size'])).to(config.device)
     # optimizer = torch.optim.Adam(list(model.parameters()), lr=0.001)
     # optimizer = torch.optim.Adagrad(model.parameters(), lr=0.01)
     optimizer = torch.optim.SGD(model.parameters(), lr=config.initial_lr_theta)
     # https://discuss.pytorch.org/t/sparse-embedding-failing-with-adam-torch-cuda-sparse-floattensor-has-no-attribute-addcmul/5589/9
     # optimizer = pytorch.extragradient.ExtraAdam(model.parameters(), lr=0.001)
 
-    # scheduler = StepLR(optimizer, step_size=config.decay_steps, gamma=config.decay_factor)
-    config.tb.watch(model, criterion=None, log="all", log_freq=1)
+    config.tb.watch(model, criterion=None, log="all", log_freq=10)
     step = 0
-    for epoch in range(100):
-        step = train(model, device, train_loader, optimizer, epoch, step)
-        test(model, device, test_loader)
-        # scheduler.step()
+    for epoch in range(config.num_epochs):
+        step = train(model, config.device, train_loader, optimizer, epoch, step)
+        test(model, config.device, test_loader, step)
 
 
 if __name__ == '__main__':
