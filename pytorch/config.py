@@ -34,4 +34,4 @@ device = torch.device("cuda" if use_cuda else "cpu")
 ################################################################
 tb = mila_tools.deploy(host=HOST, sweep_yaml=sweep_yaml, extra_slurm_headers="""
 #SBATCH --mem=24GB
-""")
+""", proc_num=2)
