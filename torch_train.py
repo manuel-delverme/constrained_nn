@@ -26,7 +26,7 @@ def train(model, device, train_loader, optimizer, epoch, step):
         loss = F.nll_loss(x_T, target)
         # grad lambda = h
         constr_loss = rhs.pow(2).mean(1).mean(0)
-        lagr = loss + constr_loss
+        lagr = loss + config.lambda_ * constr_loss
         lagr.backward()
         # clip_grad_value_(model.parameters(), 1.1)
 
