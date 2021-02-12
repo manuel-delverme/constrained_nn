@@ -1,0 +1,14 @@
+method: bayes
+metric:
+  goal: minimize
+  name: test/loss
+parameters:
+  ^initial_lr_theta:
+    distribution: log_uniform
+    min: -2.3
+    max: -0.7
+  ^lambda_:
+    distribution: log_uniform
+    min: -2.3
+    max: -7
+program: torch_train.py
