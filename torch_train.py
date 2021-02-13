@@ -5,6 +5,7 @@ import torch.optim
 import torch.utils.data
 from torchvision import datasets, transforms
 
+import pytorch.extragradient
 from pytorch import config
 from pytorch.network import ConstrNetwork
 
@@ -105,9 +106,10 @@ def main():
 
     model = ConstrNetwork(
         torch.utils.data.DataLoader(dataset1, batch_size=test_kwargs['batch_size'])).to(config.device)
-    # optimizer = torch.optim.Adam(list(model.parameters()), lr=0.001)
+    # optimizer = torch.optim.Adam(model.parameters(), lr=config.initial_lr_theta)
     # optimizer = torch.optim.Adagrad(model.parameters(), lr=0.01)
-    optimizer = torch.optim.SGD(model.parameters(), lr=config.initial_lr_theta)
+    # optimizer = torch.optim.SGD(model.parameters(), lr=config.initial_lr_theta)
+    optimizer = torch.optim.SparseAdam(model.parameters(), lr=config.initial_lr_theta)
     # https://discuss.pytorch.org/t/sparse-embedding-failing-with-adam-torch-cuda-sparse-floattensor-has-no-attribute-addcmul/5589/9
     # optimizer = pytorch.extragradient.ExtraAdam(model.parameters(), lr=0.001)
 
