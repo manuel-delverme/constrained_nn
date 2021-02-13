@@ -5,6 +5,7 @@ import torch.optim
 import torch.utils.data
 from torchvision import datasets, transforms
 
+import pytorch.extragradient
 from pytorch import config
 from pytorch.network import ConstrNetwork
 
@@ -49,8 +50,8 @@ def train(model, device, train_loader, optimizer, epoch, step):
         config.tb.add_scalar("train/lagr", float(lagr.item()), batch_idx + step)
         print(f'Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)}'
               f' ({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f} rhs: {constr_loss.item():.6f}')
-        if constr_loss > 10:
-            sys.exit()
+        # if constr_loss > 10:
+        #     sys.exit()
     return batch_idx + step
 
 
@@ -105,9 +106,10 @@ def main():
 
     model = ConstrNetwork(
         torch.utils.data.DataLoader(dataset1, batch_size=test_kwargs['batch_size'])).to(config.device)
-    # optimizer = torch.optim.Adam(list(model.parameters()), lr=0.001)
+    # optimizer = torch.optim.Adam(model.parameters(), lr=config.initial_lr_theta)
     # optimizer = torch.optim.Adagrad(model.parameters(), lr=0.01)
-    optimizer = torch.optim.SGD(model.parameters(), lr=config.initial_lr_theta)
+    # optimizer = torch.optim.SGD(model.parameters(), lr=config.initial_lr_theta)
+    optimizer = torch.optim.Adagrad(model.parameters(), lr=config.initial_lr_theta)
     # https://discuss.pytorch.org/t/sparse-embedding-failing-with-adam-torch-cuda-sparse-floattensor-has-no-attribute-addcmul/5589/9
     # optimizer = pytorch.extragradient.ExtraAdam(model.parameters(), lr=0.001)
 
