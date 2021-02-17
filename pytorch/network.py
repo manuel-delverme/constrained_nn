@@ -4,6 +4,8 @@ import tqdm
 from torch import nn as nn
 from torch.nn import functional as F
 
+from pytorch import config
+
 
 class ConstrNetwork(nn.Module):
     def __init__(self, train_loader):
@@ -15,10 +17,11 @@ class ConstrNetwork(nn.Module):
 
         dataset_size = len(train_loader.dataset)
         weight = torch.zeros(dataset_size, 128)
-        with torch.no_grad():
-            for batch_idx, (data, target, indices) in tqdm.tqdm(enumerate(train_loader), total=len(train_loader)):
-                x_i = self.block1(data)
-                weight[indices] = x_i  # + torch.randn(x_i.shape) * 0.01
+        if not config.DEBUG:
+            with torch.no_grad():
+                for batch_idx, (data, target, indices) in tqdm.tqdm(enumerate(train_loader), total=len(train_loader)):
+                    x_i = self.block1(data)
+                    weight[indices] = x_i  # + torch.randn(x_i.shape) * 0.01
         self.x1 = nn.Sequential(
             nn.Embedding(dataset_size, 128, _weight=weight, sparse=True),
             nn.ReLU()

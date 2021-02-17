@@ -1,4 +1,3 @@
-import math
 import sys
 import torch
 
@@ -13,14 +12,15 @@ DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
 
 random_seed = 1337
 
-initial_lr_theta = 1.5
-lambda_ = 6.5
+initial_lr_theta = 0.01
+lambda_ = 0.07
 # initial_lr_x = .05
 # initial_lr_y = .08
 # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
 
 batch_size = 1024
-num_epochs = 150
+warmup_epochs = 0 if DEBUG else 50
+num_epochs = 100
 
 use_cuda = not DEBUG
 

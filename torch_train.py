@@ -1,10 +1,10 @@
-import sys
 import torch
 import torch.nn.functional as F
 import torch.optim
 import torch.utils.data
 from torchvision import datasets, transforms
 
+import pytorch.extragradient
 from pytorch import config
 from pytorch.network import ConstrNetwork
 
@@ -42,6 +42,7 @@ def train(model, device, train_loader, optimizer, epoch, step):
         #     optimizer.extrapolation()
         # else:
         #     optimizer.step()
+        optimizer.extrapolation()
         optimizer.step()
         # if batch_idx % 10 == 0:
         config.tb.add_scalar("train/loss", float(loss.item()), batch_idx + step)
@@ -49,8 +50,8 @@ def train(model, device, train_loader, optimizer, epoch, step):
         config.tb.add_scalar("train/lagr", float(lagr.item()), batch_idx + step)
         print(f'Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)}'
               f' ({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f} rhs: {constr_loss.item():.6f}')
-        if constr_loss > 10:
-            sys.exit()
+        # if constr_loss > 10:
+        #     sys.exit()
     return batch_idx + step
 
 
@@ -105,14 +106,20 @@ def main():
 
     model = ConstrNetwork(
         torch.utils.data.DataLoader(dataset1, batch_size=test_kwargs['batch_size'])).to(config.device)
-    # optimizer = torch.optim.Adam(list(model.parameters()), lr=0.001)
+    # optimizer = torch.optim.Adam(model.parameters(), lr=config.initial_lr_theta)
     # optimizer = torch.optim.Adagrad(model.parameters(), lr=0.01)
-    optimizer = torch.optim.SGD(model.parameters(), lr=config.initial_lr_theta)
+    # optimizer = torch.optim.SGD(model.parameters(), lr=config.initial_lr_theta)
     # https://discuss.pytorch.org/t/sparse-embedding-failing-with-adam-torch-cuda-sparse-floattensor-has-no-attribute-addcmul/5589/9
-    # optimizer = pytorch.extragradient.ExtraAdam(model.parameters(), lr=0.001)
 
     config.tb.watch(model, criterion=None, log="all", log_freq=10)
     step = 0
+    optimizer = torch.optim.Adagrad(model.parameters(), lr=0.01)
+    for epoch in range(config.warmup_epochs):
+        step = train(model, config.device, train_loader, optimizer, epoch, step)
+        test(model, config.device, test_loader, step)
+
+    # TODO: implement ExtraSGD after warmup
+    optimizer = pytorch.extragradient.ExtraSGD(model.parameters(), lr=config.initial_lr_theta)
     for epoch in range(config.num_epochs):
         step = train(model, config.device, train_loader, optimizer, epoch, step)
         test(model, config.device, test_loader, step)
