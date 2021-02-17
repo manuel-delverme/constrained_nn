@@ -24,7 +24,7 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial):
         loss = F.nll_loss(x_T, target)
 
         config.tb.add_scalar("train/loss", float(loss.item()), batch_idx + step)
-        config.tb.add_scalar("train/constr_loss", float(rhs.sum()), batch_idx + step)
+        config.tb.add_scalar("train/constr_loss", float(rhs.mean()), batch_idx + step)
         config.tb.add_scalar("train/adversarial", float(adversarial), batch_idx + step)
         config.tb.add_scalar("train/epoch", epoch, batch_idx + step)
 
