@@ -2,6 +2,7 @@ import torch
 import torch.nn.functional as F
 import torch.optim
 import torch.utils.data
+from torch.optim.lr_scheduler import StepLR
 from torchvision import datasets, transforms
 
 import pytorch.extragradient
@@ -24,7 +25,7 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial):
         loss = F.nll_loss(x_T, target)
 
         config.tb.add_scalar("train/loss", float(loss.item()), batch_idx + step)
-        config.tb.add_scalar("train/constr_loss", float(rhs.sum()), batch_idx + step)
+        config.tb.add_scalar("train/constr_loss", float(rhs.mean()), batch_idx + step)
         config.tb.add_scalar("train/adversarial", float(adversarial), batch_idx + step)
         config.tb.add_scalar("train/epoch", epoch, batch_idx + step)
 
@@ -115,16 +116,20 @@ def main():
     config.tb.watch(model, criterion=None, log="all", log_freq=10)
     step = 0
     optimizer = torch.optim.Adagrad(model.parameters(), lr=config.warmup_lr)
+    scheduler = StepLR(optimizer, step_size=1, gamma=0.7)
     print("WARMUP")
     for epoch in range(config.warmup_epochs):
         step = train(model, config.device, train_loader, optimizer, epoch, step, adversarial=False)
         test(model, config.device, test_loader, step)
+        scheduler.step(epoch)
 
     print("Adversarial")
     optimizer = pytorch.extragradient.ExtraSGD(model.parameters(), lr=config.initial_lr_theta)
+    scheduler = StepLR(optimizer, step_size=1, gamma=0.7)
     for epoch in range(config.num_epochs):
         step = train(model, config.device, train_loader, optimizer, epoch, step, adversarial=True)
         test(model, config.device, test_loader, step)
+        scheduler.step(epoch)
 
 
 if __name__ == '__main__':
