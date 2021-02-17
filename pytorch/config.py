@@ -20,7 +20,7 @@ lambda_ = 0.07
 
 batch_size = 1024
 warmup_epochs = 0 if DEBUG else 50
-num_epochs = 100
+num_epochs = 1000
 initial_forward = not DEBUG
 
 use_cuda = not DEBUG

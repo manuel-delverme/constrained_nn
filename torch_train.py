@@ -23,6 +23,11 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial):
         x_T, rhs = model(data, indices)
         loss = F.nll_loss(x_T, target)
 
+        config.tb.add_scalar("train/loss", float(loss.item()), batch_idx + step)
+        config.tb.add_scalar("train/constr_loss", float(rhs.sum()), batch_idx + step)
+        config.tb.add_scalar("train/adversarial", float(adversarial), batch_idx + step)
+        config.tb.add_scalar("train/epoch", epoch, batch_idx + step)
+
         if adversarial:
             constr_loss = torch.einsum('b,ba->', model.multipliers(indices).squeeze(), rhs)
             lagr = loss + constr_loss
@@ -43,9 +48,6 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial):
             lagr = loss + constr_loss
             lagr.backward()
 
-        config.tb.add_scalar("train/loss", float(loss.item()), batch_idx + step)
-        config.tb.add_scalar("train/constr_loss", float(constr_loss), batch_idx + step)
-        config.tb.add_scalar("train/lagr", float(lagr.item()), batch_idx + step)
         print(f'Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)}'
               f' ({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f} rhs: {constr_loss.item():.6f}')
         # if constr_loss > 10:
@@ -112,11 +114,12 @@ def main():
     config.tb.watch(model, criterion=None, log="all", log_freq=10)
     step = 0
     optimizer = torch.optim.Adagrad(model.parameters(), lr=0.01)
+    print("WARMUP")
     for epoch in range(config.warmup_epochs):
         step = train(model, config.device, train_loader, optimizer, epoch, step, adversarial=False)
         test(model, config.device, test_loader, step)
 
-    # TODO: implement ExtraSGD after warmup
+    print("Adversarial")
     optimizer = pytorch.extragradient.ExtraSGD(model.parameters(), lr=config.initial_lr_theta)
     for epoch in range(config.num_epochs):
         step = train(model, config.device, train_loader, optimizer, epoch, step, adversarial=True)
