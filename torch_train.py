@@ -15,36 +15,34 @@ class MNIST(datasets.MNIST):
         return data, target, index
 
 
-def train(model, device, train_loader, optimizer, epoch, step):
+def train(model, device, train_loader, optimizer, epoch, step, adversarial):
     model.train()
     for batch_idx, (data, target, indices) in enumerate(train_loader):
         data, target, indices = data.to(device), target.to(device), indices.to(device)
-        data = data  # .double()
         optimizer.zero_grad()
-        # model.multipliers.requires_grad = False
         x_T, rhs = model(data, indices)
         loss = F.nll_loss(x_T, target)
-        # grad lambda = h
-        constr_loss = rhs.pow(2).mean(1).mean(0)
-        lagr = loss + config.lambda_ * constr_loss
-        lagr.backward()
-        # clip_grad_value_(model.parameters(), 1.1)
 
-        # for name, p in model.named_parameters():
-        #     if not p.grad.is_sparse:
-        #         p.grad.clamp(max=1.1)
+        if adversarial:
+            constr_loss = torch.einsum('b,ba->', model.multipliers(indices).squeeze(), rhs)
+            lagr = loss + constr_loss
+            (-constr_loss).backward(retain_graph=True)
+            lagr.backward()
+            optimizer.extrapolation()
 
-        # for i, m in enumerate(multi):
-        #     # torch.index_add()
-        #     model.multipliers[i].weight.grad *= -1
+            x_T, rhs = model(data, indices)
+            loss = F.nll_loss(x_T, target)
+            constr_loss = torch.einsum('b,ba->', model.multipliers(indices).squeeze(), rhs)
+            lagr = loss + constr_loss
 
-        # if batch_idx % 2 == 0:
-        #     optimizer.extrapolation()
-        # else:
-        #     optimizer.step()
-        optimizer.extrapolation()
-        optimizer.step()
-        # if batch_idx % 10 == 0:
+            (-constr_loss).backward(retain_graph=True)
+            lagr.backward()
+            optimizer.step()
+        else:
+            constr_loss = config.lambda_ * rhs.pow(2).mean(1).mean(0)
+            lagr = loss + constr_loss
+            lagr.backward()
+
         config.tb.add_scalar("train/loss", float(loss.item()), batch_idx + step)
         config.tb.add_scalar("train/constr_loss", float(constr_loss), batch_idx + step)
         config.tb.add_scalar("train/lagr", float(lagr.item()), batch_idx + step)
@@ -115,13 +113,13 @@ def main():
     step = 0
     optimizer = torch.optim.Adagrad(model.parameters(), lr=0.01)
     for epoch in range(config.warmup_epochs):
-        step = train(model, config.device, train_loader, optimizer, epoch, step)
+        step = train(model, config.device, train_loader, optimizer, epoch, step, adversarial=False)
         test(model, config.device, test_loader, step)
 
     # TODO: implement ExtraSGD after warmup
     optimizer = pytorch.extragradient.ExtraSGD(model.parameters(), lr=config.initial_lr_theta)
     for epoch in range(config.num_epochs):
-        step = train(model, config.device, train_loader, optimizer, epoch, step)
+        step = train(model, config.device, train_loader, optimizer, epoch, step, adversarial=True)
         test(model, config.device, test_loader, step)
 
 
