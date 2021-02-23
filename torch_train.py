@@ -2,7 +2,6 @@ import torch
 import torch.nn.functional as F
 import torch.optim
 import torch.utils.data
-from torch.optim.lr_scheduler import StepLR
 from torchvision import datasets, transforms
 
 import pytorch.extragradient
@@ -113,7 +112,7 @@ def main():
     # optimizer = torch.optim.SGD(model.parameters(), lr=config.initial_lr_theta)
     # https://discuss.pytorch.org/t/sparse-embedding-failing-with-adam-torch-cuda-sparse-floattensor-has-no-attribute-addcmul/5589/9
 
-    config.tb.watch(model, criterion=None, log="all", log_freq=10)
+    # config.tb.watch(model, criterion=None, log="all", log_freq=10)
     step = 0
     optimizer = torch.optim.Adagrad(model.parameters(), lr=config.warmup_lr)
     # scheduler = StepLR(optimizer, step_size=1, gamma=0.7)
@@ -124,15 +123,15 @@ def main():
         # scheduler.step(epoch)
 
     print("Adversarial")
-    # theta = [v for k, v in model.named_parameters() if not k.startswith("x1") and not k.startswith("multipliers")]
+    theta = [v for k, v in model.named_parameters() if not k.startswith("x1") and not k.startswith("multipliers")]
     x = [v for k, v in model.named_parameters() if k.startswith("x1")]
     multi = [v for k, v in model.named_parameters() if k.startswith("multipliers")]
     optimizer = pytorch.extragradient.ExtraSGD(
         [
-            # {'params': theta, 'lr': config.initial_lr_theta},
+            {'params': theta, 'lr': config.initial_lr_theta},
             {'params': x, 'lr': config.initial_lr_x},
             {'params': multi, 'lr': config.initial_lr_y}
-        ], lr=config.initial_lr_theta)
+        ])
     # scheduler = StepLR(optimizer, step_size=1, gamma=0.7)
     for epoch in range(config.num_epochs):
         step = train(model, config.device, train_loader, optimizer, epoch, step, adversarial=True)
