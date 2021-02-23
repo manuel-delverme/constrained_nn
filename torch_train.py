@@ -126,7 +126,7 @@ def main():
     theta = [v for k, v in model.named_parameters() if not k.startswith("x1") and not k.startswith("multipliers")]
     x = [v for k, v in model.named_parameters() if k.startswith("x1")]
     multi = [v for k, v in model.named_parameters() if k.startswith("multipliers")]
-    optimizer = pytorch.extragradient.ExtraSGD(
+    optimizer = pytorch.extragradient.ExtraAdagrad(
         [
             {'params': theta, 'lr': config.initial_lr_theta},
             {'params': x, 'lr': config.initial_lr_x},
