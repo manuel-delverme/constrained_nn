@@ -7,4 +7,12 @@ parameters:
     distribution: log_uniform
     min: -7
     max: -2
+  ^initial_lr_x:
+    distribution: log_uniform
+    min: -7
+    max: -2
+  ^initial_lr_y:
+    distribution: log_uniform
+    min: -7
+    max: -1
 program: torch_train.py
