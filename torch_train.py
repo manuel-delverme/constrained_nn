@@ -30,7 +30,7 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial):
         loss = F.nll_loss(x_T, target)
 
         config.tb.add_scalar("train/loss", float(loss.item()), batch_idx + step)
-        config.tb.add_scalar("train/constr_loss", float(rhs.mean()), batch_idx + step)
+        config.tb.add_scalar("train/mean_constr_loss", float(rhs.mean()), batch_idx + step)
         config.tb.add_scalar("train/adversarial", float(adversarial), batch_idx + step)
         config.tb.add_scalar("train/epoch", epoch, batch_idx + step)
 
@@ -48,6 +48,7 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial):
                 model.multipliers.weight.grad._indices(), rhs, model.multipliers.weight.grad.shape)
 
             optimizer.extrapolation()
+            optimizer.zero_grad()
 
             # Step
             # Eval
@@ -60,10 +61,11 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial):
             config.tb.add_scalar("train/lagrangian1", lagr, batch_idx + step)
 
             # Grads
-            lagr.backward()
-            dw = model.multipliers.weight[indices]
-            dw.retain_grad()
-            dw.grad = rhs  # Player 2
+            lagr.backward()  # Player 1
+
+            # Player 2
+            model.multipliers.weight.grad = torch.sparse_coo_tensor(
+                model.multipliers.weight.grad._indices(), rhs, model.multipliers.weight.grad.shape)
 
             optimizer.step()
 
