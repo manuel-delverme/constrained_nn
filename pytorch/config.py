@@ -3,7 +3,7 @@ import torch
 
 import mila_tools
 
-RUN_SWEEP = 1
+RUN_SWEEP = 0
 REMOTE = 1
 
 sweep_yaml = "pytorch/sweep_hyper.yaml" if RUN_SWEEP else False
