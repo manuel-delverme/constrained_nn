@@ -27,7 +27,7 @@ class ConstrNetwork(nn.Module):
             nn.Embedding(dataset_size, 128, _weight=weight, sparse=True),
             nn.ReLU()
         )
-        self.multipliers = nn.Embedding(dataset_size, 1, _weight=torch.zeros(dataset_size, 1), sparse=True)
+        self.multipliers = nn.Embedding(dataset_size, 128, _weight=torch.zeros(dataset_size, 128), sparse=True)
 
     def step(self, x0, states):
         # x1, x2 = self.states
