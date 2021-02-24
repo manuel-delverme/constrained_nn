@@ -3,8 +3,9 @@ import torch
 
 import mila_tools
 
-RUN_SWEEP = 1
+RUN_SWEEP = 0
 REMOTE = 1
+NUM_PROCS = 1
 
 sweep_yaml = "pytorch/sweep_hyper.yaml" if RUN_SWEEP else False
 HOST = "mila" if REMOTE else ""
@@ -40,4 +41,4 @@ device = torch.device("cuda" if use_cuda else "cpu")
 # #SBATCH --mem=24GB
 # """
 esh = ""
-tb = mila_tools.deploy(host=HOST, sweep_yaml=sweep_yaml, extra_slurm_headers=esh, proc_num=10)
+tb = mila_tools.deploy(host=HOST, sweep_yaml=sweep_yaml, extra_slurm_headers=esh, proc_num=NUM_PROCS)
