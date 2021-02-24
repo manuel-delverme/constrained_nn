@@ -10,7 +10,12 @@ from pytorch import config
 from pytorch.network import ConstrNetwork
 
 
-class MNIST(datasets.MNIST):
+class Dataset(datasets.MNIST):
+    def __init__(self, *args, **kwargs):
+        super(Dataset, self).__init__(*args, **kwargs)
+        if config.DEBUG:
+            self.data, self.targets = self.data[:config.batch_size * 2], self.targets[:config.batch_size * 2]
+
     def __getitem__(self, index):
         data, target = super().__getitem__(index)
         return data, target, index
@@ -37,9 +42,10 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial):
             config.tb.add_scalar("train/lagrangian0", lagr, batch_idx + step)
 
             lagr.backward()  # Player 1
-            dw = model.multipliers.weight[indices]
-            dw.retain_grad()
-            dw.grad = rhs  # Player 2
+
+            # Player 2
+            model.multipliers.weight.grad = torch.sparse_coo_tensor(
+                model.multipliers.weight.grad._indices(), rhs, model.multipliers.weight.grad.shape)
 
             optimizer.extrapolation()
 
@@ -127,8 +133,9 @@ def main():
         transforms.ToTensor(),
         transforms.Normalize((0.1307,), (0.3081,))
     ])
-    dataset1 = MNIST('../data', train=True, download=True, transform=transform)
-    dataset2 = MNIST('../data', train=False, transform=transform)
+    dataset1 = Dataset('../data', train=True, download=True, transform=transform)
+    dataset2 = Dataset('../data', train=False, transform=transform)
+
     train_loader = torch.utils.data.DataLoader(dataset1, shuffle=True, **train_kwargs)
     test_loader = torch.utils.data.DataLoader(dataset2, **test_kwargs)
 
