@@ -1,4 +1,5 @@
 import torch
+import torch.autograd
 import torch.nn.functional as F
 import torch.optim
 import torch.utils.data
@@ -29,25 +30,51 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial):
         config.tb.add_scalar("train/epoch", epoch, batch_idx + step)
 
         if adversarial:
-            constr_loss = torch.einsum('b,ba->', model.multipliers(indices).squeeze(), rhs)
+            # Extrapolation
+
+            constr_loss = torch.einsum('bh,bh->', model.multipliers(indices).squeeze(), rhs)
             lagr = loss + constr_loss
-            (-constr_loss).backward(retain_graph=True)
-            lagr.backward()
+            config.tb.add_scalar("train/lagrangian0", lagr, batch_idx + step)
+
+            lagr.backward()  # Player 1
+            dw = model.multipliers.weight[indices]
+            dw.retain_grad()
+            dw.grad = rhs  # Player 2
+
             optimizer.extrapolation()
 
+            # Step
+            # Eval
             x_T, rhs = model(data, indices)
             loss = F.nll_loss(x_T, target)
-            constr_loss = torch.einsum('b,ba->', model.multipliers(indices).squeeze(), rhs)
-            lagr = loss + constr_loss
 
-            (-constr_loss).backward(retain_graph=True)
+            # Loss
+            constr_loss = torch.einsum('bh,bh->', model.multipliers(indices).squeeze(), rhs)
+            lagr = loss + constr_loss
+            config.tb.add_scalar("train/lagrangian1", lagr, batch_idx + step)
+
+            # Grads
             lagr.backward()
+            dw = model.multipliers.weight[indices]
+            dw.retain_grad()
+            dw.grad = rhs  # Player 2
+
+            optimizer.step()
+
+            with torch.no_grad():
+                # Eval
+                x_T, rhs = model(data, indices)
+                loss = F.nll_loss(x_T, target)
+
+                # Loss
+                constr_loss = torch.einsum('bh,bh->', model.multipliers(indices).squeeze(), rhs)
+                lagr = loss + constr_loss
+                config.tb.add_scalar("train/lagrangian2", lagr, batch_idx + step)
         else:
             constr_loss = config.lambda_ * rhs.pow(2).mean(1).mean(0)
             lagr = loss + constr_loss
             lagr.backward()
-
-        optimizer.step()
+            optimizer.step()
 
         print(f'Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)}'
               f' ({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f} rhs: {constr_loss.item():.6f}')

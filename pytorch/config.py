@@ -21,7 +21,7 @@ lambda_ = 0.06788
 # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
 
 batch_size = 1024
-warmup_epochs = 0 if DEBUG else 150
+warmup_epochs = 1 if DEBUG else 150
 num_epochs = 50
 initial_forward = not DEBUG
 
