@@ -10,12 +10,13 @@ NUM_PROCS = 1
 sweep_yaml = "pytorch/sweep_hyper.yaml" if RUN_SWEEP else False
 HOST = "mila" if REMOTE else ""
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
+DEBUG = False
 
 random_seed = 1337
 
 initial_lr_theta = .005186
 initial_lr_x = .04887
-initial_lr_y = 1.
+initial_lr_y = .09284
 
 warmup_lr = 0.009185
 lambda_ = 0.06788
