@@ -147,7 +147,7 @@ def main():
     # optimizer = torch.optim.SGD(model.parameters(), lr=config.initial_lr_theta)
     # https://discuss.pytorch.org/t/sparse-embedding-failing-with-adam-torch-cuda-sparse-floattensor-has-no-attribute-addcmul/5589/9
 
-    config.tb.watch(model, criterion=None, log="all", log_freq=10)
+    # config.tb.watch(model, criterion=None, log="all", log_freq=10)
     step = 0
     optimizer = torch.optim.Adagrad(model.parameters(), lr=config.warmup_lr)
     # scheduler = StepLR(optimizer, step_size=1, gamma=0.7)
