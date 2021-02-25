@@ -45,8 +45,7 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
             optimizer.extrapolation()
 
             # Player 2
-            model.multipliers.weight.grad = torch.sparse_coo_tensor(
-                model.multipliers.weight.grad._indices(), rhs, model.multipliers.weight.grad.shape)
+            model.multipliers.weight.grad = torch.sparse_coo_tensor(indices.unsqueeze(0), rhs, model.multipliers.weight.grad.shape)
             aux_optimizer.extrapolation()
 
             optimizer.zero_grad()
@@ -66,8 +65,7 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
             optimizer.step()
 
             # Player 2
-            model.multipliers.weight.grad = torch.sparse_coo_tensor(
-                model.multipliers.weight.grad._indices(), rhs, model.multipliers.weight.grad.shape)
+            model.multipliers.weight.grad = torch.sparse_coo_tensor(indices.unsqueeze(0), rhs, model.multipliers.weight.grad.shape)
             aux_optimizer.step()
 
             with torch.no_grad():
