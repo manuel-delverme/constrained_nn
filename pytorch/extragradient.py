@@ -71,7 +71,7 @@ class ExtraAdagrad(torch.optim.Adagrad):
                 # Move back to the previous point
                 p = self.old_iterate[i]
                 p.grad = normal_to_plane
-                super().step()
+        super().step()
 
         # Free the old parameters
         self.old_iterate.clear()

@@ -21,7 +21,7 @@ class Dataset(datasets.MNIST):
         return data, target, index
 
 
-def train(model, device, train_loader, optimizer, epoch, step, adversarial):
+def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_optimizer=None):
     model.train()
     for batch_idx, (data, target, indices) in enumerate(train_loader):
         data, target, indices = data.to(device), target.to(device), indices.to(device)
@@ -30,7 +30,7 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial):
         loss = F.nll_loss(x_T, target)
 
         config.tb.add_scalar("train/loss", float(loss.item()), batch_idx + step)
-        config.tb.add_scalar("train/constr_loss", float(rhs.mean()), batch_idx + step)
+        config.tb.add_scalar("train/mean_constr_loss", float(rhs.mean()), batch_idx + step)
         config.tb.add_scalar("train/adversarial", float(adversarial), batch_idx + step)
         config.tb.add_scalar("train/epoch", epoch, batch_idx + step)
 
@@ -42,13 +42,15 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial):
             config.tb.add_scalar("train/lagrangian0", lagr, batch_idx + step)
 
             lagr.backward()  # Player 1
+            optimizer.extrapolation()
 
             # Player 2
             model.multipliers.weight.grad = torch.sparse_coo_tensor(
                 model.multipliers.weight.grad._indices(), rhs, model.multipliers.weight.grad.shape)
+            aux_optimizer.extrapolation()
 
-            optimizer.extrapolation()
-
+            optimizer.zero_grad()
+            aux_optimizer.zero_grad()
             # Step
             # Eval
             x_T, rhs = model(data, indices)
@@ -60,12 +62,13 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial):
             config.tb.add_scalar("train/lagrangian1", lagr, batch_idx + step)
 
             # Grads
-            lagr.backward()
-            dw = model.multipliers.weight[indices]
-            dw.retain_grad()
-            dw.grad = rhs  # Player 2
-
+            lagr.backward()  # Player 1
             optimizer.step()
+
+            # Player 2
+            model.multipliers.weight.grad = torch.sparse_coo_tensor(
+                model.multipliers.weight.grad._indices(), rhs, model.multipliers.weight.grad.shape)
+            aux_optimizer.step()
 
             with torch.no_grad():
                 # Eval
@@ -146,7 +149,7 @@ def main():
     # optimizer = torch.optim.SGD(model.parameters(), lr=config.initial_lr_theta)
     # https://discuss.pytorch.org/t/sparse-embedding-failing-with-adam-torch-cuda-sparse-floattensor-has-no-attribute-addcmul/5589/9
 
-    # config.tb.watch(model, criterion=None, log="all", log_freq=10)
+    config.tb.watch(model, criterion=None, log="all", log_freq=10)
     step = 0
     optimizer = torch.optim.Adagrad(model.parameters(), lr=config.warmup_lr)
     # scheduler = StepLR(optimizer, step_size=1, gamma=0.7)
@@ -164,11 +167,12 @@ def main():
         [
             {'params': theta, 'lr': config.initial_lr_theta},
             {'params': x, 'lr': config.initial_lr_x},
-            {'params': multi, 'lr': config.initial_lr_y}
         ])
+    aux_optimizer = pytorch.extragradient.ExtraSGD([{'params': multi, 'lr': config.initial_lr_y}])
+
     # scheduler = StepLR(optimizer, step_size=1, gamma=0.7)
     for epoch in range(config.num_epochs):
-        step = train(model, config.device, train_loader, optimizer, epoch, step, adversarial=True)
+        step = train(model, config.device, train_loader, optimizer, epoch, step, adversarial=True, aux_optimizer=aux_optimizer)
         test(model, config.device, test_loader, step)
         # scheduler.step(epoch)
 
