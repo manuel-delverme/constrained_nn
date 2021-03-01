@@ -5,14 +5,18 @@ metric:
 parameters:
   ^initial_lr_theta:
     distribution: log_uniform
-    min: -7
-    max: -2
+    min: -9
+    max: -4
   ^initial_lr_x:
     distribution: log_uniform
-    min: -7
-    max: -2
+    min: -4
+    max: 0
   ^initial_lr_y:
     distribution: log_uniform
+    min: -9
+    max: -5
+  ^constr_margin:
+    distribution: log_uniform
     min: -7
-    max: -3
+    max: -1
 program: torch_train.py
