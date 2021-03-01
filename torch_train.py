@@ -40,13 +40,13 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
             constr_loss = torch.einsum('bh,bh->', model.multipliers(indices).squeeze(), rhs)
             lagr = loss + constr_loss
             config.tb.add_scalar("train/lagrangian0", lagr, batch_idx + step)
-            aug_lagr = lagr + config.lambda_ * rhs.pow(2).mean(1).mean(0)
+            aug_lagr = lagr  # + config.lambda_ * rhs.pow(2).mean(1).mean(0)
 
             aug_lagr.backward()  # Player 1
             optimizer.extrapolation()
 
             # Player 2
-            model.multipliers.weight.grad = torch.sparse_coo_tensor(indices.unsqueeze(0), -rhs, model.multipliers.weight.grad.shape)
+            model.multipliers.weight.grad = torch.sparse_coo_tensor(indices.unsqueeze(0), -rhs, model.multipliers.weight.shape)
             aux_optimizer.extrapolation()
 
             optimizer.zero_grad()
@@ -79,7 +79,7 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
                 # Loss
                 constr_loss = torch.einsum('bh,bh->', model.multipliers(indices).squeeze(), rhs)
                 lagr = loss + constr_loss
-                config.tb.add_scalar("train/lagrangian2", lagr, batch_idx + step)
+                config.tb.add_scalar("train/lagrangian-1", lagr, batch_idx + step)
         else:
             constr_loss = config.lambda_ * rhs.pow(2).mean(1).mean(0)
             lagr = loss + constr_loss
@@ -91,6 +91,23 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
         # if constr_loss > 10:
         #     sys.exit()
     return batch_idx + step
+
+
+def grad_step(aux_optimizer, batch_idx, data, indices, model, optimizer, step, target):
+    optimizer.zero_grad()
+    aux_optimizer.zero_grad()
+    # Step
+    # Eval
+    x_T, rhs = model(data, indices)
+    loss = F.nll_loss(x_T, target)
+    # Loss
+    constr_loss = torch.einsum('bh,bh->', model.multipliers(indices).squeeze(), rhs)
+    lagr = loss + constr_loss
+    config.tb.add_scalar("train/lagrangian1", lagr, batch_idx + step)
+    aug_lagr = lagr + config.lambda_ * rhs.pow(2).mean(1).mean(0)
+    # Grads
+    aug_lagr.backward()  # Player 1
+    return rhs
 
 
 def plot(loss, model):
