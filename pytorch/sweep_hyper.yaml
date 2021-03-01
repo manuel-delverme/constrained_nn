@@ -15,4 +15,8 @@ parameters:
     distribution: log_uniform
     min: -7
     max: -3
+  ^constr_margin:
+    distribution: log_uniform
+    min: -7
+    max: -1
 program: torch_train.py

@@ -3,9 +3,9 @@ import torch
 
 import mila_tools
 
-RUN_SWEEP = 0
+RUN_SWEEP = 1
 REMOTE = 1
-NUM_PROCS = 1
+NUM_PROCS = 10
 
 sweep_yaml = "pytorch/sweep_hyper.yaml" if RUN_SWEEP else False
 HOST = "mila" if REMOTE else ""
