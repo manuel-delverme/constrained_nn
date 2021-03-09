@@ -3,3 +3,11 @@
 *.npy
 /venv/
 tensorboard/
+ssh.log
+.idea/
+wandb/
+__pycache__/
+*.pyc
+/wandb/
+/runs/
+/tensorboard/

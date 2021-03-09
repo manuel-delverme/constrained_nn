@@ -1,0 +1,4 @@
+tqdm
+torch
+torchvision
+git+ssh://git@github.com/manuel-delverme/mila_tools.git#egg=mila_tools
