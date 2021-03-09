@@ -1,9 +1,9 @@
 import sys
 
-import mila_tools
+import experiment_buddy
 import torch
 
-RUN_SWEEP = 1
+RUN_SWEEP = 0
 REMOTE = 1
 NUM_PROCS = 1
 
@@ -28,17 +28,16 @@ lambda_ = 0.06788
 # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
 
 batch_size = 1024
-warmup_epochs = 1 if DEBUG else 5
+warmup_epochs = 1 if DEBUG else 50
 num_epochs = 150
 constr_margin = 0.1
 initial_forward = not DEBUG
-
 use_cuda = not DEBUG
 
 ################################################################
 # END OF PARAMETERS
 ################################################################
-mila_tools.register(locals())
+experiment_buddy.register(locals())
 device = torch.device("cuda" if use_cuda else "cpu")
 
 ################################################################
@@ -48,4 +47,4 @@ device = torch.device("cuda" if use_cuda else "cpu")
 # #SBATCH --mem=24GB
 # """
 esh = ""
-tb = mila_tools.deploy(host=HOST, sweep_yaml=sweep_yaml, extra_slurm_headers=esh, proc_num=NUM_PROCS)
+tb = experiment_buddy.deploy(host=HOST, sweep_yaml=sweep_yaml, extra_slurm_headers=esh, proc_num=NUM_PROCS)
