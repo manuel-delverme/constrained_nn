@@ -52,7 +52,7 @@ class ExtraAdagrad(torch.optim.Adagrad):
             raise RuntimeError('Need to call step before calling extrapolation again.')
         for group in self.param_groups:
             for p in group['params']:
-                self.old_iterate.append(p.detach().clone())
+                self.old_iterate.append(p.detach().clone().data)
 
         # Move to extrapolation point
         super().step()
@@ -64,13 +64,13 @@ class ExtraAdagrad(torch.optim.Adagrad):
 
         i = -1
         for group in self.param_groups:
-            for p in group['params']:
+            for idx, p in enumerate(group['params']):
                 i += 1
                 normal_to_plane = -p.grad
 
                 # Move back to the previous point
-                p = self.old_iterate[i]
-                p.grad = normal_to_plane
+                group['params'][idx].data = self.old_iterate[i]
+                group['params'][idx].grad = normal_to_plane
         super().step()
 
         # Free the old parameters
