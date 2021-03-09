@@ -45,9 +45,9 @@ class ConstrNetwork(nn.Module):
         x_T = self.block3(x1_target)
 
         h = x1_hat - x1_target
-        eps_h = F.relu(h.abs() - config.constr_margin)
-        # raise config.tb.run.log_tensor_stats(x1_hat)
-        # rhs = torch.stack([torch.sum(a * b) for a, b in zip(x_i, multi)])
+        # eps_h = F.relu(h.abs() - config.constr_margin)
+        eps_h = torch.log(h.abs() / config.constr_margin)
+        eps_h = torch.relu(eps_h)
         return x_T, eps_h
 
     def full_rollout(self, x):
