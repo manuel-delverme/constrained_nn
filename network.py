@@ -5,6 +5,8 @@ from torch.nn import functional as F
 
 import config
 
+EPS = 1e-9
+
 
 class ConstrNetwork(nn.Module):
     def __init__(self, train_loader):
@@ -45,10 +47,10 @@ class ConstrNetwork(nn.Module):
         x_T = self.block3(x1_target)
 
         h = x1_hat - x1_target
-        eps_h = F.relu(h.abs() - config.constr_margin)
+        # eps_h = F.relu(h.abs() - config.constr_margin)
 
-        # eps_h = torch.log(h.abs() / config.constr_margin)
-        # eps_h = torch.relu(eps_h)
+        eps_h = torch.log(h.abs() / config.constr_margin)
+        eps_h = torch.relu(eps_h)
         return x_T, eps_h
 
     def full_rollout(self, x):
