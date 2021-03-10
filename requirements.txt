@@ -1,4 +1,4 @@
 tqdm
 torch
 torchvision
-git+ssh://git@github.com/manuel-delverme/experiment_buddy.git#egg=experiment_buddy
+git+ssh://git@github.com/ministry-of-silly-code/experiment_buddy.git#egg=experiment_buddy
