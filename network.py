@@ -29,7 +29,11 @@ class ConstrNetwork(nn.Module):
             nn.Embedding(dataset_size, 128, _weight=weight, sparse=True),
             nn.ReLU()
         )
-        self.multipliers = nn.Embedding(dataset_size, 128, _weight=torch.zeros(dataset_size, 128), sparse=True)
+        self.multipliers = nn.Sequential(
+            nn.Embedding(dataset_size, 128, _weight=torch.zeros(dataset_size, 128), sparse=True),
+            # nn.ReLU() # PL suggests forcing the multipliers to R+ only during forward pass (but not backward)
+            # Im not sure about the lack of backward
+        )
 
     def step(self, x0, states):
         # x1, x2 = self.states
@@ -47,11 +51,11 @@ class ConstrNetwork(nn.Module):
         x_T = self.block3(x1_target)
 
         h = x1_hat - x1_target
-        # eps_h = F.relu(h.abs() - config.constr_margin)
 
-        eps_h = torch.log(h.abs() / config.constr_margin)
-        eps_h = torch.relu(eps_h)
-        return x_T, eps_h
+        broken_constr = torch.sigmoid(h.abs() / config.constr_margin)
+        # eps_h = torch.relu(eps_h)
+        # either force or reparametrization, nn.ReLU()
+        return x_T, broken_constr
 
     def full_rollout(self, x):
         x = self.block1(x)

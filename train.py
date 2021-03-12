@@ -154,8 +154,8 @@ def main():
         transforms.ToTensor(),
         transforms.Normalize((0.1307,), (0.3081,))
     ])
-    dataset1 = Dataset('../data', train=True, download=True, transform=transform)
-    dataset2 = Dataset('../data', train=False, transform=transform)
+    dataset1 = Dataset(config.dataset_path, train=True, transform=transform)
+    dataset2 = Dataset(config.dataset_path, train=False, transform=transform)
 
     train_loader = torch.utils.data.DataLoader(dataset1, shuffle=True, **train_kwargs)
     test_loader = torch.utils.data.DataLoader(dataset2, **test_kwargs)

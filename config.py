@@ -4,19 +4,16 @@ import torch
 
 import experiment_buddy
 
-RUN_SWEEP = 1
+RUN_SWEEP = 0
 REMOTE = 1
 NUM_PROCS = 10 if RUN_SWEEP else 1
 
 sweep_yaml = "sweep_hyper.yaml" if RUN_SWEEP else False
 HOST = "mila" if REMOTE else ""
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
+dataset_path = "../data" if DEBUG else "/network/datasets/mnist.var/mnist_torchvision/"
 
 random_seed = 1337
-
-# initial_lr_theta = .005186
-# initial_lr_x = .04887
-# initial_lr_y = .09284
 
 initial_lr_theta = .001
 initial_lr_x = .05
