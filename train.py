@@ -10,9 +10,9 @@ import extragradient
 import network
 
 
-class Dataset(datasets.MNIST):
+class MNIST(datasets.MNIST):
     def __init__(self, *args, **kwargs):
-        super(Dataset, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         if config.DEBUG:
             self.data, self.targets = self.data[:config.batch_size * 2], self.targets[:config.batch_size * 2]
 
@@ -154,8 +154,9 @@ def main():
         transforms.ToTensor(),
         transforms.Normalize((0.1307,), (0.3081,))
     ])
-    dataset1 = Dataset(config.dataset_path, train=True, transform=transform)
-    dataset2 = Dataset(config.dataset_path, train=False, transform=transform)
+    print("DATASET PATH", config.dataset_path)
+    dataset1 = MNIST(config.dataset_path, train=True, transform=transform)
+    dataset2 = MNIST(config.dataset_path, train=False, transform=transform)
 
     train_loader = torch.utils.data.DataLoader(dataset1, shuffle=True, **train_kwargs)
     test_loader = torch.utils.data.DataLoader(dataset2, **test_kwargs)
