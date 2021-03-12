@@ -11,7 +11,7 @@ NUM_PROCS = 10 if RUN_SWEEP else 1
 sweep_yaml = "sweep_hyper.yaml" if RUN_SWEEP else False
 HOST = "mila" if REMOTE else ""
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
-dataset_path = "../data" if DEBUG else "/network/datasets/mnist.var/mnist_torchvision/"
+dataset_path = "../data" if DEBUG else "/network/datasets/mnist.var/mnist_torchvision"
 
 random_seed = 1337
 
