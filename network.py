@@ -52,7 +52,7 @@ class ConstrNetwork(nn.Module):
 
         h = x1_hat - x1_target
 
-        broken_constr = torch.tanh(h.abs())
+        broken_constr = torch.tanh(h.abs() - config.constr_margin)
         # eps_h = torch.relu(eps_h)
         # either force or reparametrization, nn.ReLU()
         return x_T, broken_constr
