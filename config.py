@@ -4,7 +4,7 @@ import torch
 
 import experiment_buddy
 
-RUN_SWEEP = 0
+RUN_SWEEP = 1
 REMOTE = 1
 NUM_PROCS = 10 if RUN_SWEEP else 1
 
