@@ -1,4 +1,6 @@
 tqdm
 torch
 torchvision
+torch==1.7.1+cu110
+torchvision==0.8.2+cu110
 git+ssh://git@github.com/ministry-of-silly-code/experiment_buddy.git#egg=experiment_buddy
