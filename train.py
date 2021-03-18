@@ -30,7 +30,7 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
         loss = F.nll_loss(x_T, target)
 
         config.tb.add_scalar("train/loss", float(loss.item()), batch_idx + step)
-        config.tb.add_scalar("train/mean_constr_loss", float(rhs.mean()), batch_idx + step)
+        config.tb.add_scalar("train/mean_defect", float(rhs.mean()), batch_idx + step)
         config.tb.add_scalar("train/adversarial", float(adversarial), batch_idx + step)
         config.tb.add_scalar("train/epoch", epoch, batch_idx + step)
 
@@ -38,6 +38,8 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
             # Extrapolation
 
             constr_loss = torch.einsum('bh,bh->', model.multipliers(indices).squeeze(), rhs)
+            config.tb.add_scalar("train/constr_loss", float(constr_loss), batch_idx + step)
+
             lagr = loss + constr_loss
             config.tb.add_scalar("train/lagrangian0", lagr, batch_idx + step)
             aug_lagr = lagr  # + config.lambda_ * rhs.pow(2).mean(1).mean(0)

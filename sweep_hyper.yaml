@@ -15,4 +15,8 @@ parameters:
     distribution: log_uniform
     min: -9
     max: -5
+  ^constr_margin:
+    distribution: log_uniform
+    min: -7
+    max: -1
 program: train.py
