@@ -4,7 +4,7 @@ import torch
 
 import experiment_buddy
 
-RUN_SWEEP = 1
+RUN_SWEEP = 0
 REMOTE = 1
 
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
@@ -17,14 +17,14 @@ initial_lr_x = .05
 initial_lr_y = .08
 # 1e-2  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
 
-warmup_lr = 0.009185
+warmup_lr = 0.009186
 lambda_ = 0.06788
 # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
 
 batch_size = 1024
 warmup_epochs = 1 if DEBUG else 50
 num_epochs = 150
-constr_margin = 0.1
+constr_margin = 0.01
 initial_forward = not DEBUG
 use_cuda = not DEBUG
 
