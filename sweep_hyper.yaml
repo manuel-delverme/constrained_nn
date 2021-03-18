@@ -5,18 +5,18 @@ metric:
 parameters:
   ^initial_lr_theta:
     distribution: log_uniform
-    min: -9
-    max: -4
+    min: -11.512925465
+    max: -5.80914299031
   ^initial_lr_x:
     distribution: log_uniform
-    min: -4
-    max: 0
+    min: -1.20397280433
+    max: -2.30258509299
   ^initial_lr_y:
     distribution: log_uniform
     min: -9
     max: -5
   ^constr_margin:
     distribution: log_uniform
-    min: -7
-    max: -1
+    min: -2.30258509299
+    max: -1.20397280433
 program: train.py
