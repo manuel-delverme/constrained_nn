@@ -151,3 +151,4 @@ wandb/
 /wandb/
 /runs/
 /tensorboard/
+/data/
