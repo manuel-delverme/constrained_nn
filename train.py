@@ -158,12 +158,12 @@ def main():
         transforms.ToTensor(),
         transforms.Normalize((0.1307,), (0.3081,))
     ])
-    if os.stat("../data"):
-        dataset1 = MNIST("../data", train=True, transform=transform)
-        dataset2 = MNIST("../data", train=False, transform=transform)
-    else:
+    if "SLURM_JOB_ID" in os.environ.keys():
         dataset1 = MNIST(config.dataset_path, train=True, transform=transform)
         dataset2 = MNIST(config.dataset_path, train=False, transform=transform)
+    else:
+        dataset1 = MNIST("../data", train=True, transform=transform)
+        dataset2 = MNIST("../data", train=False, transform=transform)
 
     train_loader = torch.utils.data.DataLoader(dataset1, shuffle=True, **train_kwargs)
     test_loader = torch.utils.data.DataLoader(dataset2, **test_kwargs)
