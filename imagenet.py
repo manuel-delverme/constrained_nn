@@ -1,5 +1,4 @@
 import os
-import shutil
 import time
 
 import torch
@@ -15,16 +14,10 @@ import tqdm
 
 import imagenet_config as config
 
-model_names = sorted(name for name in models.__dict__
-                     if name.islower() and not name.startswith("__")
-                     and callable(models.__dict__[name]))
-
-best_acc1 = 0
-
 
 def main():
     global best_acc1
-    model = models.__dict__["resnet18"]()
+    model = models.resnet18()
     assert torch.cuda.is_available()
 
     # DataParallel will divide and allocate batch_size to all available GPUs
@@ -60,42 +53,34 @@ def main():
         batch_size=config.batch_size, shuffle=False,
         num_workers=config.dataloader_workers, pin_memory=True)
 
+    step = 0
     for epoch in range(config.num_epochs):
         adjust_learning_rate(optimizer, epoch, config)
 
-        train(train_loader, model, criterion, optimizer, epoch)
-        acc1 = validate(val_loader, model, criterion)
+        step = train(train_loader, model, criterion, optimizer, step)
+        validate(val_loader, model, criterion, step)
 
-        # remember best acc@1 and save checkpoint
-        is_best = acc1 > best_acc1
-        best_acc1 = max(acc1, best_acc1)
-
-        save_checkpoint({
+        config.tb.add_object("checkpoint", {
             'epoch': epoch + 1,
             'state_dict': model.state_dict(),
             'best_acc1': best_acc1,
             'optimizer': optimizer.state_dict(),
-        }, is_best)
+        }, step)
 
 
-def train(train_loader, model, criterion, optimizer, epoch):
-    batch_time = AverageMeter('Time', ':6.3f')
-    data_time = AverageMeter('Data', ':6.3f')
-    losses = AverageMeter('Loss', ':.4e')
-    top1 = AverageMeter('Acc@1', ':6.2f')
-    top5 = AverageMeter('Acc@5', ':6.2f')
-    progress = ProgressMeter(
-        len(train_loader),
-        [batch_time, data_time, losses, top1, top5],
-        prefix="Epoch: [{}]".format(epoch))
-
-    # switch to train mode
+def train(train_loader, model, criterion, optimizer, step):
     model.train()
 
     end = time.time()
-    for i, (images, target) in tqdm.tqdm(enumerate(train_loader)):
+
+    episode_loss = 0.
+    top1 = []
+    top5 = []
+    losses = []
+    batch_time = []
+
+    for batch_idx, (images, target) in tqdm.tqdm(enumerate(train_loader)):
         # measure data loading time
-        data_time.update(time.time() - end)
 
         target = target.cuda(non_blocking=True)
 
@@ -105,38 +90,39 @@ def train(train_loader, model, criterion, optimizer, epoch):
 
         # measure accuracy and record loss
         acc1, acc5 = accuracy(output, target, topk=(1, 5))
-        losses.update(loss.item(), images.size(0))
-        top1.update(acc1[0], images.size(0))
-        top5.update(acc5[0], images.size(0))
 
         # compute gradient and do SGD step
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+        episode_loss += float(loss.item())
 
-        # measure elapsed time
-        batch_time.update(time.time() - end)
+        losses.append(float(loss.cpu()))
+        top1.append(float(acc1[0]))
+        top5.append(float(acc5[0]))
+        batch_time.append(time.time() - end)
+
         end = time.time()
 
-        progress.display(i)
+    new_step = step + len(train_loader)
+    config.tb.add_scalar("train/epoch_time", torch.sum(batch_time), new_step)
+    config.tb.add_scalar("train/loss", torch.mean(losses), new_step)
+    config.tb.add_scalar("train/top1", torch.mean(top1), new_step)
+    config.tb.add_scalar("train/top5", torch.mean(top5), new_step)
+    return new_step
 
 
-def validate(val_loader, model, criterion):
-    batch_time = AverageMeter('Time', ':6.3f')
-    losses = AverageMeter('Loss', ':.4e')
-    top1 = AverageMeter('Acc@1', ':6.2f')
-    top5 = AverageMeter('Acc@5', ':6.2f')
-    progress = ProgressMeter(
-        len(val_loader),
-        [batch_time, losses, top1, top5],
-        prefix='Test: ')
-
-    # switch to evaluate mode
+def validate(val_loader, model, criterion, step):
     model.eval()
+
+    top1 = []
+    top5 = []
+    losses = []
+    batch_time = []
 
     with torch.no_grad():
         end = time.time()
-        for i, (images, target) in enumerate(val_loader):
+        for batch_idx, (images, target) in enumerate(val_loader):
             target = target.cuda(non_blocking=True)
 
             # compute output
@@ -145,68 +131,18 @@ def validate(val_loader, model, criterion):
 
             # measure accuracy and record loss
             acc1, acc5 = accuracy(output, target, topk=(1, 5))
-            losses.update(loss.item(), images.size(0))
-            top1.update(acc1[0], images.size(0))
-            top5.update(acc5[0], images.size(0))
 
-            # measure elapsed time
-            batch_time.update(time.time() - end)
+            losses.append(float(loss.cpu()))
+            top1.append(float(acc1[0]))
+            top5.append(float(acc5[0]))
+            batch_time.append(time.time() - end)
+
             end = time.time()
 
-            progress.display(i)
-
-        # TODO: this should also be done with the ProgressMeter
-        print(' * Acc@1 {top1.avg:.3f} Acc@5 {top5.avg:.3f}'.format(top1=top1, top5=top5))
-
-    return top1.avg
-
-
-def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
-    torch.save(state, filename)
-    if is_best:
-        shutil.copyfile(filename, 'model_best.pth.tar')
-
-
-class AverageMeter(object):
-    """Computes and stores the average and current value"""
-
-    def __init__(self, name, fmt=':f'):
-        self.name = name
-        self.fmt = fmt
-        self.reset()
-
-    def reset(self):
-        self.val = 0
-        self.avg = 0
-        self.sum = 0
-        self.count = 0
-
-    def update(self, val, n=1):
-        self.val = val
-        self.sum += val * n
-        self.count += n
-        self.avg = self.sum / self.count
-
-    def __str__(self):
-        fmtstr = '{name} {val' + self.fmt + '} ({avg' + self.fmt + '})'
-        return fmtstr.format(**self.__dict__)
-
-
-class ProgressMeter(object):
-    def __init__(self, num_batches, meters, prefix=""):
-        self.batch_fmtstr = self._get_batch_fmtstr(num_batches)
-        self.meters = meters
-        self.prefix = prefix
-
-    def display(self, batch):
-        entries = [self.prefix + self.batch_fmtstr.format(batch)]
-        entries += [str(meter) for meter in self.meters]
-        print('\t'.join(entries))
-
-    def _get_batch_fmtstr(self, num_batches):
-        num_digits = len(str(num_batches // 1))
-        fmt = '{:' + str(num_digits) + 'd}'
-        return '[' + fmt + '/' + fmt.format(num_batches) + ']'
+    config.tb.add_scalar("train/epoch_time", torch.sum(batch_time), step)
+    config.tb.add_scalar("train/loss", torch.mean(losses), step)
+    config.tb.add_scalar("train/top1", torch.mean(top1), step)
+    config.tb.add_scalar("train/top5", torch.mean(top5), step)
 
 
 def adjust_learning_rate(optimizer, epoch, args):
