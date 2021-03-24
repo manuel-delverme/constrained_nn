@@ -53,9 +53,15 @@ class ConstrNetwork(nn.Module):
         h = x1_hat - x1_target
 
         eps_h = h.abs() - config.constr_margin
-        broken_constr = torch.tanh(torch.relu(eps_h))
-        # either force or reparametrization, nn.ReLU()
-        return x_T, broken_constr
+        defect = torch.relu(eps_h)
+
+        if isinstance(config.chance_constraint, float):
+            broken_constr_prob = torch.tanh(defect).mean()
+            # if defect > config.chance_constraint:
+            prob_defect = torch.relu(broken_constr_prob - config.chance_constraint)
+            defect = prob_defect.repeat(defect.shape)
+
+        return x_T, defect
 
     def full_rollout(self, x):
         x = self.block1(x)

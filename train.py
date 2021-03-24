@@ -1,3 +1,5 @@
+import os
+
 import torch
 import torch.autograd
 import torch.nn.functional as F
@@ -37,7 +39,7 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
         if adversarial:
             # Extrapolation
 
-            constr_loss = torch.einsum('bh,bh->', model.multipliers(indices).squeeze(), rhs)
+            constr_loss = torch.einsum('bh,bh->', model.multipliers(indices), rhs)
             config.tb.add_scalar("train/constr_loss", float(constr_loss), batch_idx + step)
 
             lagr = loss + constr_loss
@@ -156,8 +158,12 @@ def main():
         transforms.ToTensor(),
         transforms.Normalize((0.1307,), (0.3081,))
     ])
-    dataset1 = MNIST(config.dataset_path, train=True, transform=transform)
-    dataset2 = MNIST(config.dataset_path, train=False, transform=transform)
+    if os.stat("../data"):
+        dataset1 = MNIST("../data", train=True, transform=transform)
+        dataset2 = MNIST("../data", train=False, transform=transform)
+    else:
+        dataset1 = MNIST(config.dataset_path, train=True, transform=transform)
+        dataset2 = MNIST(config.dataset_path, train=False, transform=transform)
 
     train_loader = torch.utils.data.DataLoader(dataset1, shuffle=True, **train_kwargs)
     test_loader = torch.utils.data.DataLoader(dataset2, **test_kwargs)

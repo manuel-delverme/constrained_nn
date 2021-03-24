@@ -10,6 +10,8 @@ REMOTE = 1
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
 dataset_path = "../data" if DEBUG else "/network/datasets/mnist.var/mnist_torchvision/"
 
+risk_constraint = False
+chance_constraint = 0.05
 random_seed = 1337
 
 initial_lr_theta = .001
@@ -22,7 +24,7 @@ lambda_ = 0.06788
 # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
 
 batch_size = 1024
-warmup_epochs = 1 if DEBUG else 50
+warmup_epochs = 0
 num_epochs = 150
 constr_margin = 0.1
 initial_forward = not DEBUG
