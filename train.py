@@ -17,6 +17,9 @@ class MNIST(datasets.MNIST):
         super().__init__(*args, **kwargs)
         if config.DEBUG:
             self.data, self.targets = self.data[:config.batch_size * 2], self.targets[:config.batch_size * 2]
+        num_corrupted_indices = int(config.corruption_percentage * len(self.data))
+        indices = torch.randint(0, len(self.data) - 1, (num_corrupted_indices,))
+        self.data[indices] = torch.randint_like(self.data[indices], self.data.max())
 
     def __getitem__(self, index):
         data, target = super().__getitem__(index)
