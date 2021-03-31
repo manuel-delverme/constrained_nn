@@ -17,6 +17,7 @@ class MNIST(datasets.MNIST):
         super().__init__(*args, **kwargs)
         if config.DEBUG:
             self.data, self.targets = self.data[:config.batch_size * 2], self.targets[:config.batch_size * 2]
+        corrupted_indices = torch.random.sample(config.corruption_percentage)
 
     def __getitem__(self, index):
         data, target = super().__getitem__(index)

@@ -1,7 +1,7 @@
 method: bayes
 metric:
   goal: minimize
-  name: test/loss
+  name: test/accuracy
 parameters:
   ^initial_lr_theta:
     distribution: log_uniform
