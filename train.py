@@ -17,6 +17,9 @@ class MNIST(datasets.MNIST):
         super().__init__(*args, **kwargs)
         if config.DEBUG:
             self.data, self.targets = self.data[:config.batch_size * 2], self.targets[:config.batch_size * 2]
+        num_corrupted_indices = int(config.corruption_percentage * len(self.data))
+        indices = torch.randint(0, len(self.data) - 1, (num_corrupted_indices,))
+        self.data[indices] = torch.randint_like(self.data[indices], self.data.max())
 
     def __getitem__(self, index):
         data, target = super().__getitem__(index)
@@ -150,7 +153,7 @@ def main():
     train_kwargs = {'batch_size': config.batch_size}
     test_kwargs = {'batch_size': config.batch_size * 4}
     if config.use_cuda:
-        cuda_kwargs = {'num_workers': 1, 'pin_memory': True}
+        cuda_kwargs = {'num_workers': 0, 'pin_memory': True}
         train_kwargs.update(cuda_kwargs)
         test_kwargs.update(cuda_kwargs)
 
