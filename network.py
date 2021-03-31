@@ -8,6 +8,10 @@ import config
 EPS = 1e-9
 
 
+def smooth_epsilon_insensitive(x, eps, tau=10):
+    return x * (torch.tanh((x / eps) ** tau))
+
+
 class ConstrNetwork(nn.Module):
     def __init__(self, train_loader):
         super().__init__()
@@ -33,6 +37,7 @@ class ConstrNetwork(nn.Module):
             nn.Embedding(dataset_size, 128, _weight=torch.zeros(dataset_size, 128), sparse=True),
             # nn.ReLU() # PL suggests forcing the multipliers to R+ only during forward pass (but not backward)
             # Im not sure about the lack of backward
+            nn.Softplus(),
         )
 
     def step(self, x0, states):
@@ -52,15 +57,16 @@ class ConstrNetwork(nn.Module):
 
         h = x1_hat - x1_target
 
-        eps_h = h.abs() - config.constr_margin
-        eps_defect = torch.relu(eps_h)
+        # eps_h = h.abs() - config.constr_margin
+        eps_h = smooth_epsilon_insensitive(h, config.constr_margin)
+        # eps_defect = torch.relu(eps_h)
 
         if isinstance(config.chance_constraint, float):
-            broken_constr_prob = torch.tanh(eps_defect).mean()
+            broken_constr_prob = torch.tanh(eps_h).mean()
             prob_defect = torch.relu(broken_constr_prob - config.chance_constraint)
-            defect = prob_defect.repeat(eps_defect.shape)
+            defect = prob_defect.repeat(eps_h.shape)
         else:
-            defect = eps_defect
+            defect = eps_h
 
         return x_T, defect
 
