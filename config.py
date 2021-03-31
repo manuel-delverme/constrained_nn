@@ -4,12 +4,13 @@ import torch
 
 import experiment_buddy
 
-RUN_SWEEP = 1
+RUN_SWEEP = 0
 REMOTE = 1
 
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
 dataset_path = "../data" if DEBUG else "/network/datasets/mnist.var/mnist_torchvision/"
 
+corruption_percentage = 0.01
 chance_constraint = 0.05
 random_seed = 1337
 
