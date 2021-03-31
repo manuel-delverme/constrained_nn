@@ -53,12 +53,14 @@ class ConstrNetwork(nn.Module):
         h = x1_hat - x1_target
 
         eps_h = h.abs() - config.constr_margin
-        defect = torch.relu(eps_h)
+        eps_defect = torch.relu(eps_h)
 
         if isinstance(config.chance_constraint, float):
-            broken_constr_prob = torch.tanh(defect).mean()
+            broken_constr_prob = torch.tanh(eps_defect).mean()
             prob_defect = torch.relu(broken_constr_prob - config.chance_constraint)
-            defect = prob_defect.repeat(defect.shape)
+            defect = prob_defect.repeat(eps_defect.shape)
+        else:
+            defect = eps_defect
 
         return x_T, defect
 
