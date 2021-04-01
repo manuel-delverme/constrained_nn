@@ -12,15 +12,14 @@ import extragradient
 import network
 
 
-class MNIST(datasets.MNIST):
+class CIFAR10(datasets.CIFAR10):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if config.DEBUG:
             self.data, self.targets = self.data[:config.batch_size * 2], self.targets[:config.batch_size * 2]
-        if config.corruption_percentage:
-            num_corrupted_indices = int(config.corruption_percentage * len(self.data))
-            indices = torch.randint(0, len(self.data) - 1, (num_corrupted_indices,))
-            self.data[indices] = torch.randint_like(self.data[indices], self.data.max())
+        num_corrupted_indices = int(config.corruption_percentage * len(self.data))
+        indices = torch.randint(0, len(self.data) - 1, (num_corrupted_indices,))
+        self.data[indices] = torch.randint_like(self.data[indices], self.data.max())
 
     def __getitem__(self, index):
         data, target = super().__getitem__(index)
@@ -163,11 +162,11 @@ def main():
         transforms.Normalize((0.1307,), (0.3081,))
     ])
     if "SLURM_JOB_ID" in os.environ.keys():
-        dataset1 = MNIST(config.dataset_path.format("mnist", "mnist"), train=True, transform=transform)
-        dataset2 = MNIST(config.dataset_path.format("mnist", "mnist"), train=False, transform=transform)
+        dataset1 = CIFAR10(config.dataset_path.format("cifar10", "cifar10"), train=True, transform=transform)
+        dataset2 = CIFAR10(config.dataset_path.format("cifar10", "cifar10"), train=False, transform=transform)
     else:
-        dataset1 = MNIST("../data", train=True, transform=transform)
-        dataset2 = MNIST("../data", train=False, transform=transform)
+        dataset1 = CIFAR10("../data", train=True, transform=transform)
+        dataset2 = CIFAR10("../data", train=False, transform=transform)
 
     train_loader = torch.utils.data.DataLoader(dataset1, shuffle=True, **train_kwargs)
     test_loader = torch.utils.data.DataLoader(dataset2, **test_kwargs)
@@ -179,7 +178,7 @@ def main():
     # optimizer = torch.optim.SGD(model.parameters(), lr=config.initial_lr_theta)
     # https://discuss.pytorch.org/t/sparse-embedding-failing-with-adam-torch-cuda-sparse-floattensor-has-no-attribute-addcmul/5589/9
 
-    config.tb.watch(model, criterion=None, log="all", log_freq=10)
+    # config.tb.watch(model, criterion=None, log="all", log_freq=10)
     step = 0
     optimizer = torch.optim.Adagrad(model.parameters(), lr=config.warmup_lr)
     # scheduler = StepLR(optimizer, step_size=1, gamma=0.7)
