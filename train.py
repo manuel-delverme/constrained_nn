@@ -162,8 +162,8 @@ def main():
         transforms.Normalize((0.1307,), (0.3081,))
     ])
     if "SLURM_JOB_ID" in os.environ.keys():
-        dataset1 = MNIST(config.dataset_path, train=True, transform=transform)
-        dataset2 = MNIST(config.dataset_path, train=False, transform=transform)
+        dataset1 = MNIST(config.dataset_path.format("mnist"), train=True, transform=transform)
+        dataset2 = MNIST(config.dataset_path.format("mnist"), train=False, transform=transform)
     else:
         dataset1 = MNIST("../data", train=True, transform=transform)
         dataset2 = MNIST("../data", train=False, transform=transform)
@@ -178,7 +178,7 @@ def main():
     # optimizer = torch.optim.SGD(model.parameters(), lr=config.initial_lr_theta)
     # https://discuss.pytorch.org/t/sparse-embedding-failing-with-adam-torch-cuda-sparse-floattensor-has-no-attribute-addcmul/5589/9
 
-    # config.tb.watch(model, criterion=None, log="all", log_freq=10)
+    config.tb.watch(model, criterion=None, log="all", log_freq=10)
     step = 0
     optimizer = torch.optim.Adagrad(model.parameters(), lr=config.warmup_lr)
     # scheduler = StepLR(optimizer, step_size=1, gamma=0.7)

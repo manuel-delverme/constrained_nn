@@ -4,14 +4,15 @@ import torch
 
 import experiment_buddy
 
-RUN_SWEEP = 1
+RUN_SWEEP = 0
 REMOTE = 1
 
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
-dataset_path = "../data" if DEBUG else "/network/datasets/mnist.var/mnist_torchvision/"
+dataset_path = "../data" if DEBUG else "/network/datasets/{}.var/{}_torchvision"
 
 corruption_percentage = 0.00
-chance_constraint = 0.05
+chance_constraint = False  # 0.05
+constr_margin = 0.2
 random_seed = 1337
 
 initial_lr_theta = .001
@@ -24,9 +25,8 @@ lambda_ = 0.06788
 # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
 
 batch_size = 1024
-warmup_epochs = 1 if DEBUG else 50
-num_epochs = 150
-constr_margin = 0.1
+warmup_epochs = 1 if DEBUG else 10
+num_epochs = 30
 initial_forward = not DEBUG
 use_cuda = not DEBUG
 
