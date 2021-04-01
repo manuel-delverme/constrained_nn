@@ -8,8 +8,8 @@ import config
 EPS = 1e-9
 
 
-def smooth_epsilon_insensitive(x, eps, tau=10):
-    return x * (torch.tanh((x / eps) ** tau))
+def smooth_epsilon_insensitive(x, eps):
+    return x * (torch.tanh(x / eps))
 
 
 class ConstrNetwork(nn.Module):
