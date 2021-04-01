@@ -14,7 +14,7 @@ corruption_percentage = 0.00
 soft_eps = True
 
 chance_constraint = False  # 0.05
-constr_margin = 0.02854
+constr_margin = 0.02854*2
 random_seed = 1337
 
 initial_lr_theta = 0.003314
