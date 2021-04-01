@@ -17,9 +17,10 @@ class MNIST(datasets.MNIST):
         super().__init__(*args, **kwargs)
         if config.DEBUG:
             self.data, self.targets = self.data[:config.batch_size * 2], self.targets[:config.batch_size * 2]
-        num_corrupted_indices = int(config.corruption_percentage * len(self.data))
-        indices = torch.randint(0, len(self.data) - 1, (num_corrupted_indices,))
-        self.data[indices] = torch.randint_like(self.data[indices], self.data.max())
+        if config.corruption_percentage:
+            num_corrupted_indices = int(config.corruption_percentage * len(self.data))
+            indices = torch.randint(0, len(self.data) - 1, (num_corrupted_indices,))
+            self.data[indices] = torch.randint_like(self.data[indices], self.data.max())
 
     def __getitem__(self, index):
         data, target = super().__getitem__(index)
@@ -162,8 +163,8 @@ def main():
         transforms.Normalize((0.1307,), (0.3081,))
     ])
     if "SLURM_JOB_ID" in os.environ.keys():
-        dataset1 = MNIST(config.dataset_path.format("mnist"), train=True, transform=transform)
-        dataset2 = MNIST(config.dataset_path.format("mnist"), train=False, transform=transform)
+        dataset1 = MNIST(config.dataset_path.format("mnist", "mnist"), train=True, transform=transform)
+        dataset2 = MNIST(config.dataset_path.format("mnist", "mnist"), train=False, transform=transform)
     else:
         dataset1 = MNIST("../data", train=True, transform=transform)
         dataset2 = MNIST("../data", train=False, transform=transform)

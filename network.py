@@ -58,9 +58,10 @@ class ConstrNetwork(nn.Module):
 
         h = x1_hat - x1_target
 
-        # eps_h = h.abs() - config.constr_margin
-        eps_h = smooth_epsilon_insensitive(h, config.constr_margin)
-        # eps_defect = torch.relu(eps_h)
+        if config.soft_eps:
+            eps_h = smooth_epsilon_insensitive(h, config.constr_margin)
+        else:
+            eps_h = torch.relu(h.abs() - config.constr_margin)
 
         if isinstance(config.chance_constraint, float):
             broken_constr_prob = torch.tanh(eps_h.abs()).mean()
