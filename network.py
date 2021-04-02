@@ -37,7 +37,7 @@ class ConstrNetwork(nn.Module):
             nn.Embedding(dataset_size, 128, _weight=torch.zeros(dataset_size, 128), sparse=True),
             # nn.ReLU() # PL suggests forcing the multipliers to R+ only during forward pass (but not backward)
             # Im not sure about the lack of backward
-            nn.Softplus(),
+            nn.Softplus(config.temperature),
             # nn.Sigmoid(),
         )
 
@@ -62,7 +62,7 @@ class ConstrNetwork(nn.Module):
 
         if config.chance_constraint:
             # https://colab.research.google.com/drive/1gfjEJsToH0D2GnXXXdeMwxyucKEc2d5H
-            broken_event = torch.tanh(eps_h.abs() ** config.temperature)
+            broken_event = torch.tanh(eps_h.abs())
             broken_constr_prob = broken_event.mean()
             prob_defect = broken_constr_prob - config.chance_constraint
             defect = prob_defect.repeat(eps_h.shape)  # * broken_event
