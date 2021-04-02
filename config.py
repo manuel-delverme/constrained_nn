@@ -4,17 +4,18 @@ import torch
 
 import experiment_buddy
 
-RUN_SWEEP = 0
+RUN_SWEEP = 1
 REMOTE = 1
 
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
 dataset_path = "../data" if DEBUG else "/network/datasets/{}.var/{}_torchvision"
 
 corruption_percentage = 0.00
-soft_eps = True
+soft_eps = False
 
-chance_constraint = False  # 0.05
-constr_margin = 0.02854
+chance_constraint = 0.05
+temperature = 10.
+constr_margin = 0.2
 random_seed = 1337
 
 initial_lr_theta = 0.003314
