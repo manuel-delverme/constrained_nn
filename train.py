@@ -44,7 +44,7 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
             # Extrapolation
 
             constr_loss = torch.einsum('bh,bh->', model.multipliers(indices), rhs)
-            config.tb.add_scalar("train/constr_loss", float(constr_loss), batch_idx + step)
+            config.tb.add_scalar("train/lambda_h", float(constr_loss), batch_idx + step)
 
             lagr = loss + constr_loss
             config.tb.add_scalar("train/lagrangian0", lagr, batch_idx + step)

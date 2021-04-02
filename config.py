@@ -14,7 +14,6 @@ corruption_percentage = 0.00
 soft_eps = False
 
 chance_constraint = 0.05
-temperature = 1.
 constr_margin = 0.2
 random_seed = 1337
 
