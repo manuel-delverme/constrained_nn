@@ -10,7 +10,7 @@ REMOTE = 1
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
 dataset_path = "../data" if DEBUG else "/network/datasets/{}.var/{}_torchvision"
 
-corruption_percentage = 0.00
+corruption_percentage = 0.01
 soft_eps = False
 
 chance_constraint = 0.05
@@ -28,7 +28,7 @@ lambda_ = 0.06788
 
 batch_size = 1024
 warmup_epochs = 1 if DEBUG else 5
-num_epochs = 150
+num_epochs = 100
 initial_forward = not DEBUG
 use_cuda = not DEBUG
 

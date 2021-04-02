@@ -37,7 +37,7 @@ class ConstrNetwork(nn.Module):
             nn.Embedding(dataset_size, 128, _weight=torch.zeros(dataset_size, 128), sparse=True),
             # nn.ReLU() # PL suggests forcing the multipliers to R+ only during forward pass (but not backward)
             # Im not sure about the lack of backward
-            nn.Softplus(),
+            # nn.Softplus(),
             # nn.Sigmoid(),
         )
 
