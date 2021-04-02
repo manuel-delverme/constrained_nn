@@ -37,7 +37,7 @@ class ConstrNetwork(nn.Module):
             nn.Embedding(dataset_size, 128, _weight=torch.zeros(dataset_size, 128), sparse=True),
             # nn.ReLU() # PL suggests forcing the multipliers to R+ only during forward pass (but not backward)
             # Im not sure about the lack of backward
-            # nn.Softplus(),
+            nn.Softplus(),
             # nn.Sigmoid(),
         )
 
@@ -58,15 +58,18 @@ class ConstrNetwork(nn.Module):
 
         h = x1_hat - x1_target
 
-        if config.soft_eps:
-            eps_h = smooth_epsilon_insensitive(h, config.constr_margin)
-        else:
-            eps_h = torch.relu(h.abs() - config.constr_margin)
+        # if config.soft_eps:
+        #     eps_h = smooth_epsilon_insensitive(h, config.constr_margin, config.temperature)
+        # else:
+        #     # eps_h = torch.relu(h.abs() - config.constr_margin)
+        eps_h = F.softshrink(h, config.constr_margin)
 
-        if isinstance(config.chance_constraint, float):
-            broken_constr_prob = torch.tanh(eps_h.abs()).mean()
+        if config.chance_constraint:
+            # https://colab.research.google.com/drive/1gfjEJsToH0D2GnXXXdeMwxyucKEc2d5H
+            broken_event = torch.tanh(eps_h.abs() ** 10)  # implicit absolute value
+            broken_constr_prob = broken_event.mean()
             prob_defect = broken_constr_prob - config.chance_constraint
-            defect = prob_defect.repeat(eps_h.shape)
+            defect = prob_defect.repeat(eps_h.shape)  # * broken_event
         else:
             defect = eps_h
 
