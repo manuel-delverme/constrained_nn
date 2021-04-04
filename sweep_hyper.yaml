@@ -6,9 +6,5 @@ parameters:
   ^chance_constraint:
     distribution: uniform
     min: 0.
-    max: 0.01
-  ^temperature:
-    distribution: uniform
-    min: 0.01
-    max: 10.
+    max: 0.05
 program: train.py
