@@ -12,15 +12,14 @@ import extragradient
 import network
 
 
-class MNIST(datasets.MNIST):
+class CIFAR10(datasets.CIFAR10):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if config.DEBUG:
             self.data, self.targets = self.data[:config.batch_size * 2], self.targets[:config.batch_size * 2]
-        if config.corruption_percentage:
-            num_corrupted_indices = int(config.corruption_percentage * len(self.data))
-            indices = torch.randint(0, len(self.data) - 1, (num_corrupted_indices,))
-            self.data[indices] = torch.randint_like(self.data[indices], self.data.max())
+        num_corrupted_indices = int(config.corruption_percentage * len(self.data))
+        indices = torch.randint(0, len(self.data) - 1, (num_corrupted_indices,))
+        self.data[indices] = torch.randint_like(self.data[indices], self.data.max())
 
     def __getitem__(self, index):
         data, target = super().__getitem__(index)
@@ -44,10 +43,9 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
             # Extrapolation
 
             constr_loss = torch.einsum('bh,bh->', model.multipliers(indices), rhs)
-            config.tb.add_scalar("train/lambda_h", float(constr_loss), batch_idx + step)
+            config.tb.add_scalar("train/constr_loss", float(constr_loss), batch_idx + step)
 
-            lagr = loss + torch.relu(constr_loss)
-
+            lagr = loss + constr_loss
             config.tb.add_scalar("train/lagrangian0", lagr, batch_idx + step)
             aug_lagr = lagr  # + config.lambda_ * rhs.pow(2).mean(1).mean(0)
 
@@ -67,11 +65,10 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
 
             # Loss
             constr_loss = torch.einsum('bh,bh->', model.multipliers(indices).squeeze(), rhs)
-
-            lagr = loss + torch.relu(constr_loss)
+            lagr = loss + constr_loss
             config.tb.add_scalar("train/lagrangian1", lagr, batch_idx + step)
 
-            aug_lagr = lagr  # + config.lambda_ * rhs.pow(2).mean(1).mean(0)
+            aug_lagr = lagr + config.lambda_ * rhs.pow(2).mean(1).mean(0)
 
             # Grads
             aug_lagr.backward()  # Player 1
@@ -165,11 +162,11 @@ def main():
         transforms.Normalize((0.1307,), (0.3081,))
     ])
     if "SLURM_JOB_ID" in os.environ.keys():
-        dataset1 = MNIST(config.dataset_path.format("mnist", "mnist"), train=True, transform=transform)
-        dataset2 = MNIST(config.dataset_path.format("mnist", "mnist"), train=False, transform=transform)
+        dataset1 = CIFAR10(config.dataset_path.format("cifar10", "cifar10"), train=True, transform=transform)
+        dataset2 = CIFAR10(config.dataset_path.format("cifar10", "cifar10"), train=False, transform=transform)
     else:
-        dataset1 = MNIST("../data", train=True, transform=transform)
-        dataset2 = MNIST("../data", train=False, transform=transform)
+        dataset1 = CIFAR10("../data", train=True, transform=transform)
+        dataset2 = CIFAR10("../data", train=False, transform=transform)
 
     train_loader = torch.utils.data.DataLoader(dataset1, shuffle=True, **train_kwargs)
     test_loader = torch.utils.data.DataLoader(dataset2, **test_kwargs)
