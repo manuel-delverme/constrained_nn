@@ -64,7 +64,7 @@ class ConstrNetwork(nn.Module):
             # https://colab.research.google.com/drive/1gfjEJsToH0D2GnXXXdeMwxyucKEc2d5H
             broken_event = torch.tanh(eps_h.abs())
             broken_constr_prob = broken_event.mean()
-            prob_defect = broken_constr_prob - config.chance_constraint
+            prob_defect = torch.relu(broken_constr_prob - config.chance_constraint)
             defect = prob_defect.repeat(eps_h.shape)  # * broken_event
         else:
             defect = eps_h
