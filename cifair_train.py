@@ -1,14 +1,15 @@
+import os
+
 import torch
 import torch.autograd
 import torch.nn.functional as F
 import torch.optim
 import torch.utils.data
-from torchvision import transforms
+from torchvision import datasets, transforms
 
 import config
 import extragradient
 import network
-import utils
 
 
 def train(model, device, train_loader, optimizer, epoch, step, aux_optimizer=None):
@@ -48,17 +49,11 @@ def opt_step(aux_optimizer, batch_idx, data, epoch, indices, model, optimizer, s
         aux_optimizer.step()
 
     if extrapolate:
-        metrics = {
-            "train/loss": float(loss.item()),
-            "train/mean_defect": float(rhs.mean()),
-            "train/epoch": epoch,
-            "train/lambda_h": float(constr_loss),
-            "train/lagrangian0": lagrangian
-        }
-        for k, v in metrics.items():
-            if extrapolate:
-                k += "_ext"
-            config.tb.add_scalar(k, v, batch_idx + step)
+        config.tb.add_scalar("train/loss", float(loss.item()), batch_idx + step)
+        config.tb.add_scalar("train/mean_defect", float(rhs.mean()), batch_idx + step)
+        config.tb.add_scalar("train/epoch", epoch, batch_idx + step)
+        config.tb.add_scalar("train/lambda_h", float(constr_loss), batch_idx + step)
+        config.tb.add_scalar("train/lagrangian0", lagrangian, batch_idx + step)
     return y_hat
 
 
@@ -123,7 +118,12 @@ def main():
         transforms.ToTensor(),
         transforms.Normalize((0.1307,), (0.3081,))
     ])
-    dataset1, dataset2 = utils.load_datasets(transform)
+    if "SLURM_JOB_ID" in os.environ.keys():
+        dataset1 = CIFAR10(config.dataset_path.format("cifar10", "cifar10"), train=True, transform=transform)
+        dataset2 = CIFAR10(config.dataset_path.format("cifar10", "cifar10"), train=False, transform=transform)
+    else:
+        dataset1 = CIFAR10("../data", train=True, transform=transform)
+        dataset2 = CIFAR10("../data", train=False, transform=transform)
 
     train_loader = torch.utils.data.DataLoader(dataset1, shuffle=True, **train_kwargs)
     test_loader = torch.utils.data.DataLoader(dataset2, **test_kwargs)
@@ -143,9 +143,11 @@ def main():
         ])
     aux_optimizer = extragradient.ExtraSGD([{'params': multi, 'lr': config.initial_lr_y}])
 
+    # scheduler = StepLR(optimizer, step_size=1, gamma=0.7)
     for epoch in range(config.num_epochs):
         step = train(model, config.device, train_loader, optimizer, epoch, step, aux_optimizer=aux_optimizer)
         test(model, config.device, test_loader, step)
+        # scheduler.step(epoch)
 
 
 if __name__ == '__main__':
