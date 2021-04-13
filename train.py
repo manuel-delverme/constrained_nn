@@ -1,30 +1,13 @@
-import os
-
 import torch
 import torch.autograd
 import torch.nn.functional as F
 import torch.optim
 import torch.utils.data
-from torchvision import datasets, transforms
+from torchvision import transforms
 
 import config
 import extragradient
 import network
-
-
-class MNIST(datasets.MNIST):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if config.DEBUG:
-            self.data, self.targets = self.data[:config.batch_size * 2], self.targets[:config.batch_size * 2]
-        if config.corruption_percentage:
-            num_corrupted_indices = int(config.corruption_percentage * len(self.data))
-            indices = torch.randint(0, len(self.data) - 1, (num_corrupted_indices,))
-            self.data[indices] = torch.randint_like(self.data[indices], self.data.max())
-
-    def __getitem__(self, index):
-        data, target = super().__getitem__(index)
-        return data, target, index
 
 
 def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_optimizer=None):
@@ -42,7 +25,6 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
 
         if adversarial:
             # Extrapolation
-
             constr_loss = torch.einsum('bh,bh->', model.multipliers(indices), rhs)
             config.tb.add_scalar("train/lambda_h", float(constr_loss), batch_idx + step)
 
@@ -162,27 +144,15 @@ def main():
         transforms.ToTensor(),
         transforms.Normalize((0.1307,), (0.3081,))
     ])
-    if "SLURM_JOB_ID" in os.environ.keys():
-        dataset1 = MNIST(config.dataset_path.format("mnist", "mnist"), train=True, transform=transform)
-        dataset2 = MNIST(config.dataset_path.format("mnist", "mnist"), train=False, transform=transform)
-    else:
-        dataset1 = MNIST("../data", train=True, transform=transform)
-        dataset2 = MNIST("../data", train=False, transform=transform)
+    dataset1, dataset2 = utils.load_datasets(transform)
 
     train_loader = torch.utils.data.DataLoader(dataset1, shuffle=True, **train_kwargs)
     test_loader = torch.utils.data.DataLoader(dataset2, **test_kwargs)
 
     model = network.ConstrNetwork(
         torch.utils.data.DataLoader(dataset1, batch_size=test_kwargs['batch_size'])).to(config.device)
-    # optimizer = torch.optim.Adam(model.parameters(), lr=config.initial_lr_theta)
-    # optimizer = torch.optim.Adagrad(model.parameters(), lr=0.01)
-    # optimizer = torch.optim.SGD(model.parameters(), lr=config.initial_lr_theta)
-    # https://discuss.pytorch.org/t/sparse-embedding-failing-with-adam-torch-cuda-sparse-floattensor-has-no-attribute-addcmul/5589/9
-
-    # config.tb.watch(model, criterion=None, log="all", log_freq=10)
     step = 0
     optimizer = torch.optim.Adagrad(model.parameters(), lr=config.warmup_lr)
-    # scheduler = StepLR(optimizer, step_size=1, gamma=0.7)
     print("WARMUP")
     for epoch in range(config.warmup_epochs):
         step = train(model, config.device, train_loader, optimizer, epoch, step, adversarial=False)
@@ -200,11 +170,9 @@ def main():
         ])
     aux_optimizer = extragradient.ExtraSGD([{'params': multi, 'lr': config.initial_lr_y}])
 
-    # scheduler = StepLR(optimizer, step_size=1, gamma=0.7)
     for epoch in range(config.num_epochs):
         step = train(model, config.device, train_loader, optimizer, epoch, step, adversarial=True, aux_optimizer=aux_optimizer)
         test(model, config.device, test_loader, step)
-        # scheduler.step(epoch)
 
 
 if __name__ == '__main__':
