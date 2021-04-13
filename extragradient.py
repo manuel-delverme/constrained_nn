@@ -1,3 +1,5 @@
+import warnings
+
 import torch.optim
 
 
@@ -22,21 +24,22 @@ class ExtraSGD(torch.optim.SGD):
     @torch.no_grad()
     def step(self, closure=None):
         if len(self.old_iterate) == 0:
-            raise RuntimeError('Need to call extrapolation before calling step.')
+            super().step()
+            warnings.warn('Need to call extrapolation before calling step.')
+        else:
+            i = -1
+            for group in self.param_groups:
+                for p in group['params']:
+                    i += 1
+                    normal_to_plane = -p.grad
 
-        i = -1
-        for group in self.param_groups:
-            for p in group['params']:
-                i += 1
-                normal_to_plane = -p.grad
+                    # Move back to the previous point
+                    p = self.old_iterate[i]
+                    p.grad = normal_to_plane
+                    super().step()
 
-                # Move back to the previous point
-                p = self.old_iterate[i]
-                p.grad = normal_to_plane
-                super().step()
-
-        # Free the old parameters
-        self.old_iterate.clear()
+            # Free the old parameters
+            self.old_iterate.clear()
 
 
 class ExtraAdagrad(torch.optim.Adagrad):
@@ -60,18 +63,19 @@ class ExtraAdagrad(torch.optim.Adagrad):
     @torch.no_grad()
     def step(self, closure=None):
         if len(self.old_iterate) == 0:
-            raise RuntimeError('Need to call extrapolation before calling step.')
+            super().step()
+            warnings.warn('Need to call extrapolation before calling step.')
+        else:
+            i = -1
+            for group in self.param_groups:
+                for p in group['params']:
+                    i += 1
+                    normal_to_plane = -p.grad
 
-        i = -1
-        for group in self.param_groups:
-            for p in group['params']:
-                i += 1
-                normal_to_plane = -p.grad
+                    # Move back to the previous point
+                    p = self.old_iterate[i]
+                    p.grad = normal_to_plane
+            super().step()
 
-                # Move back to the previous point
-                p = self.old_iterate[i]
-                p.grad = normal_to_plane
-        super().step()
-
-        # Free the old parameters
-        self.old_iterate.clear()
+            # Free the old parameters
+            self.old_iterate.clear()

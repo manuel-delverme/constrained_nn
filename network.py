@@ -8,10 +8,6 @@ import config
 EPS = 1e-9
 
 
-def smooth_epsilon_insensitive(x, eps, tau=10):
-    return x * (torch.tanh((x / eps) ** tau))
-
-
 class ConstrNetwork(nn.Module):
     def __init__(self, train_loader):
         super().__init__()
@@ -23,53 +19,28 @@ class ConstrNetwork(nn.Module):
         dataset_size = len(train_loader.dataset)
         weight = torch.zeros(dataset_size, 128)
 
-        if config.initial_forward:
-            with torch.no_grad():
-                for batch_idx, (data, target, indices) in tqdm.tqdm(enumerate(train_loader), total=len(train_loader)):
-                    x_i = self.block1(data)
-                    weight[indices] = x_i
-
-        self.x1 = nn.Sequential(
-            nn.Embedding(dataset_size, 128, _weight=weight, sparse=True),
-            nn.ReLU()
+        self.weights = nn.Sequential(
+            nn.Embedding(dataset_size, 1, sparse=True),
+            nn.Sigmoid(),
         )
         self.multipliers = nn.Sequential(
-            nn.Embedding(dataset_size, 128, _weight=torch.zeros(dataset_size, 128), sparse=True),
+            nn.Embedding(dataset_size, 1, _weight=torch.ones(dataset_size, 1), sparse=True),
             # nn.ReLU() # PL suggests forcing the multipliers to R+ only during forward pass (but not backward)
             # Im not sure about the lack of backward
             nn.Softplus(),
-            # nn.Sigmoid(),
-        )
-
-    def step(self, x0, states):
-        # x1, x2 = self.states
-        x2, = states
-        return (
-            self.block1(x0),
-            # self.block2(x1),
-            self.block3(x2)
         )
 
     def forward(self, x0, indices):
-        x1_target = self.x1(indices)
+        dataset_weights = self.weights(indices)
 
-        x1_hat = self.block1(x0)
-        x_T = self.block3(x1_target)
+        h = self.block1(x0)
+        y_hat = self.block3(h)
 
-        h = x1_hat - x1_target
+        broken_constr_prob = 1. - dataset_weights.mean()
+        prob_defect = torch.relu(broken_constr_prob - config.chance_constraint)
+        defect = prob_defect.repeat(dataset_weights.shape)
 
-        eps_h = F.softshrink(h, config.constr_margin)
-
-        if config.chance_constraint:
-            # https://colab.research.google.com/drive/1gfjEJsToH0D2GnXXXdeMwxyucKEc2d5H
-            broken_event = torch.tanh(eps_h.abs())
-            broken_constr_prob = broken_event.mean()
-            prob_defect = broken_constr_prob - config.chance_constraint
-            defect = prob_defect.repeat(eps_h.shape)  # * broken_event
-        else:
-            defect = eps_h
-
-        return x_T, defect
+        return y_hat, dataset_weights, defect
 
     def full_rollout(self, x):
         x = self.block1(x)
