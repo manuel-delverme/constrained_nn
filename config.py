@@ -11,6 +11,8 @@ DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
 dataset_path = "../data" if DEBUG else "/network/datasets/{}.var/{}_torchvision"
 dataset = "mnist"  # "cifar10"
 
+experiment = "target_prop"
+
 corruption_percentage = 0.00
 soft_eps = False
 
@@ -42,8 +44,6 @@ device = torch.device("cuda" if use_cuda else "cpu")
 ################################################################
 # Derivative parameters
 ################################################################
-
-robust_optimization = True
 
 tb = experiment_buddy.deploy(
     host="mila" if REMOTE else "",

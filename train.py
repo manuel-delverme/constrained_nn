@@ -25,14 +25,14 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
 def opt_step(aux_optimizer, batch_idx, data, epoch, indices, model, optimizer, step, target, extrapolate=False):
     optimizer.zero_grad()
 
-    if config.robust_optimization:
-        y_hat, sample_weights, rhs = model(data, indices)
-        loss = F.nll_loss(y_hat, target, reduce=False) * sample_weights.squeeze()
+    if config.experiment == "target_prop":
+        y_hat, rhs = model(data, indices)
+        loss = F.nll_loss(y_hat, target)
     else:
         y_hat, sample_weights, rhs = model(data, indices)
-        loss = F.nll_loss(y_hat, target)
+        loss = F.nll_loss(y_hat, target, reduce=False) * sample_weights.squeeze()
+        loss = loss.mean()
 
-    loss = loss.mean()
     # Extrapolation
     constr_loss = torch.einsum('bh,bh->', model.multipliers(indices), rhs)
     lagrangian = loss * constr_loss
@@ -109,7 +109,12 @@ def test(model, device, test_loader, step):
 def main():
     torch.manual_seed(config.random_seed)
     train_loader, test_loader = utils.load_datasets()
-    model = network.ConstrNetwork(train_loader).to(config.device)
+    if config.experiment == "target_prop":
+        model = network.TargetPropNetwork(train_loader).to(config.device)
+    else:
+        raise NotImplemented
+        model = network.ConstrNetwork(train_loader).to(config.device)
+
     step = 0
 
     # print("WARMUP")
