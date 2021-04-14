@@ -1,15 +1,8 @@
 import torch
-import tqdm
 from torch import nn as nn
 from torch.nn import functional as F
 
 import config
-
-EPS = 1e-9
-
-
-def smooth_epsilon_insensitive(x, eps, tau=10):
-    return x * (torch.tanh((x / eps) ** tau))
 
 
 class ConstrNetwork(nn.Module):
@@ -23,11 +16,11 @@ class ConstrNetwork(nn.Module):
         dataset_size = len(train_loader.dataset)
         weight = torch.zeros(dataset_size, 128)
 
-        if config.initial_forward:
-            with torch.no_grad():
-                for batch_idx, (data, target, indices) in tqdm.tqdm(enumerate(train_loader), total=len(train_loader)):
-                    x_i = self.block1(data)
-                    weight[indices] = x_i
+        # if config.initial_forward:
+        #     with torch.no_grad():
+        #         for batch_idx, (data, target, indices) in tqdm.tqdm(enumerate(train_loader), total=len(train_loader)):
+        #             x_i = self.block1(data)
+        #             weight[indices] = x_i
 
         self.x1 = nn.Sequential(
             nn.Embedding(dataset_size, 128, _weight=weight, sparse=True),
@@ -35,10 +28,7 @@ class ConstrNetwork(nn.Module):
         )
         self.multipliers = nn.Sequential(
             nn.Embedding(dataset_size, 128, _weight=torch.zeros(dataset_size, 128), sparse=True),
-            # nn.ReLU() # PL suggests forcing the multipliers to R+ only during forward pass (but not backward)
-            # Im not sure about the lack of backward
             nn.Softplus(),
-            # nn.Sigmoid(),
         )
 
     def step(self, x0, states):
@@ -97,4 +87,24 @@ class ConstrNetwork(nn.Module):
         # x = self.dropout1(x)
         x = torch.flatten(x, 1)
         x = self.block2(x)
+        return x
+
+
+class CIFAR10Net(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.conv1 = nn.Conv2d(3, 6, 5)
+        self.pool = nn.MaxPool2d(2, 2)
+        self.conv2 = nn.Conv2d(6, 16, 5)
+        self.fc1 = nn.Linear(16 * 5 * 5, 120)
+        self.fc2 = nn.Linear(120, 84)
+        self.fc3 = nn.Linear(84, 10)
+
+    def forward(self, x):
+        x = self.pool(F.relu(self.conv1(x)))
+        x = self.pool(F.relu(self.conv2(x)))
+        x = x.view(-1, 16 * 5 * 5)
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
         return x

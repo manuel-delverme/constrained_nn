@@ -1,6 +1,7 @@
 import os
 
 import torch
+import torchvision.transforms
 from torchvision import datasets
 
 import config
@@ -36,19 +37,46 @@ class CIFAR10(datasets.CIFAR10):
         return data, target, index
 
 
-def load_datasets(transform):
-    if "SLURM_JOB_ID" in os.environ.keys():
-        if config.dataset == "mnist":
-            dataset1 = MNIST(config.dataset_path.format("mnist", "mnist"), train=True, transform=transform)
-            dataset2 = MNIST(config.dataset_path.format("mnist", "mnist"), train=False, transform=transform)
-        else:
-            dataset1 = CIFAR10(config.dataset_path.format("cifar10", "cifar10"), train=True, transform=transform)
-            dataset2 = CIFAR10(config.dataset_path.format("cifar10", "cifar10"), train=False, transform=transform)
+def load_datasets():
+    if config.dataset == "mnist":
+        dataset_class = MNIST
+        transform = torchvision.transforms.Compose([
+            torchvision.transforms.ToTensor(),
+            torchvision.transforms.Normalize((0.1307,), (0.3081,))
+        ])
+
+    elif config.dataset == "cifar10":
+        dataset_class = CIFAR10
+        transform = torchvision.transforms.Compose([
+            torchvision.transforms.ToTensor(),
+            torchvision.transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+        ])
     else:
-        if config.dataset == "mnist":
-            dataset1 = MNIST("../data", train=True, transform=transform)
-            dataset2 = MNIST("../data", train=False, transform=transform)
-        else:
-            dataset1 = CIFAR10("../data", train=True, transform=transform)
-            dataset2 = CIFAR10("../data", train=False, transform=transform)
-    return dataset1, dataset2
+        raise NotImplemented
+
+    if "SLURM_JOB_ID" in os.environ.keys():
+        dataset_path = config.dataset_path.format(config.dataset, config.dataset)
+    else:
+        dataset_path = "../data"
+
+    train_kwargs = {'batch_size': config.batch_size}
+    test_kwargs = {'batch_size': config.batch_size * 4}
+    if config.use_cuda:
+        cuda_kwargs = {'num_workers': 0, 'pin_memory': True}
+        train_kwargs.update(cuda_kwargs)
+        test_kwargs.update(cuda_kwargs)
+
+    train_loader = torch.utils.data.DataLoader(
+        dataset_class(dataset_path, train=True, transform=transform),
+        shuffle=True, **train_kwargs)
+    test_loader = torch.utils.data.DataLoader(
+        dataset_class(dataset_path, train=False, transform=transform), **test_kwargs
+    )
+    return train_loader, test_loader
+
+
+def plot(loss, model):
+    import torchviz
+    import os
+    torchviz.make_dot(loss, params=dict(model.named_parameters())).render("/tmp/plot.gv")
+    os.system("evince /tmp/plot.gv.pdf")

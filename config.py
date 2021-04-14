@@ -4,11 +4,12 @@ import torch
 
 import experiment_buddy
 
-RUN_SWEEP = 1
+RUN_SWEEP = 0
 REMOTE = 1
 
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
 dataset_path = "../data" if DEBUG else "/network/datasets/{}.var/{}_torchvision"
+dataset = "mnist"  # "cifar10"
 
 corruption_percentage = 0.00
 soft_eps = False
@@ -29,7 +30,7 @@ lambda_ = 0.06788
 batch_size = 1024
 warmup_epochs = 1 if DEBUG else 5
 num_epochs = 150
-initial_forward = not DEBUG
+initial_forward = False  # not DEBUG
 use_cuda = not DEBUG
 
 ################################################################
@@ -41,6 +42,9 @@ device = torch.device("cuda" if use_cuda else "cpu")
 ################################################################
 # Derivative parameters
 ################################################################
+
+robust_optimization = True
+
 tb = experiment_buddy.deploy(
     host="mila" if REMOTE else "",
     sweep_yaml="sweep_hyper.yaml" if RUN_SWEEP else False,
