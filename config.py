@@ -12,10 +12,10 @@ dataset_path = "../data" if DEBUG else "/network/datasets/{}.var/{}_torchvision"
 dataset = "mnist"  # "cifar10"
 
 corruption_percentage = 0.00
-soft_eps = False
 
-chance_constraint = 0.05
+experiment = "target_prop"
 constr_margin = 0.2
+
 random_seed = 1337
 
 initial_lr_theta = 0.003314
@@ -42,8 +42,6 @@ device = torch.device("cuda" if use_cuda else "cpu")
 ################################################################
 # Derivative parameters
 ################################################################
-
-robust_optimization = True
 
 tb = experiment_buddy.deploy(
     host="mila" if REMOTE else "",
