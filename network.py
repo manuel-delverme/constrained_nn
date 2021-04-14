@@ -39,17 +39,7 @@ class TargetPropNetwork(nn.Module):
         h = x1_hat - x1_target
 
         eps_h = F.softshrink(h, config.constr_margin)
-
-        if config.chance_constraint:
-            # https://colab.research.google.com/drive/1gfjEJsToH0D2GnXXXdeMwxyucKEc2d5H
-            broken_event = torch.tanh(eps_h.abs())
-            broken_constr_prob = broken_event.mean()
-            prob_defect = broken_constr_prob - config.chance_constraint
-            defect = prob_defect.repeat(eps_h.shape)  # * broken_event
-        else:
-            defect = eps_h
-
-        return x_T, defect
+        return x_T, eps_h
 
     def full_rollout(self, x):
         x = self.block1(x)
