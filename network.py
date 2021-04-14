@@ -5,7 +5,7 @@ from torch.nn import functional as F
 import config
 
 
-class ConstrNetwork(nn.Module):
+class TargetPropNetwork(nn.Module):
     def __init__(self, train_loader):
         super().__init__()
         self.conv1 = nn.Conv2d(1, 32, 3, 1)
@@ -31,21 +31,11 @@ class ConstrNetwork(nn.Module):
             nn.Softplus(),
         )
 
-    def step(self, x0, states):
-        # x1, x2 = self.states
-        x2, = states
-        return (
-            self.block1(x0),
-            # self.block2(x1),
-            self.block3(x2)
-        )
-
     def forward(self, x0, indices):
         x1_target = self.x1(indices)
 
         x1_hat = self.block1(x0)
         x_T = self.block3(x1_target)
-
         h = x1_hat - x1_target
 
         eps_h = F.softshrink(h, config.constr_margin)
@@ -63,7 +53,6 @@ class ConstrNetwork(nn.Module):
 
     def full_rollout(self, x):
         x = self.block1(x)
-        # x = self.block2(x)
         x = self.block3(x)
         return x
 
@@ -72,21 +61,15 @@ class ConstrNetwork(nn.Module):
         output = F.log_softmax(x, dim=1)
         return output
 
-    def block2(self, x):
-        x = self.fc1(x)
-        x = F.relu(x)
-        # x = self.dropout2(x)
-        return x
-
     def block1(self, x):
         x = self.conv1(x)
         x = F.relu(x)
         x = self.conv2(x)
         x = F.relu(x)
         x = F.max_pool2d(x, 2)
-        # x = self.dropout1(x)
         x = torch.flatten(x, 1)
-        x = self.block2(x)
+        x = self.fc1(x)
+        x = F.relu(x)
         return x
 
 
