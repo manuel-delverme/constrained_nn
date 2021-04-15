@@ -4,7 +4,7 @@ import torch
 
 import experiment_buddy
 
-RUN_SWEEP = 0
+RUN_SWEEP = 1
 REMOTE = 1
 
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
@@ -20,6 +20,7 @@ corruption_percentage = 0.00
 constr_margin = 0.2
 
 random_seed = 1337
+
 
 initial_lr_theta = 0.003314
 initial_lr_x = 0.04527
