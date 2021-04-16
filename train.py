@@ -52,18 +52,17 @@ def opt_step(aux_optimizer, batch_idx, data, epoch, indices, model, optimizer, s
     else:
         aux_optimizer.step()
 
-    if extrapolate:
-        metrics = {
-            "train/loss": float(loss.item()),
-            "train/mean_defect": float(rhs.mean()),
-            "train/epoch": epoch,
-            "train/lambda_h": float(constr_loss),
-            "train/lagrangian0": lagrangian
-        }
-        for k, v in metrics.items():
-            if extrapolate:
-                k += "_ext"
-            config.tb.add_scalar(k, v, batch_idx + step)
+    metrics = {
+        "train/loss": float(loss.item()),
+        "train/mean_defect": float(rhs.mean()),
+        "train/epoch": epoch,
+        "train/lambda_h": float(constr_loss),
+        "train/lagrangian0": lagrangian
+    }
+    for k, v in metrics.items():
+        if extrapolate:
+            k += "_ext"
+        config.tb.add_scalar(k, v, batch_idx + step)
     return y_hat
 
 
