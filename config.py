@@ -18,6 +18,7 @@ corruption_percentage = 0.00
 
 # Target Prop Experiments
 constr_margin = 0.2
+initial_forward = True
 
 random_seed = 1337
 
