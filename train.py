@@ -35,7 +35,7 @@ def opt_step(aux_optimizer, batch_idx, data, epoch, indices, model, optimizer, s
 
     # Extrapolation
     constr_loss = torch.einsum('bh,bh->', model.multipliers(indices), rhs)
-    lagrangian = loss * constr_loss
+    lagrangian = loss + constr_loss
 
     lagrangian.backward()  # Player 1
 
