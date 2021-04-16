@@ -1,4 +1,5 @@
 import torch
+import tqdm
 from torch import nn as nn
 from torch.nn import functional as F
 
@@ -16,11 +17,11 @@ class TargetPropNetwork(nn.Module):
         dataset_size = len(train_loader.dataset)
         weight = torch.zeros(dataset_size, 128)
 
-        # if config.initial_forward:
-        #     with torch.no_grad():
-        #         for batch_idx, (data, target, indices) in tqdm.tqdm(enumerate(train_loader), total=len(train_loader)):
-        #             x_i = self.block1(data)
-        #             weight[indices] = x_i
+        if config.initial_forward:
+            with torch.no_grad():
+                for batch_idx, (data, target, indices) in tqdm.tqdm(enumerate(train_loader), total=len(train_loader)):
+                    x_i = self.block1(data)
+                    weight[indices] = x_i
 
         self.x1 = nn.Sequential(
             nn.Embedding(dataset_size, 128, _weight=weight, sparse=True),
