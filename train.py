@@ -12,31 +12,32 @@ import utils
 
 def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_optimizer=None):
     model.train()
+    if not adversarial:
+        raise NotImplemented
+
     for batch_idx, (data, target, indices) in enumerate(train_loader):
         data, target, indices = data.to(device), target.to(device), indices.to(device)
 
         opt_step(aux_optimizer, batch_idx, data, epoch, indices, model, optimizer, step, target, extrapolate=True)
         opt_step(aux_optimizer, batch_idx, data, epoch, indices, model, optimizer, step, target, extrapolate=False)
         print(f'Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)} ({100. * batch_idx / len(train_loader):.0f}%)]\t')
-
     return batch_idx + step
 
 
 def opt_step(aux_optimizer, batch_idx, data, epoch, indices, model, optimizer, step, target, extrapolate=False):
     optimizer.zero_grad()
 
-    if config.experiment == "target_prop":
-        y_hat, rhs = model(data, indices)
-        loss = F.nll_loss(y_hat, target)
-    else:
-        y_hat, sample_weights, rhs = model(data, indices)
-        loss = F.nll_loss(y_hat, target, reduce=False) * sample_weights.squeeze()
-        loss = loss.mean()
+    constr_loss, loss, defect, y_hat = forward_step(data, indices, model, target)
 
-    # Extrapolation
-    constr_loss = torch.einsum('bh,bh->', model.multipliers(indices), rhs)
+    loss.backward(retain_graph=True)
+    unconstrained_loss_grad_norm = torch.norm(torch.stack([torch.norm(p.grad.detach(), 2) for p in model.parameters() if p.grad is not None]), 2)
+    optimizer.zero_grad()
+
+    constr_loss.backward(retain_graph=True)
+    constraint_satisfaction_grad_norm = torch.norm(torch.stack([torch.norm(p.grad.detach(), 2) for p in model.parameters() if p.grad is not None]), 2)
+    optimizer.zero_grad()
+
     lagrangian = loss + constr_loss
-
     lagrangian.backward()  # Player 1
 
     if extrapolate:
@@ -45,26 +46,44 @@ def opt_step(aux_optimizer, batch_idx, data, epoch, indices, model, optimizer, s
         optimizer.step()
 
     # Player 2
-    model.multipliers[0].weight.grad = torch.sparse_coo_tensor(indices.unsqueeze(0), -rhs, model.multipliers[0].weight.shape)
+    model.multipliers[0].weight.grad = torch.sparse_coo_tensor(indices.unsqueeze(0), -defect, model.multipliers[0].weight.shape)
+    #  constr_grad_norm = torch.norm(torch.stack(
+    #      [torch.norm(p.grad.detach(), 2) for p in constr_loss.parameters() if p.grad is not None]
+    #  ), 2)
 
     if extrapolate:
         aux_optimizer.extrapolation()
     else:
         aux_optimizer.step()
 
-    if extrapolate:
-        metrics = {
-            "train/loss": float(loss.item()),
-            "train/mean_defect": float(rhs.mean()),
-            "train/epoch": epoch,
-            "train/lambda_h": float(constr_loss),
-            "train/lagrangian0": lagrangian
-        }
-        for k, v in metrics.items():
-            if extrapolate:
-                k += "_ext"
-            config.tb.add_scalar(k, v, batch_idx + step)
+    metrics = {
+        "train/loss": float(loss.item()),
+        "train/l1_defect": float(defect.abs().sum()),
+        "train/epoch": epoch,
+        "train/constr_loss": float(constr_loss),
+        "train/unconstrained_loss_grad_norm": float(unconstrained_loss_grad_norm),
+        "train/constraint_satisfaction_grad_norm": float(constraint_satisfaction_grad_norm),
+        "train/lagrangian": lagrangian
+    }
+    for k, v in metrics.items():
+        if extrapolate:
+            k += "_ext"
+        config.tb.add_scalar(k, v, batch_idx + step)
+    config.tb.add_histogram("train/indices", indices.cpu(), batch_idx + step)
     return y_hat
+
+
+def forward_step(data, indices, model, target):
+    if config.experiment == "target_prop":
+        y_hat, rhs = model(data, indices)
+        loss = F.nll_loss(y_hat, target)
+    else:
+        y_hat, sample_weights, rhs = model(data, indices)
+        loss = F.nll_loss(y_hat, target, reduce=False) * sample_weights.squeeze()
+        loss = loss.mean()
+    # Extrapolation
+    constr_loss = torch.einsum('bh,bh->', model.multipliers(indices), rhs)
+    return constr_loss, loss, rhs, y_hat
 
 
 def grad_step(aux_optimizer, batch_idx, data, indices, model, optimizer, step, target):
@@ -114,6 +133,12 @@ def main():
     else:
         raise NotImplemented
         model = network.ConstrNetwork(train_loader).to(config.device)
+
+    @torch.no_grad()
+    def update_weights():
+        train_loader.sampler.weights = torch.softmax(torch.max(model.multipliers[0].weight, dim=-1).values, dim=0)
+
+    update_weights()
 
     step = 0
 
