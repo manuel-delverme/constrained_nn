@@ -1,94 +1,104 @@
+import os
+
 import torch
 import torch.autograd
 import torch.nn.functional as F
 import torch.optim
 import torch.utils.data
+from torchvision import datasets, transforms
 
 import config
 import extragradient
 import network
-import utils
 
 
-def train(model, device, train_loader, optimizer, epoch, step, adversarial, update_weights, aux_optimizer=None):
+class MNIST(datasets.MNIST):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if config.DEBUG:
+            self.data, self.targets = self.data[:config.batch_size * 2], self.targets[:config.batch_size * 2]
+        if config.corruption_percentage:
+            num_corrupted_indices = int(config.corruption_percentage * len(self.data))
+            indices = torch.randint(0, len(self.data) - 1, (num_corrupted_indices,))
+            self.data[indices] = torch.randint_like(self.data[indices], self.data.max())
+
+    def __getitem__(self, index):
+        data, target = super().__getitem__(index)
+        return data, target, index
+
+
+def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_optimizer=None):
     model.train()
-    if not adversarial:
-        raise NotImplemented
-
     for batch_idx, (data, target, indices) in enumerate(train_loader):
         data, target, indices = data.to(device), target.to(device), indices.to(device)
+        optimizer.zero_grad()
+        x_T, rhs = model(data, indices)
+        loss = F.nll_loss(x_T, target)
 
-        opt_step(aux_optimizer, batch_idx, data, epoch, indices, model, optimizer, step, target, update_weights, extrapolate=True)
-        opt_step(aux_optimizer, batch_idx, data, epoch, indices, model, optimizer, step, target, update_weights, extrapolate=False)
-        print(f'Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)} ({100. * batch_idx / len(train_loader):.0f}%)]\t')
+        config.tb.add_scalar("train/loss", float(loss.item()), batch_idx + step)
+        config.tb.add_scalar("train/mean_defect", float(rhs.mean()), batch_idx + step)
+        config.tb.add_scalar("train/adversarial", float(adversarial), batch_idx + step)
+        config.tb.add_scalar("train/epoch", epoch, batch_idx + step)
+
+        if adversarial:
+            # Extrapolation
+
+            constr_loss = torch.einsum('bh,bh->', model.multipliers(indices), rhs)
+            config.tb.add_scalar("train/constr_loss", float(constr_loss), batch_idx + step)
+
+            lagr = loss + constr_loss
+            config.tb.add_scalar("train/lagrangian0", lagr, batch_idx + step)
+            aug_lagr = lagr  # + config.lambda_ * rhs.pow(2).mean(1).mean(0)
+
+            aug_lagr.backward()  # Player 1
+            optimizer.extrapolation()
+
+            # Player 2
+            model.multipliers[0].weight.grad = torch.sparse_coo_tensor(indices.unsqueeze(0), -rhs, model.multipliers[0].weight.shape)
+            aux_optimizer.extrapolation()
+
+            optimizer.zero_grad()
+            aux_optimizer.zero_grad()
+            # Step
+            # Eval
+            x_T, rhs = model(data, indices)
+            loss = F.nll_loss(x_T, target)
+
+            # Loss
+            constr_loss = torch.einsum('bh,bh->', model.multipliers(indices).squeeze(), rhs)
+            lagr = loss + constr_loss
+            config.tb.add_scalar("train/lagrangian1", lagr, batch_idx + step)
+
+            aug_lagr = lagr + config.lambda_ * rhs.pow(2).mean(1).mean(0)
+
+            # Grads
+            aug_lagr.backward()  # Player 1
+            optimizer.step()
+
+            # Player 2
+            model.multipliers[0].weight.grad = torch.sparse_coo_tensor(indices.unsqueeze(0), -rhs, model.multipliers[0].weight.grad.shape)
+            aux_optimizer.step()
+
+            with torch.no_grad():
+                # Eval
+                x_T, rhs = model(data, indices)
+                loss = F.nll_loss(x_T, target)
+
+                # Loss
+                constr_loss = torch.einsum('bh,bh->', model.multipliers(indices).squeeze(), rhs)
+                lagr = loss + constr_loss
+                config.tb.add_scalar("train/lagrangian-1", lagr, batch_idx + step)
+        else:
+            constr_loss = config.lambda_ * rhs.pow(2).mean(1).mean(0)
+            lagr = loss + constr_loss
+            lagr.backward()
+            optimizer.step()
+
+        print(f'Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)}'
+              f' ({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f} rhs: {constr_loss.item():.6f}')
+        # if constr_loss > 10:
+        #     sys.exit()
     return batch_idx + step
-
-
-def opt_step(aux_optimizer, batch_idx, data, epoch, indices, model, optimizer, step, target, update_weights, extrapolate=False):
-    optimizer.zero_grad()
-    aux_optimizer.zero_grad()
-
-    rhs, loss, defect = forward_step(data, indices, model, target)
-    # loss.backward(retain_graph=True)
-    # unconstrained_loss_grad_norm = torch.norm(torch.stack([torch.norm(p.grad.detach(), 2) for p in model.parameters() if p.grad is not None]), 2)
-    # optimizer.zero_grad()
-
-    # rhs.backward(retain_graph=True)
-    # constraint_satisfaction_grad_norm = torch.norm(torch.stack([torch.norm(p.grad.detach(), 2) for p in model.parameters() if p.grad is not None]), 2)
-    #  optimizer.zero_grad()
-
-    lagrangian = loss + rhs
-
-    if not extrapolate:
-        lagrangian = lagrangian + config.lambda_ * defect.pow(2).mean(1).mean(0)
-
-    lagrangian.backward()  # Player 1
-
-    if extrapolate:
-        optimizer.extrapolation()
-    else:
-        optimizer.step()
-    if config.adversarial_sampling:
-        update_weights()
-
-    # Player 2
-    model.multipliers[0].weight.grad = torch.sparse_coo_tensor(indices.unsqueeze(0), -defect, model.multipliers[0].weight.shape)
-    #  constr_grad_norm = torch.norm(torch.stack(
-    #      [torch.norm(p.grad.detach(), 2) for p in rhs.parameters() if p.grad is not None]
-    #  ), 2)
-
-    if extrapolate:
-        aux_optimizer.extrapolation()
-    else:
-        aux_optimizer.step()
-
-    metrics = {
-        "train/loss": float(loss.item()),
-        "train/l1_defect": float(defect.abs().sum()),
-        "train/epoch": epoch,
-        "train/rhs": float(rhs),
-        # "train/unconstrained_loss_grad_norm": float(unconstrained_loss_grad_norm),
-        # "train/constraint_satisfaction_grad_norm": float(constraint_satisfaction_grad_norm),
-        "train/lagrangian": lagrangian
-    }
-    for k, v in metrics.items():
-        if extrapolate:
-            k += "_ext"
-        config.tb.add_scalar(k, v, batch_idx + step)
-    config.tb.add_histogram("train/indices", indices.cpu(), batch_idx + step)
-
-
-def forward_step(data, indices, model, target):
-    if config.experiment == "target_prop":
-        y_hat, defect = model(data, indices)
-        loss = F.nll_loss(y_hat, target)
-    else:
-        y_hat, sample_weights, defect = model(data, indices)
-        loss = F.nll_loss(y_hat, target, reduce=False) * sample_weights.squeeze()
-        loss = loss.mean()
-    # Extrapolation
-    rhs = torch.einsum('bh,bh->', model.multipliers(indices), defect)
-    return rhs, loss, defect
 
 
 def grad_step(aux_optimizer, batch_idx, data, indices, model, optimizer, step, target):
@@ -106,6 +116,13 @@ def grad_step(aux_optimizer, batch_idx, data, indices, model, optimizer, step, t
     # Grads
     aug_lagr.backward()  # Player 1
     return rhs
+
+
+def plot(loss, model):
+    import torchviz
+    import os
+    torchviz.make_dot(loss, params=dict(model.named_parameters())).render("/tmp/plot.gv")
+    os.system("evince /tmp/plot.gv.pdf")
 
 
 def test(model, device, test_loader, step):
@@ -131,30 +148,48 @@ def test(model, device, test_loader, step):
 
 
 def main():
+    # Training settings
     torch.manual_seed(config.random_seed)
-    train_loader, test_loader = utils.load_datasets()
-    if config.experiment == "target_prop":
-        model = network.TargetPropNetwork(train_loader).to(config.device)
+
+    train_kwargs = {'batch_size': config.batch_size}
+    test_kwargs = {'batch_size': config.batch_size * 4}
+    if config.use_cuda:
+        cuda_kwargs = {'num_workers': 0, 'pin_memory': True}
+        train_kwargs.update(cuda_kwargs)
+        test_kwargs.update(cuda_kwargs)
+
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.1307,), (0.3081,))
+    ])
+    if "SLURM_JOB_ID" in os.environ.keys():
+        dataset1 = MNIST(config.dataset_path.format("mnist", "mnist"), train=True, transform=transform)
+        dataset2 = MNIST(config.dataset_path.format("mnist", "mnist"), train=False, transform=transform)
     else:
-        raise NotImplemented
-        model = network.ConstrNetwork(train_loader).to(config.device)
+        dataset1 = MNIST("../data", train=True, transform=transform)
+        dataset2 = MNIST("../data", train=False, transform=transform)
 
-    @torch.no_grad()
-    def update_weights():
-        if config.adversarial_sampling:
-            train_loader.sampler.weights = torch.softmax(torch.max(model.multipliers[0].weight, dim=-1).values, dim=0)
+    train_loader = torch.utils.data.DataLoader(dataset1, shuffle=True, **train_kwargs)
+    test_loader = torch.utils.data.DataLoader(dataset2, **test_kwargs)
 
-    update_weights()
+    model = network.TargetPropNetwork(
+        torch.utils.data.DataLoader(dataset1, batch_size=test_kwargs['batch_size'])).to(config.device)
+    # optimizer = torch.optim.Adam(model.parameters(), lr=config.initial_lr_theta)
+    # optimizer = torch.optim.Adagrad(model.parameters(), lr=0.01)
+    # optimizer = torch.optim.SGD(model.parameters(), lr=config.initial_lr_theta)
+    # https://discuss.pytorch.org/t/sparse-embedding-failing-with-adam-torch-cuda-sparse-floattensor-has-no-attribute-addcmul/5589/9
 
+    # config.tb.watch(model, criterion=None, log="all", log_freq=10)
     step = 0
+    optimizer = torch.optim.Adagrad(model.parameters(), lr=config.warmup_lr)
+    # scheduler = StepLR(optimizer, step_size=1, gamma=0.7)
+    print("WARMUP")
+    for epoch in range(config.warmup_epochs):
+        step = train(model, config.device, train_loader, optimizer, epoch, step, adversarial=False)
+        test(model, config.device, test_loader, step)
+        # scheduler.step(epoch)
 
-    # print("WARMUP")
-    # optimizer = torch.optim.Adagrad(model.parameters(), lr=config.warmup_lr)
-    # for epoch in range(config.warmup_epochs):
-    #    step = train(model, config.device, train_loader, optimizer, epoch, step, adversarial=False)
-    #    test(model, config.device, test_loader, step)
-
-    # print("Adversarial")
+    print("Adversarial")
     theta = [v for k, v in model.named_parameters() if not k.startswith("x1") and not k.startswith("multipliers")]
     x = [v for k, v in model.named_parameters() if k.startswith("x1")]
     multi = [v for k, v in model.named_parameters() if k.startswith("multipliers")]
@@ -165,9 +200,11 @@ def main():
         ])
     aux_optimizer = extragradient.ExtraSGD([{'params': multi, 'lr': config.initial_lr_y}])
 
+    # scheduler = StepLR(optimizer, step_size=1, gamma=0.7)
     for epoch in range(config.num_epochs):
-        step = train(model, config.device, train_loader, optimizer, epoch, step, adversarial=True, aux_optimizer=aux_optimizer, update_weights=update_weights)
+        step = train(model, config.device, train_loader, optimizer, epoch, step, adversarial=True, aux_optimizer=aux_optimizer)
         test(model, config.device, test_loader, step)
+        # scheduler.step(epoch)
 
 
 if __name__ == '__main__':
