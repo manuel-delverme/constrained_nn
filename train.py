@@ -51,7 +51,6 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
             aux_optimizer.step()
         else:
             optimizer.zero_grad()
-            aux_optimizer.zero_grad()
 
             rhs, loss, defect = forward_step(data, indices, model, target)
             config.tb.add_scalar("train/loss", float(loss.item()), batch_idx + step)
@@ -108,6 +107,7 @@ def test(model, device, test_loader, step):
 def main():
     torch.manual_seed(config.random_seed)
     train_loader, test_loader = utils.load_datasets()
+
     if config.experiment == "target_prop":
         if config.dataset == "mnist":
             model = network.TargetPropNetwork(train_loader).to(config.device)
