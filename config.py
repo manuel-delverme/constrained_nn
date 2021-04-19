@@ -18,7 +18,6 @@ corruption_percentage = 0.00
 
 # Target Prop Experiments
 constr_margin = 0.02854
-initial_forward = True
 adversarial_sampling = True
 
 random_seed = 1337
@@ -33,7 +32,9 @@ lambda_ = 0.06788
 # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
 
 batch_size = 1024
+warmup_epochs = 1 if DEBUG else 5
 num_epochs = 150
+initial_forward = not DEBUG
 use_cuda = not DEBUG
 
 ################################################################
