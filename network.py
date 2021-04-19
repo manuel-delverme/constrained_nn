@@ -5,8 +5,14 @@ from torch.nn import functional as F
 
 import config
 
+EPS = 1e-9
 
-class TargetPropNetwork(nn.Module):
+
+def smooth_epsilon_insensitive(x, eps, tau=10):
+    return x * (torch.tanh((x / eps) ** tau))
+
+
+class ConstrNetwork(nn.Module):
     def __init__(self, train_loader):
         super().__init__()
         self.conv1 = nn.Conv2d(1, 32, 3, 1)
@@ -40,7 +46,8 @@ class TargetPropNetwork(nn.Module):
         h = x1_hat - x1_target
 
         eps_h = F.softshrink(h, config.constr_margin)
-        return x_T, eps_h
+        defect = eps_h
+        return x_T, defect
 
     def full_rollout(self, x):
         x = self.block1(x)
@@ -52,6 +59,12 @@ class TargetPropNetwork(nn.Module):
         output = F.log_softmax(x, dim=1)
         return output
 
+    def block2(self, x):
+        x = self.fc1(x)
+        x = F.relu(x)
+        # x = self.dropout2(x)
+        return x
+
     def block1(self, x):
         x = self.conv1(x)
         x = F.relu(x)
@@ -59,26 +72,5 @@ class TargetPropNetwork(nn.Module):
         x = F.relu(x)
         x = F.max_pool2d(x, 2)
         x = torch.flatten(x, 1)
-        x = self.fc1(x)
-        x = F.relu(x)
-        return x
-
-
-class CIFAR10Net(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.conv1 = nn.Conv2d(3, 6, 5)
-        self.pool = nn.MaxPool2d(2, 2)
-        self.conv2 = nn.Conv2d(6, 16, 5)
-        self.fc1 = nn.Linear(16 * 5 * 5, 120)
-        self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, 10)
-
-    def forward(self, x):
-        x = self.pool(F.relu(self.conv1(x)))
-        x = self.pool(F.relu(self.conv2(x)))
-        x = x.view(-1, 16 * 5 * 5)
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = self.fc3(x)
+        x = self.block2(x)
         return x
