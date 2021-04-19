@@ -36,6 +36,7 @@ class TargetPropNetwork(nn.Module):
 
         x1_hat = self.block1(x0)
         x_T = self.block3(x1_target)
+
         h = x1_hat - x1_target
 
         eps_h = F.softshrink(h, config.constr_margin)
