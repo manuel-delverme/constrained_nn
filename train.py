@@ -85,23 +85,6 @@ def forward_step(data, indices, model, target):
     return rhs, loss, defect
 
 
-def grad_step(aux_optimizer, batch_idx, data, indices, model, optimizer, step, target):
-    optimizer.zero_grad()
-    aux_optimizer.zero_grad()
-    # Step
-    # Eval
-    x_T, rhs = model(data, indices)
-    loss = F.nll_loss(x_T, target)
-    # Loss
-    constr_loss = torch.einsum('bh,bh->', model.multipliers(indices).squeeze(), rhs)
-    lagr = loss + constr_loss
-    config.tb.add_scalar("train/lagrangian1", lagr, batch_idx + step)
-    aug_lagr = lagr + config.lambda_ * rhs.pow(2).mean(1).mean(0)
-    # Grads
-    aug_lagr.backward()  # Player 1
-    return rhs
-
-
 def test(model, device, test_loader, step):
     model.eval()
     test_loss = 0
@@ -119,9 +102,7 @@ def test(model, device, test_loader, step):
     config.tb.add_scalar("test/loss", test_loss, step)
     config.tb.add_scalar("test/accuracy", correct / len(test_loader.dataset), step)
 
-    print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
-        test_loss, correct, len(test_loader.dataset),
-        100. * correct / len(test_loader.dataset)))
+    print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(test_loss, correct, len(test_loader.dataset), 100. * correct / len(test_loader.dataset)))
 
 
 def main():
