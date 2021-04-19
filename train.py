@@ -51,7 +51,6 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
             aux_optimizer.step()
         else:
             optimizer.zero_grad()
-            aux_optimizer.zero_grad()
 
             rhs, loss, defect = forward_step(data, indices, model, target)
             config.tb.add_scalar("train/loss", float(loss.item()), batch_idx + step)
