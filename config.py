@@ -10,7 +10,7 @@ REMOTE = 1
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
 dataset_path = "../data" if DEBUG else "/network/datasets/{}.var/{}_torchvision"
 
-experiment = "target_prop"
+rxperiment = "target_prop"
 dataset = "cifar10"
 
 # Robust Classification experiments
