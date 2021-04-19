@@ -1,6 +1,7 @@
 import os
 
 import torch
+import torch.utils.data
 import torchvision.transforms
 from torchvision import datasets
 
@@ -66,9 +67,16 @@ def load_datasets():
         train_kwargs.update(cuda_kwargs)
         test_kwargs.update(cuda_kwargs)
 
-    train_loader = torch.utils.data.DataLoader(
-        dataset_class(dataset_path, train=True, transform=transform),
-        shuffle=True, **train_kwargs)
+    dataset = dataset_class(dataset_path, train=True, transform=transform)
+
+    sampler = None
+    if config.adversarial_sampling:
+        sampler = torch.utils.data.WeightedRandomSampler(torch.ones(len(dataset)), num_samples=len(dataset), replacement=True)
+    else:
+        train_kwargs['shuffle'] = True
+
+    train_loader = torch.utils.data.DataLoader(dataset, sampler=sampler, **train_kwargs)
+
     test_loader = torch.utils.data.DataLoader(
         dataset_class(dataset_path, train=False, transform=transform), **test_kwargs
     )
