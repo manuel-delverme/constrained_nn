@@ -10,15 +10,12 @@ REMOTE = 1
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
 dataset_path = "../data" if DEBUG else "/network/datasets/{}.var/{}_torchvision"
 
-experiment = "target_prop"
-dataset = "mnist"  # "cifar10"
-
-# Robust Classification experiments
 corruption_percentage = 0.00
+soft_eps = False
 
-# Target Prop Experiments
-constr_margin = 0.02854
-initial_forward = True
+chance_constraint = False  # 0.05
+temperature = 10
+constr_margin = 0.15779255009939092
 adversarial_sampling = True
 
 random_seed = 1337
@@ -33,7 +30,9 @@ lambda_ = 0.06788
 # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
 
 batch_size = 1024
+warmup_epochs = 1 if DEBUG else 5
 num_epochs = 150
+initial_forward = not DEBUG
 use_cuda = not DEBUG
 
 ################################################################
