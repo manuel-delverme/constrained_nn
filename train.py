@@ -14,9 +14,9 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
     model.train()
     for batch_idx, (data, target, indices) in enumerate(train_loader):
         data, target, indices = data.to(device), target.to(device), indices.to(device)
+
         optimizer.zero_grad()
-        x_T, rhs = model(data, indices)
-        loss = F.nll_loss(x_T, target)
+        rhs, loss, defect = forward_step(data, indices, model, target)
 
         config.tb.add_scalar("train/loss", float(loss.item()), batch_idx + step)
         config.tb.add_scalar("train/mean_defect", float(rhs.mean()), batch_idx + step)
@@ -44,8 +44,7 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
             aux_optimizer.zero_grad()
             # Step
             # Eval
-            x_T, rhs = model(data, indices)
-            loss = F.nll_loss(x_T, target)
+            rhs, loss, defect = forward_step(data, indices, model, target)
 
             # Loss
             constr_loss = torch.einsum('bh,bh->', model.multipliers(indices).squeeze(), rhs)
@@ -64,8 +63,7 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
 
             with torch.no_grad():
                 # Eval
-                x_T, rhs = model(data, indices)
-                loss = F.nll_loss(x_T, target)
+                rhs, loss, defect = forward_step(data, indices, model, target)
 
                 # Loss
                 constr_loss = torch.einsum('bh,bh->', model.multipliers(indices).squeeze(), rhs)
@@ -79,9 +77,20 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
 
         print(f'Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)}'
               f' ({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f} rhs: {constr_loss.item():.6f}')
-        # if constr_loss > 10:
-        #     sys.exit()
     return batch_idx + step
+
+
+def forward_step(data, indices, model, target):
+    if config.experiment == "target_prop":
+        y_hat, defect = model(data, indices)
+        loss = F.nll_loss(y_hat, target)
+    else:
+        y_hat, sample_weights, defect = model(data, indices)
+        loss = F.nll_loss(y_hat, target, reduce=False) * sample_weights.squeeze()
+        loss = loss.mean()
+    # Extrapolation
+    rhs = torch.einsum('bh,bh->', model.multipliers(indices), defect)
+    return rhs, loss, defect
 
 
 def grad_step(aux_optimizer, batch_idx, data, indices, model, optimizer, step, target):
