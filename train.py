@@ -112,9 +112,12 @@ def main():
         if config.dataset == "mnist":
             model = network.TargetPropNetwork(train_loader).to(config.device)
         else:
-            model = network.CIFAR10TargetProp(train_loader).to(config.device)
+            model = network.CIAR10TargetProp(train_loader).to(config.device)
     else:
-        model = network.ConstrNetwork(train_loader).to(config.device)
+        if config.dataset == "mnist":
+            model = network.MnistNet(train_loader).to(config.device)
+        else:
+            raise NotImplemented
 
     step = 0
     optimizer = torch.optim.Adagrad(model.parameters(), lr=config.warmup_lr)
