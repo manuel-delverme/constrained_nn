@@ -23,7 +23,6 @@ class TargetPropNetwork(nn.Module):
             nn.Linear(128, 10),
             nn.LogSoftmax(dim=1)
         )
-
         dataset_size = len(train_loader.dataset)
         weight = torch.zeros(dataset_size, 128)
 
@@ -58,10 +57,11 @@ class TargetPropNetwork(nn.Module):
         return x
 
 
-class CIFAR10Net(nn.Module):
+class CIFAR10TargetProp(nn.Module):
     def __init__(self, train_loader):
         super().__init__()
 
+        state_size = 84
         self.block1 = nn.Sequential(
             nn.Conv2d(3, 6, 5),
             nn.ReLU(),
@@ -71,16 +71,16 @@ class CIFAR10Net(nn.Module):
             nn.MaxPool2d(2, 2),
             nn.Linear(16 * 5 * 5, 120),
             nn.ReLU(),
-            nn.Linear(120, 84),
+            nn.Linear(120, state_size),
 
         )
         self.block3 = nn.Sequential(
-            nn.Linear(84, 10),
+            nn.Linear(state_size, 10),
             nn.LogSoftmax(dim=1)
         )
 
         dataset_size = len(train_loader.dataset)
-        weight = torch.zeros(dataset_size, 128)
+        weight = torch.zeros(dataset_size, state_size)
 
         if config.initial_forward:
             with torch.no_grad():
@@ -89,11 +89,11 @@ class CIFAR10Net(nn.Module):
                     weight[indices] = x_i
 
         self.x1 = nn.Sequential(
-            nn.Embedding(dataset_size, 128, _weight=weight, sparse=True),
+            nn.Embedding(dataset_size, state_size, _weight=weight, sparse=True),
             nn.ReLU()
         )
         self.multipliers = nn.Sequential(
-            nn.Embedding(dataset_size, 128, _weight=torch.zeros(dataset_size, 128), sparse=True),
+            nn.Embedding(dataset_size, state_size, _weight=torch.zeros(dataset_size, state_size), sparse=True),
         )
 
     def forward(self, x0, indices):

@@ -109,9 +109,11 @@ def main():
     torch.manual_seed(config.random_seed)
     train_loader, test_loader = utils.load_datasets()
     if config.experiment == "target_prop":
-        model = network.TargetPropNetwork(train_loader).to(config.device)
+        if config.dataset == "mnist":
+            model = network.TargetPropNetwork(train_loader).to(config.device)
+        else:
+            model = network.CIFAR10TargetProp(train_loader).to(config.device)
     else:
-        raise NotImplemented
         model = network.ConstrNetwork(train_loader).to(config.device)
 
     step = 0
