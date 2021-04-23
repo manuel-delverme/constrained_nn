@@ -1,7 +1,5 @@
 import sys
-
 import torch
-
 import experiment_buddy
 
 RUN_SWEEP = 0
@@ -11,10 +9,11 @@ DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
 dataset_path = "../data" if DEBUG else "/network/datasets/{}.var/{}_torchvision"
 
 experiment = "target_prop"
-dataset = "cifar10"
+# dataset = "cifar10"
+dataset = "mnist"
+adversarial_sampling = False
 
 # experiment = "robust_classification"
-# dataset = "mnist"
 
 
 # Robust Classification experiments
@@ -25,7 +24,6 @@ chance_constraint = False  # 0.05
 # Target Prop Experiments
 constr_margin = 0.15779255009939092
 initial_forward = True
-adversarial_sampling = False
 
 random_seed = 1337
 
