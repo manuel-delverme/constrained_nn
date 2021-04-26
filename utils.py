@@ -69,12 +69,8 @@ def load_datasets():
 
     train_dataset = dataset_class(dataset_path, train=True, transform=transform)
 
-    if config.adversarial_sampling:
-        sampler = torch.utils.data.WeightedRandomSampler(torch.ones(len(train_dataset)), num_samples=len(train_dataset), replacement=True)
-        train_loader = torch.utils.data.DataLoader(train_dataset, sampler=sampler, **train_kwargs)
-    else:
-        train_kwargs['shuffle'] = True
-        train_loader = torch.utils.data.DataLoader(train_dataset, **train_kwargs)
+    train_kwargs['shuffle'] = True
+    train_loader = torch.utils.data.DataLoader(train_dataset, **train_kwargs)
 
     test_loader = torch.utils.data.DataLoader(dataset_class(dataset_path, train=False, transform=transform), **test_kwargs)
     return train_loader, test_loader

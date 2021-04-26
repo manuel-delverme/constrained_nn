@@ -17,6 +17,7 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
         data, target, indices = data.to(device), target.to(device), indices.to(device)
         config.tb.add_scalar("train/epoch", epoch, batch_idx + step)
         config.tb.add_scalar("train/adversarial", float(adversarial), batch_idx + step)
+        config.tb.add_histogram("train/indices", indices.cpu(), batch_idx + step)
 
         if adversarial:
             # Extrapolation
@@ -51,7 +52,6 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
             aux_optimizer.step()
         else:
             optimizer.zero_grad()
-            aux_optimizer.zero_grad()
 
             rhs, loss, defect = forward_step(data, indices, model, target)
             config.tb.add_scalar("train/loss", float(loss.item()), batch_idx + step)
@@ -66,9 +66,6 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
         print(f'Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)}'
               f' ({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f} rhs: {rhs.item():.6f}')
 
-    if config.adversarial_sampling:
-        with torch.no_grad():
-            train_loader.sampler.weights = torch.softmax(torch.max(model.multipliers[0].weight, dim=-1).values, dim=0)
     return batch_idx + step
 
 
@@ -108,6 +105,7 @@ def test(model, device, test_loader, step):
 def main():
     torch.manual_seed(config.random_seed)
     train_loader, test_loader = utils.load_datasets()
+
     if config.experiment == "target_prop":
         if config.dataset == "mnist":
             model = network.TargetPropNetwork(train_loader).to(config.device)
