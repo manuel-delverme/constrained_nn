@@ -55,16 +55,20 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
 
             rhs, loss, defect = forward_step(data, indices, model, target)
             config.tb.add_scalar("train/loss", float(loss.item()), batch_idx + step)
-            config.tb.add_scalar("train/mean_defect", float(defect.mean()), batch_idx + step)
-            config.tb.add_scalar("train/rhs_defect", float(rhs.mean()), batch_idx + step)
 
-            constr_loss = config.lambda_ * defect.pow(2).mean(1).mean(0)
-            lagr = loss + constr_loss
+            if config.experiment != "sgd":
+                config.tb.add_scalar("train/mean_defect", float(defect.mean()), batch_idx + step)
+                config.tb.add_scalar("train/rhs_defect", float(rhs.mean()), batch_idx + step)
+
+                constr_loss = config.lambda_ * defect.pow(2).mean(1).mean(0)
+                lagr = loss + constr_loss
+            else:
+                lagr = loss
+
             lagr.backward()
             optimizer.step()
 
-        print(f'Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)}'
-              f' ({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f} rhs: {rhs.item():.6f}')
+        print(f'Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)} ({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f}')
 
     return batch_idx + step
 
@@ -73,12 +77,20 @@ def forward_step(data, indices, model, target):
     if config.experiment == "target_prop":
         y_hat, defect = model(data, indices)
         loss = F.nll_loss(y_hat, target)
-    else:
+        rhs = torch.einsum('bh,bh->', model.multipliers(indices), defect)
+
+    elif config.experiment == "robust_classification":
         y_hat, sample_weights, defect = model(data, indices)
         loss = F.nll_loss(y_hat, target, reduce=False) * sample_weights.squeeze()
         loss = loss.mean()
-    # Extrapolation
-    rhs = torch.einsum('bh,bh->', model.multipliers(indices), defect)
+        rhs = torch.einsum('bh,bh->', model.multipliers(indices), defect)
+
+    elif config.experiment == "sgd":
+        y_hat = model(data, indices)
+        loss = F.nll_loss(y_hat, target)
+        rhs, defect = None, None
+    else:
+        raise NotImplemented
     return rhs, loss, defect
 
 
@@ -106,37 +118,52 @@ def main():
     torch.manual_seed(config.random_seed)
     train_loader, test_loader = utils.load_datasets()
 
-    if config.experiment == "target_prop":
-        if config.dataset == "mnist":
-            model = network.TargetPropNetwork(train_loader).to(config.device)
-        else:
-            model = network.CIAR10TargetProp(train_loader).to(config.device)
-    else:
-        if config.dataset == "mnist":
-            model = network.MnistNet(train_loader).to(config.device)
-        else:
-            raise NotImplemented
+    model = load_model(train_loader).to(config.device)
 
     step = 0
     optimizer = torch.optim.Adagrad(model.parameters(), lr=config.warmup_lr)
 
-    for epoch in range(config.warmup_epochs):
+    if config.experiment == "sgd":
+        unconstrained_epochs = config.num_epochs
+        constrained_epochs = None
+    else:
+        unconstrained_epochs = config.warmup_epochs
+        constrained_epochs = config.num_epochs
+
+    for epoch in range(unconstrained_epochs):
         step = train(model, config.device, train_loader, optimizer, epoch, step, adversarial=False)
         test(model, config.device, test_loader, step)
 
-    theta = [v for k, v in model.named_parameters() if not k.startswith("x1") and not k.startswith("multipliers")]
-    x = [v for k, v in model.named_parameters() if k.startswith("x1")]
-    multi = [v for k, v in model.named_parameters() if k.startswith("multipliers")]
-    optimizer = extragradient.ExtraAdagrad(
-        [
-            {'params': theta, 'lr': config.initial_lr_theta},
-            {'params': x, 'lr': config.initial_lr_x},
-        ])
-    aux_optimizer = extragradient.ExtraSGD([{'params': multi, 'lr': config.initial_lr_y}])
+    if constrained_epochs is not None:
+        theta = [v for k, v in model.named_parameters() if not k.startswith("x1") and not k.startswith("multipliers")]
+        x = [v for k, v in model.named_parameters() if k.startswith("x1")]
+        multi = [v for k, v in model.named_parameters() if k.startswith("multipliers")]
+        optimizer = extragradient.ExtraAdagrad(
+            [
+                {'params': theta, 'lr': config.initial_lr_theta},
+                {'params': x, 'lr': config.initial_lr_x},
+            ])
+        aux_optimizer = extragradient.ExtraSGD([{'params': multi, 'lr': config.initial_lr_y}])
 
-    for epoch in range(config.num_epochs):
-        step = train(model, config.device, train_loader, optimizer, epoch, step, adversarial=True, aux_optimizer=aux_optimizer)
-        test(model, config.device, test_loader, step)
+        for epoch in range(config.num_epochs):
+            step = train(model, config.device, train_loader, optimizer, epoch, step, adversarial=True, aux_optimizer=aux_optimizer)
+            test(model, config.device, test_loader, step)
+
+
+def load_model(train_loader):
+    if config.experiment == "target_prop":
+        if config.dataset == "mnist":
+            model = network.TargetPropNetwork(train_loader)
+        else:
+            model = network.CIAR10TargetProp(train_loader)
+    elif config.experiment == "robust_classification":
+        raise NotImplemented
+    elif config.experiment == "sgd":
+        if config.dataset == "mnist":
+            model = network.MNISTNetwork()
+        elif config.dataset == "cifar10":
+            model = network.CIFAR10Network()
+    return model
 
 
 if __name__ == '__main__':

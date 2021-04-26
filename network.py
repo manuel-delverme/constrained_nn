@@ -7,7 +7,7 @@ import config
 
 
 class TargetPropNetwork(nn.Module):
-    def __init__(self, train_loader):
+    def __init__(self, train_loader=None, multi_stage=True):
         super().__init__()
         self.block1 = nn.Sequential(
             nn.Conv2d(1, 32, 3, 1),
@@ -23,22 +23,22 @@ class TargetPropNetwork(nn.Module):
             nn.Linear(128, 10),
             nn.LogSoftmax(dim=1)
         )
-        dataset_size = len(train_loader.dataset)
-        weight = torch.zeros(dataset_size, 128)
+        if multi_stage:
+            dataset_size = len(train_loader.dataset)
+            weight = torch.zeros(dataset_size, 128)
 
-        if config.initial_forward:
             with torch.no_grad():
                 for batch_idx, (data, target, indices) in tqdm.tqdm(enumerate(train_loader), total=len(train_loader)):
                     x_i = self.block1(data)
                     weight[indices] = x_i
 
-        self.x1 = nn.Sequential(
-            nn.Embedding(dataset_size, 128, _weight=weight, sparse=True),
-            nn.ReLU()
-        )
-        self.multipliers = nn.Sequential(
-            nn.Embedding(dataset_size, 128, _weight=torch.zeros(dataset_size, 128), sparse=True),
-        )
+            self.x1 = nn.Sequential(
+                nn.Embedding(dataset_size, 128, _weight=weight, sparse=True),
+                nn.ReLU()
+            )
+            self.multipliers = nn.Sequential(
+                nn.Embedding(dataset_size, 128, _weight=torch.zeros(dataset_size, 128), sparse=True),
+            )
 
     def forward(self, x0, indices):
         x1_target = self.x1(indices)
@@ -58,7 +58,7 @@ class TargetPropNetwork(nn.Module):
 
 
 class CIAR10TargetProp(nn.Module):
-    def __init__(self, train_loader):
+    def __init__(self, train_loader=None, multi_stage=True):
         super().__init__()
 
         state_size = 84
@@ -80,22 +80,23 @@ class CIAR10TargetProp(nn.Module):
             nn.LogSoftmax(dim=1)
         )
 
-        dataset_size = len(train_loader.dataset)
-        weight = torch.zeros(dataset_size, state_size)
+        if multi_stage:
+            dataset_size = len(train_loader.dataset)
+            weight = torch.zeros(dataset_size, state_size)
 
-        if config.initial_forward:
-            with torch.no_grad():
-                for batch_idx, (data, target, indices) in tqdm.tqdm(enumerate(train_loader), total=len(train_loader)):
-                    x_i = self.block1(data)
-                    weight[indices] = x_i
+            if config.initial_forward:
+                with torch.no_grad():
+                    for batch_idx, (data, target, indices) in tqdm.tqdm(enumerate(train_loader), total=len(train_loader)):
+                        x_i = self.block1(data)
+                        weight[indices] = x_i
 
-        self.x1 = nn.Sequential(
-            nn.Embedding(dataset_size, state_size, _weight=weight, sparse=True),
-            nn.ReLU()
-        )
-        self.multipliers = nn.Sequential(
-            nn.Embedding(dataset_size, state_size, _weight=torch.zeros(dataset_size, state_size), sparse=True),
-        )
+            self.x1 = nn.Sequential(
+                nn.Embedding(dataset_size, state_size, _weight=weight, sparse=True),
+                nn.ReLU()
+            )
+            self.multipliers = nn.Sequential(
+                nn.Embedding(dataset_size, state_size, _weight=torch.zeros(dataset_size, state_size), sparse=True),
+            )
 
     def forward(self, x0, indices):
         x1_target = self.x1(indices)
@@ -115,10 +116,16 @@ class CIAR10TargetProp(nn.Module):
 
 
 class MNISTNetwork(TargetPropNetwork):
-    def forward(self, x0):
+    def __init__(self):
+        super().__init__(multi_stage=False)
+
+    def forward(self, x0, indices):
         return self.full_rollout(x0)
 
 
 class CIFAR10Network(CIAR10TargetProp):
-    def forward(self, x0):
+    def __init__(self):
+        super().__init__(multi_stage=False)
+
+    def forward(self, x0, indices):
         return self.full_rollout(x0)
