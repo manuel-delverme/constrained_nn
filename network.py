@@ -129,3 +129,33 @@ class CIFAR10Network(CIAR10TargetProp):
 
     def forward(self, x0, indices):
         return self.full_rollout(x0)
+
+
+class MNISTLiftedNetwork(TargetPropNetwork):
+    def __init__(self, num_constraints):
+        super().__init__(multi_stage=False)
+        self.x1 = nn.Sequential(
+            nn.Embedding(num_constraints, 1, sparse=True),
+            nn.ReLU()
+        )
+        self.multipliers = nn.Sequential(
+            nn.Embedding(num_constraints, 1, sparse=True),
+        )
+
+    def forward(self, x0, indices):
+        return self.full_rollout(x0)
+
+
+class CIFAR10LiftedNetwork(CIAR10TargetProp):
+    def __init__(self, num_constraints):
+        super().__init__(multi_stage=False)
+        self.x1 = nn.Sequential(
+            nn.Embedding(num_constraints, 1, sparse=True),
+            nn.ReLU()
+        )
+        self.multipliers = nn.Sequential(
+            nn.Embedding(num_constraints, 1, sparse=True),
+        )
+
+    def forward(self, x0, indices):
+        return self.full_rollout(x0)
