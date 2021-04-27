@@ -130,7 +130,7 @@ def main():
 
     step = 0
 
-    if config.experiment == "sgd":
+    if config.experiment == "sgd" or config.constraint_satisfaction == "penalty":
         unconstrained_epochs = config.num_epochs
         constrained_epochs = None
     else:
