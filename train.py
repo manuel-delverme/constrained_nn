@@ -80,9 +80,17 @@ def forward_step(data, indices, model, target):
         rhs = torch.einsum('bh,bh->', model.multipliers(indices), defect)
 
     elif config.experiment == "robust_classification":
-        y_hat, sample_weights, defect = model(data, indices)
-        loss = F.nll_loss(y_hat, target, reduce=False) * sample_weights.squeeze()
-        loss = loss.mean()
+        y_hat = model(data, indices)
+        sample_weights = model.x1(indices)
+
+        p_data_ignored = 1. - sample_weights.mean()
+        prob_defect = torch.relu(p_data_ignored - config.chance_constraint)
+        defect = prob_defect.repeat(sample_weights.shape)
+        # defect = sample_weights.mean()
+
+        loss = F.nll_loss(y_hat, target, reduce=False)
+        robust_loss = loss * sample_weights.squeeze()
+        loss = robust_loss.mean()
         rhs = torch.einsum('bh,bh->', model.multipliers(indices), defect)
 
     elif config.experiment == "sgd":
@@ -121,7 +129,6 @@ def main():
     model = load_model(train_loader).to(config.device)
 
     step = 0
-    optimizer = torch.optim.Adagrad(model.parameters(), lr=config.warmup_lr)
 
     if config.experiment == "sgd":
         unconstrained_epochs = config.num_epochs
@@ -130,6 +137,7 @@ def main():
         unconstrained_epochs = config.warmup_epochs
         constrained_epochs = config.num_epochs
 
+    optimizer = torch.optim.Adagrad(model.parameters(), lr=config.warmup_lr)
     for epoch in range(unconstrained_epochs):
         step = train(model, config.device, train_loader, optimizer, epoch, step, adversarial=False)
         test(model, config.device, test_loader, step)
@@ -157,7 +165,10 @@ def load_model(train_loader):
         else:
             model = network.CIAR10TargetProp(train_loader)
     elif config.experiment == "robust_classification":
-        raise NotImplemented
+        if config.dataset == "mnist":
+            model = network.MNISTLiftedNetwork(len(train_loader.dataset))
+        elif config.dataset == "cifar10":
+            model = network.CIFAR10LiftedNetwork(len(train_loader.dataset))
     elif config.experiment == "sgd":
         if config.dataset == "mnist":
             model = network.MNISTNetwork()
