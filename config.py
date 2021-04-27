@@ -11,7 +11,7 @@ DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
 dataset_path = "../data" if DEBUG else "/network/datasets/{}.var/{}_torchvision"
 
 experiment = ["sgd", "target_prop", "robust_classification"][0]
-dataset = ["mnist", "cifar10"][0]
+dataset = ["mnist", "cifar10"][1]
 
 # experiment = "robust_classification"
 
@@ -19,7 +19,11 @@ dataset = ["mnist", "cifar10"][0]
 # Robust Classification experiments
 corruption_percentage = 0.00
 
-chance_constraint = False  # 0.05
+chance_constraint = {
+    "sgd": False,
+    "target_prop": False,
+    "robust_classification": 0.05
+}[experiment]
 
 # Target Prop Experiments
 constr_margin = 0.15779255009939092
