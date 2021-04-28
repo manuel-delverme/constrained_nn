@@ -30,18 +30,19 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
             config.tb.add_scalar("train/mean_defect", float(defect.mean()), batch_idx + step)
             config.tb.add_scalar("train/mean_defect", float(rhs.mean()), batch_idx + step)
 
-            (loss + rhs).backward()
-            optimizer.extrapolation()
+            if config.constraint_satisfaction == "extra-gradient":
+                (loss + rhs).backward()
+                optimizer.extrapolation()
 
-            # Player 2
-            model.multipliers[0].weight.grad = torch.sparse_coo_tensor(indices.unsqueeze(0), -defect, model.multipliers[0].weight.shape)
-            aux_optimizer.extrapolation()
+                # Player 2
+                model.multipliers[0].weight.grad = torch.sparse_coo_tensor(indices.unsqueeze(0), -defect, model.multipliers[0].weight.shape)
+                aux_optimizer.extrapolation()
 
-            optimizer.zero_grad()
-            aux_optimizer.zero_grad()
+                optimizer.zero_grad()
+                aux_optimizer.zero_grad()
 
-            # Step
-            rhs, loss, defect = forward_step(data, indices, model, target)
+                # Step
+                rhs, loss, defect = forward_step(data, indices, model, target)
 
             # Grads
             (loss + rhs).backward()  # Player 1
@@ -130,7 +131,7 @@ def main():
 
     step = 0
 
-    if config.experiment == "sgd":
+    if config.experiment == "sgd" or config.constraint_satisfaction == "penalty":
         unconstrained_epochs = config.num_epochs
         constrained_epochs = None
     else:
@@ -143,15 +144,26 @@ def main():
         test(model, config.device, test_loader, step)
 
     if constrained_epochs is not None:
+        if config.constraint_satisfaction == "extra-gradient":
+            optimizer_primal = extragradient.ExtraAdagrad
+            optimizer_dual = extragradient.ExtraSGD
+        elif config.constraint_satisfaction == "descent-ascent":
+            optimizer_primal = torch.optim.Adagrad
+            optimizer_dual = torch.optim.SGD
+        else:
+            raise NotImplemented
+
         theta = [v for k, v in model.named_parameters() if not k.startswith("x1") and not k.startswith("multipliers")]
         x = [v for k, v in model.named_parameters() if k.startswith("x1")]
         multi = [v for k, v in model.named_parameters() if k.startswith("multipliers")]
-        optimizer = extragradient.ExtraAdagrad(
-            [
-                {'params': theta, 'lr': config.initial_lr_theta},
-                {'params': x, 'lr': config.initial_lr_x},
-            ])
-        aux_optimizer = extragradient.ExtraSGD([{'params': multi, 'lr': config.initial_lr_y}])
+        primal_variables = [
+            {'params': theta, 'lr': config.initial_lr_theta},
+            {'params': x, 'lr': config.initial_lr_x},
+        ]
+        dual_variables = [{'params': multi, 'lr': config.initial_lr_y}]
+
+        optimizer = optimizer_primal(primal_variables)
+        aux_optimizer = optimizer_dual(dual_variables)
 
         for epoch in range(config.num_epochs):
             step = train(model, config.device, train_loader, optimizer, epoch, step, adversarial=True, aux_optimizer=aux_optimizer)
@@ -174,6 +186,8 @@ def load_model(train_loader):
             model = network.MNISTNetwork()
         elif config.dataset == "cifar10":
             model = network.CIFAR10Network()
+    else:
+        raise NotImplemented
     return model
 
 
