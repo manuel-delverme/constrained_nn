@@ -11,7 +11,7 @@ DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
 dataset_path = "../data" if DEBUG else "/network/datasets/{}.var/{}_torchvision"
 
 experiment = ["sgd", "target-prop", "robust-classification"][1]
-constraint_satisfaction = ["penalty", "descent-ascent", "extra-gradient"][0]
+constraint_satisfaction = ["penalty", "descent-ascent", "extra-gradient"][2]
 dataset = ["mnist", "cifar10"][0]
 
 # experiment = "robust_classification"
@@ -22,9 +22,11 @@ corruption_percentage = 0.00
 
 chance_constraint = {
     "sgd": False,
-    "target_prop": False,
-    "robust_classification": 0.05
+    "target-prop": False,
+    "robust-classification": 0.05
 }[experiment]
+
+distributional = True
 
 # Target Prop Experiments
 constr_margin = 0.15779255009939092
@@ -44,13 +46,15 @@ lambda_ = 0.06788
 batch_size = 1024
 warmup_epochs = 1 if DEBUG else 0
 num_epochs = 150
-use_cuda = not DEBUG
+use_cuda = True # not DEBUG
 
 ################################################################
 # END OF PARAMETERS
 ################################################################
 experiment_buddy.register(locals())
 device = torch.device("cuda" if use_cuda else "cpu")
+if distributional:
+    assert experiment == "target-prop"
 
 ################################################################
 # Derivative parameters
