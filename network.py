@@ -24,31 +24,51 @@ class TargetPropNetwork(nn.Module):
             nn.LogSoftmax(dim=1)
         )
         if multi_stage:
-            dataset_size = len(train_loader.dataset)
-            weight = torch.zeros(dataset_size, 128)
+            if config.distributional:
+                dataset_size = len(train_loader.dataset)
+                num_classes = len(train_loader.dataset.classes)
+                self.targets = train_loader.dataset.targets
+                self.means = nn.Parameter(torch.zeros(num_classes, 128))
+                self.scale = nn.Parameter(torch.ones(num_classes, 128))
+                self.x1 = torch.distributions.Normal(self.means, self.scale)
+                self.multipliers = nn.Sequential(
+                    nn.Embedding(dataset_size, 128, _weight=torch.zeros(dataset_size, 128), sparse=True),
+                )
+            else:
+                dataset_size = len(train_loader.dataset)
+                weight = torch.zeros(dataset_size, 128)
 
-            with torch.no_grad():
-                for batch_idx, (data, target, indices) in tqdm.tqdm(enumerate(train_loader), total=len(train_loader)):
-                    x_i = self.block1(data)
-                    weight[indices] = x_i
+                with torch.no_grad():
+                    for batch_idx, (data, target, indices) in tqdm.tqdm(enumerate(train_loader), total=len(train_loader)):
+                        x_i = self.block1(data)
+                        weight[indices] = x_i
 
-            self.x1 = nn.Sequential(
-                nn.Embedding(dataset_size, 128, _weight=weight, sparse=True),
-                nn.ReLU()
-            )
-            self.multipliers = nn.Sequential(
-                nn.Embedding(dataset_size, 128, _weight=torch.zeros(dataset_size, 128), sparse=True),
-            )
+                self.x1 = nn.Sequential(
+                    nn.Embedding(dataset_size, 128, _weight=weight, sparse=True),
+                    nn.ReLU()
+                )
+                self.multipliers = nn.Sequential(
+                    nn.Embedding(dataset_size, 128, _weight=torch.zeros(dataset_size, 128), sparse=True),
+                )
 
     def forward(self, x0, indices):
-        x1_target = self.x1(indices)
-
         x1_hat = self.block1(x0)
-        x_T = self.block3(x1_target)
 
-        h = x1_hat - x1_target
+        if config.distributional:
+            targets = self.targets[indices]
+            h = (self.x1.mean[targets] - x1_hat) / self.x1.scale[targets]
+            samples = self.x1.rsample((x0.shape[0],))
+            x1 = []
+            for sample, target in zip(samples, targets):
+                x1.append(sample[target])
+            x1_target = torch.stack(x1)
+        else:
+            x1_target = self.x1(indices)
+            h = x1_hat - x1_target
 
         eps_h = F.softshrink(h, config.constr_margin)
+
+        x_T = self.block3(x1_target)
         return x_T, eps_h
 
     def full_rollout(self, x):
