@@ -1,3 +1,5 @@
+import scipy
+import scipy.spatial.distance
 import torch
 import torch.autograd
 import torch.nn.functional as F
@@ -27,8 +29,12 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
             rhs, loss, defect = forward_step(data, indices, model, target)
 
             config.tb.add_scalar("train/loss", float(loss.item()), batch_idx + step)
-            config.tb.add_scalar("train/mean_defect", float(defect.mean()), batch_idx + step)
+            config.tb.add_scalar("train/abs_mean_defect", float(defect.abs().mean()), batch_idx + step)
             config.tb.add_scalar("train/mean_defect", float(rhs.mean()), batch_idx + step)
+            config.tb.add_histogram("train/x1_scale", model.x1.scale.mean(axis=1).cpu().detach().numpy(), batch_idx + step)
+            config.tb.add_scalar("train/x1_mean", model.x1.mean.mean(), batch_idx + step)
+
+            torch.cdist(model.x1.mean, model.x1.mean)
 
             if config.constraint_satisfaction == "extra-gradient":
                 (loss + rhs).backward()
@@ -49,6 +55,7 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
             optimizer.step()
 
             # Player 2
+            # RYAN: this is not necessary
             model.multipliers[0].weight.grad = torch.sparse_coo_tensor(indices.unsqueeze(0), -defect, model.multipliers[0].weight.grad.shape)
             aux_optimizer.step()
         else:
@@ -75,12 +82,12 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
 
 
 def forward_step(data, indices, model, target):
-    if config.experiment == "target_prop":
+    if config.experiment == "target-prop":
         y_hat, defect = model(data, indices)
         loss = F.nll_loss(y_hat, target)
         rhs = torch.einsum('bh,bh->', model.multipliers(indices), defect)
 
-    elif config.experiment == "robust_classification":
+    elif config.experiment == "robust-classification":
         y_hat = model(data, indices)
         sample_weights = model.x1(indices)
 
@@ -171,21 +178,27 @@ def main():
 
 
 def load_model(train_loader):
-    if config.experiment == "target_prop":
+    if config.experiment == "target-prop":
         if config.dataset == "mnist":
             model = network.TargetPropNetwork(train_loader)
-        else:
+        elif config.dataset == "cifar10":
             model = network.CIAR10TargetProp(train_loader)
-    elif config.experiment == "robust_classification":
+        else:
+            raise NotImplemented
+    elif config.experiment == "robust-classification":
         if config.dataset == "mnist":
             model = network.MNISTLiftedNetwork(len(train_loader.dataset))
         elif config.dataset == "cifar10":
             model = network.CIFAR10LiftedNetwork(len(train_loader.dataset))
+        else:
+            raise NotImplemented
     elif config.experiment == "sgd":
         if config.dataset == "mnist":
             model = network.MNISTNetwork()
         elif config.dataset == "cifar10":
             model = network.CIFAR10Network()
+        else:
+            raise NotImplemented
     else:
         raise NotImplemented
     return model
