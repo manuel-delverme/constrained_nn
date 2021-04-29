@@ -3,12 +3,8 @@ metric:
   goal: maximize
   name: test/accuracy
 parameters:
-  ^chance_constraint:
-    distribution: uniform
-    min: 0.
-    max: 0.01
-  ^temperature:
+  ^constr_margin:
     distribution: uniform
     min: 0.01
-    max: 10.
+    max: 1.
 program: train.py
