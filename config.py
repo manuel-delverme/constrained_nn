@@ -4,7 +4,7 @@ import torch
 
 import experiment_buddy
 
-RUN_SWEEP = 0
+RUN_SWEEP = 1
 REMOTE = 1
 
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
@@ -66,5 +66,5 @@ tb = experiment_buddy.deploy(
     extra_slurm_headers="""
     """,
     # SBATCH --mem=24GB
-    proc_num=10 if RUN_SWEEP else 1
+    proc_num=5 if RUN_SWEEP else 1
 )
