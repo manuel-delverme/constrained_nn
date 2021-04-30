@@ -61,6 +61,7 @@ class TargetPropNetwork(nn.Module):
             x1 = []
             for sample, target in zip(samples, targets):
                 x1.append(sample[target])
+                # x1.append(self.x1.mean[target])
             x1_target = torch.stack(x1)
         else:
             x1_target = self.x1(indices)

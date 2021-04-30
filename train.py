@@ -116,15 +116,17 @@ def test(model, device, test_loader, step):
         for (data, target, idx) in test_loader:
             data, target = data.to(device), target.to(device)
             data = data  # .double()
-            output = model.full_rollout(data)
+            # output = model.full_rollout(data)
+            output = model(data)
             test_loss += F.nll_loss(output, target, reduction='sum').item()  # sum up batch loss
             pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
 
     test_loss /= len(test_loader.dataset)
-    config.tb.add_scalar("test/loss", test_loss, step)
-    config.tb.add_scalar("test/accuracy", correct / len(test_loader.dataset), step)
+    dataset = "test_on_train" if test_loader.dataset.train else "test"
 
+    config.tb.add_scalar(f"{dataset}/loss", test_loss, step)
+    config.tb.add_scalar(f"{dataset}/accuracy", correct / len(test_loader.dataset), step)
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(test_loss, correct, len(test_loader.dataset), 100. * correct / len(test_loader.dataset)))
 
 
@@ -172,6 +174,7 @@ def main():
 
         for epoch in range(config.num_epochs):
             step = train(model, config.device, train_loader, optimizer, epoch, step, adversarial=True, aux_optimizer=aux_optimizer)
+            test(model, config.device, train_loader, step)
             test(model, config.device, test_loader, step)
 
 
