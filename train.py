@@ -92,7 +92,6 @@ def forward_step(data, indices, model, target):
         p_data_ignored = 1. - sample_weights.mean()
         prob_defect = torch.relu(p_data_ignored - config.chance_constraint)
         defect = prob_defect.repeat(sample_weights.shape)
-        # defect = sample_weights.mean()
 
         loss = F.nll_loss(y_hat, target, reduce=False)
         robust_loss = loss * sample_weights.squeeze()
@@ -122,9 +121,10 @@ def test(model, device, test_loader, step):
             correct += pred.eq(target.view_as(pred)).sum().item()
 
     test_loss /= len(test_loader.dataset)
-    config.tb.add_scalar("test/loss", test_loss, step)
-    config.tb.add_scalar("test/accuracy", correct / len(test_loader.dataset), step)
+    dataset = "test_on_train" if test_loader.dataset.train else "test"
 
+    config.tb.add_scalar(f"{dataset}/loss", test_loss, step)
+    config.tb.add_scalar(f"{dataset}/accuracy", correct / len(test_loader.dataset), step)
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(test_loss, correct, len(test_loader.dataset), 100. * correct / len(test_loader.dataset)))
 
 
@@ -172,6 +172,7 @@ def main():
 
         for epoch in range(config.num_epochs):
             step = train(model, config.device, train_loader, optimizer, epoch, step, adversarial=True, aux_optimizer=aux_optimizer)
+            test(model, config.device, train_loader, step)
             test(model, config.device, test_loader, step)
 
 

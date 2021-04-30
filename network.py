@@ -28,7 +28,7 @@ class TargetPropNetwork(nn.Module):
                 dataset_size = len(train_loader.dataset)
                 num_classes = len(train_loader.dataset.classes)
                 self.targets = train_loader.dataset.targets
-                self.means = nn.Parameter(torch.zeros(num_classes, 128))
+                self.means = nn.Parameter(torch.ones(num_classes, 128))
                 self.scale = nn.Parameter(torch.ones(num_classes, 128))
                 self.x1 = torch.distributions.Normal(self.means, self.scale)
                 self.multipliers = nn.Sequential(
@@ -60,7 +60,8 @@ class TargetPropNetwork(nn.Module):
             samples = self.x1.rsample((x0.shape[0],))
             x1 = []
             for sample, target in zip(samples, targets):
-                x1.append(sample[target])
+                #  x1.append(sample[target])
+                x1.append(self.x1.mean[target])
             x1_target = torch.stack(x1)
         else:
             x1_target = self.x1(indices)
