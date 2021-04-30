@@ -4,7 +4,7 @@ import torch
 
 import experiment_buddy
 
-RUN_SWEEP = 0
+RUN_SWEEP = 1
 REMOTE = 1
 
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
@@ -35,8 +35,9 @@ initial_forward = True
 random_seed = 1337
 
 initial_lr_theta = 0.003314
-initial_lr_x = 0.04527
-initial_lr_y = 0.0001389
+primal_speedup = 2.
+initial_lr_x = 0.04527 * primal_speedup
+initial_lr_y = 0.0001389 * primal_speedup
 # 1e-2  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
 
 warmup_lr = 0.009185
@@ -66,5 +67,5 @@ tb = experiment_buddy.deploy(
     extra_slurm_headers="""
     """,
     # SBATCH --mem=24GB
-    proc_num=10 if RUN_SWEEP else 1
+    proc_num=15 if RUN_SWEEP else 1
 )
