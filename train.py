@@ -92,7 +92,6 @@ def forward_step(data, indices, model, target):
         p_data_ignored = 1. - sample_weights.mean()
         prob_defect = torch.relu(p_data_ignored - config.chance_constraint)
         defect = prob_defect.repeat(sample_weights.shape)
-        # defect = sample_weights.mean()
 
         loss = F.nll_loss(y_hat, target, reduce=False)
         robust_loss = loss * sample_weights.squeeze()
