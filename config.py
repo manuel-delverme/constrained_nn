@@ -66,5 +66,5 @@ tb = experiment_buddy.deploy(
     extra_slurm_headers="""
     """,
     # SBATCH --mem=24GB
-    proc_num=10 if RUN_SWEEP else 1
+    proc_num=10 if RUN_SWEEP else 3
 )
