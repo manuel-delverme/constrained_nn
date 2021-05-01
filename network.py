@@ -28,9 +28,9 @@ class TargetPropNetwork(nn.Module):
                 dataset_size = len(train_loader.dataset)
                 num_classes = len(train_loader.dataset.classes)
                 self.targets = train_loader.dataset.targets
-                self.means = nn.Parameter(torch.zeros(num_classes, 128))
+                self.means = nn.Parameter(torch.ones(num_classes, 128))
                 self.scale = nn.Parameter(torch.ones(num_classes, 128))
-                self.x1 = torch.distributions.Normal(self.means, self.scale)
+                self.x1 = torch.distributions.LogNormal(self.means, self.scale)
                 self.multipliers = nn.Sequential(
                     nn.Embedding(dataset_size, 128, _weight=torch.zeros(dataset_size, 128), sparse=True),
                 )
@@ -56,11 +56,15 @@ class TargetPropNetwork(nn.Module):
 
         if config.distributional:
             targets = self.targets[indices]
-            h = (x1_hat - self.x1.mean[targets]) / self.x1.scale[targets]
-            samples = self.x1.rsample((x0.shape[0],))
             x1 = []
-            for sample, target in zip(samples, targets):
+            h = []
+            # h = (x1_hat - self.x1.mean[targets]) / self.x1.scale[targets]
+            samples = self.x1.rsample((x0.shape[0],))
+            for x1_i, sample, target in zip(x1_hat, samples, targets):
+                cdf = self.x1.cdf(x1_i)[target]
+                h.append(cdf.mean())
                 x1.append(sample[target])
+            h = torch.stack(h)
             x1_target = torch.stack(x1)
         else:
             x1_target = self.x1(indices)
