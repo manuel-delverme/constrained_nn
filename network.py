@@ -5,6 +5,8 @@ from torch.nn import functional as F
 
 import config
 
+EPS = 1e-8
+
 
 class TargetPropNetwork(nn.Module):
     def __init__(self, train_loader=None, multi_stage=True):
@@ -17,7 +19,7 @@ class TargetPropNetwork(nn.Module):
             nn.MaxPool2d(2),
             nn.Flatten(1),
             nn.Linear(9216, 128),
-            nn.ReLU(),
+            # nn.ReLU(),
         )
         self.block3 = nn.Sequential(
             nn.Linear(128, 10),
@@ -28,8 +30,10 @@ class TargetPropNetwork(nn.Module):
                 dataset_size = len(train_loader.dataset)
                 num_classes = len(train_loader.dataset.classes)
                 self.targets = train_loader.dataset.targets
-                self.means = nn.Parameter(torch.zeros(num_classes, 128))
-                self.scale = nn.Parameter(torch.ones(num_classes, 128))
+
+                self.means = nn.Parameter(torch.rand((num_classes, 128)))
+                self.scale = nn.Parameter(torch.ones(num_classes, 128), requires_grad=False)
+
                 self.x1 = torch.distributions.Normal(self.means, self.scale)
                 self.multipliers = nn.Sequential(
                     nn.Embedding(dataset_size, 128, _weight=torch.zeros(dataset_size, 128), sparse=True),
@@ -56,11 +60,17 @@ class TargetPropNetwork(nn.Module):
 
         if config.distributional:
             targets = self.targets[indices]
-            h = (x1_hat - self.x1.mean[targets]) / self.x1.scale[targets]
-            samples = self.x1.rsample((x0.shape[0],))
             x1 = []
-            for sample, target in zip(samples, targets):
+            h = []
+            # h = (x1_hat - self.x1.mean[targets]) / self.x1.scale[targets]
+            samples = self.x1.rsample((x0.shape[0],))
+            for x1_i, sample, target in zip(x1_hat, samples, targets):
+                # cdf = 1 - self.x1.cdf(x1_i)[target]
+                # h.append(cdf)
                 x1.append(sample[target])
+                h1 = x1_i - x1[-1]
+                h.append(h1)
+            h = torch.stack(h)
             x1_target = torch.stack(x1)
         else:
             x1_target = self.x1(indices)
