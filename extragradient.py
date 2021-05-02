@@ -66,7 +66,10 @@ class ExtraAdagrad(torch.optim.Adagrad):
         for group in self.param_groups:
             for p in group['params']:
                 i += 1
-                normal_to_plane = -p.grad
+                if p.grad is not None:
+                    normal_to_plane = -p.grad
+                else:
+                    normal_to_plane = p.grad
 
                 # Move back to the previous point
                 p = self.old_iterate[i]
