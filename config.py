@@ -30,6 +30,7 @@ distributional = True
 
 # Target Prop Experiments
 constr_margin = 0.15779255009939092
+scale = 1.
 initial_forward = True
 
 random_seed = 1337
