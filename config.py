@@ -26,10 +26,11 @@ chance_constraint = {
     "robust-classification": 0.05
 }[experiment]
 
-distributional = True
+distributional = False
 
 # Target Prop Experiments
 constr_margin = 0.15779255009939092
+scale = 1.
 initial_forward = True
 
 random_seed = 1337
