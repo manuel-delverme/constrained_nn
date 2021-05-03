@@ -17,7 +17,7 @@ class TargetPropNetwork(nn.Module):
             nn.MaxPool2d(2),
             nn.Flatten(1),
             nn.Linear(9216, 128),
-            nn.ReLU(),
+            # nn.ReLU(),
         )
         self.block3 = nn.Sequential(
             nn.Linear(128, 10),
@@ -28,8 +28,10 @@ class TargetPropNetwork(nn.Module):
                 dataset_size = len(train_loader.dataset)
                 num_classes = len(train_loader.dataset.classes)
                 self.targets = train_loader.dataset.targets
-                self.means = nn.Parameter(torch.zeros(num_classes, 128))
+
+                self.means = nn.Parameter(torch.rand((num_classes, 128)))
                 self.scale = nn.Parameter(torch.ones(num_classes, 128))
+
                 self.x1 = torch.distributions.Normal(self.means, self.scale)
                 self.multipliers = nn.Sequential(
                     nn.Embedding(dataset_size, 128, _weight=torch.zeros(dataset_size, 128), sparse=True),
