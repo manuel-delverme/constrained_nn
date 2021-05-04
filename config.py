@@ -4,7 +4,7 @@ import torch
 
 import experiment_buddy
 
-RUN_SWEEP = 0
+RUN_SWEEP = 1
 REMOTE = 1
 
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
@@ -29,7 +29,7 @@ chance_constraint = {
 distributional = True
 
 # Target Prop Experiments
-constr_margin = 0.15779255009939092
+constr_margin = 1.  # ~68% of the distribution
 initial_forward = True
 
 random_seed = 1337
