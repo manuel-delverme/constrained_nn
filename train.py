@@ -28,18 +28,24 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
 
             config.tb.add_scalar("train/loss", float(loss.item()), batch_idx + step)
             config.tb.add_scalar("train/abs_mean_defect", float(defect.abs().mean()), batch_idx + step)
-            config.tb.add_scalar("train/mean_defect", float(rhs.mean()), batch_idx + step)
-            config.tb.add_histogram("train/x1_scale", model.x1.scale.mean(axis=1).cpu().detach().numpy(), batch_idx + step)
+            config.tb.add_scalar("train/mean_rhs", float(rhs.mean()), batch_idx + step)
 
-            config.tb.add_scalar("train/x1_mean", model.x1.mean.mean(), batch_idx + step)
-            config.tb.add_histogram("train/x1_dist_hist", torch.pdist(model.x1.mean).cpu().detach().numpy(), batch_idx + step)
+            if config.distributional:
+                config.tb.add_histogram("train/x1_scale", model.x1.scale.mean(axis=1).cpu().detach().numpy(), batch_idx + step)
+                config.tb.add_scalar("train/x1_mean", model.x1.mean.mean(), batch_idx + step)
+                config.tb.add_histogram("train/x1_dist_hist", torch.pdist(model.x1.mean).cpu().detach().numpy(), batch_idx + step)
 
             if config.constraint_satisfaction == "extra-gradient":
                 (loss + rhs).backward()
                 optimizer.extrapolation()
 
                 # Player 2
-                model.multipliers[0].weight.grad = torch.sparse_coo_tensor(indices.unsqueeze(0), -defect, model.multipliers[0].weight.shape)
+                multiplier_grad = -defect
+                if not config.eps_constraint:
+                    multiplier_grad = F.softshrink(multiplier_grad, config.constr_margin)
+
+                model.multipliers[0].weight.grad = torch.sparse_coo_tensor(indices.unsqueeze(0), multiplier_grad, model.multipliers[0].weight.shape)
+
                 aux_optimizer.extrapolation()
 
                 optimizer.zero_grad()
@@ -54,7 +60,12 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
 
             # Player 2
             # RYAN: this is not necessary
-            model.multipliers[0].weight.grad = torch.sparse_coo_tensor(indices.unsqueeze(0), -defect, model.multipliers[0].weight.grad.shape)
+            multiplier_grad = -defect
+            if not config.eps_constraint:
+                multiplier_grad = F.softshrink(multiplier_grad, config.constr_margin)
+
+            model.multipliers[0].weight.grad = torch.sparse_coo_tensor(indices.unsqueeze(0), multiplier_grad, model.multipliers[0].weight.shape)
+
             aux_optimizer.step()
         else:
             optimizer.zero_grad()
@@ -92,7 +103,6 @@ def forward_step(data, indices, model, target):
         p_data_ignored = 1. - sample_weights.mean()
         prob_defect = torch.relu(p_data_ignored - config.chance_constraint)
         defect = prob_defect.repeat(sample_weights.shape)
-        # defect = sample_weights.mean()
 
         loss = F.nll_loss(y_hat, target, reduce=False)
         robust_loss = loss * sample_weights.squeeze()
@@ -112,15 +122,24 @@ def test(model, device, test_loader, step):
     model.eval()
     test_loss = 0
     correct = 0
+    log_prob = 0
+
     with torch.no_grad():
         for (data, target, idx) in test_loader:
             data, target = data.to(device), target.to(device)
             data = data  # .double()
             output = model.full_rollout(data)
+            if config.distributional:
+                for xi, yi in zip(data, target):
+                    x1_hat = model.block1(xi.unsqueeze(0))
+                    log_prob += model.x1.log_prob(x1_hat)[yi].mean()
+
             test_loss += F.nll_loss(output, target, reduction='sum').item()  # sum up batch loss
             pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
 
+    if config.distributional:
+        config.tb.add_scalar("test/prob_x1", torch.exp(log_prob / len(test_loader.dataset)), step)
     test_loss /= len(test_loader.dataset)
     config.tb.add_scalar("test/loss", test_loss, step)
     config.tb.add_scalar("test/accuracy", correct / len(test_loader.dataset), step)
@@ -169,6 +188,7 @@ def main():
 
         optimizer = optimizer_primal(primal_variables)
         aux_optimizer = optimizer_dual(dual_variables)
+        config.tb.watch(model, log="all")
 
         for epoch in range(config.num_epochs):
             step = train(model, config.device, train_loader, optimizer, epoch, step, adversarial=True, aux_optimizer=aux_optimizer)
