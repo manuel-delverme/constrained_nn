@@ -1,7 +1,7 @@
 method: bayes
 metric:
-  goal: maximize
-  name: test/accuracy
+  goal: minimize
+  name: test/loss
 parameters:
   ^constr_margin:
     distribution: uniform

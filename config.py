@@ -4,7 +4,7 @@ import torch
 
 import experiment_buddy
 
-RUN_SWEEP = 0
+RUN_SWEEP = 1
 REMOTE = 1
 
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
@@ -13,6 +13,7 @@ dataset_path = "../data" if DEBUG else "/network/datasets/{}.var/{}_torchvision"
 experiment = ["sgd", "target-prop", "robust-classification"][1]
 constraint_satisfaction = ["penalty", "descent-ascent", "extra-gradient"][2]
 dataset = ["mnist", "cifar10"][0]
+distributional = False
 
 # experiment = "robust_classification"
 
@@ -26,13 +27,13 @@ chance_constraint = {
     "robust-classification": 0.05
 }[experiment]
 
-distributional = True
 
 # Target Prop Experiments
-constr_margin = 0.15779255009939092
+constr_margin = 1.  # ~68% of the distribution
 initial_forward = True
 
 random_seed = 1337
+eps_constraint = True
 
 initial_lr_theta = 0.003314
 initial_lr_x = 0.04527
