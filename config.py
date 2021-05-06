@@ -4,14 +4,14 @@ import torch
 
 import experiment_buddy
 
-RUN_SWEEP = 0
+RUN_SWEEP = 1
 REMOTE = 1
 
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
 dataset_path = "../data" if DEBUG else "/network/datasets/{}.var/{}_torchvision"
 
 experiment = ["sgd", "target-prop", "robust-classification"][1]
-constraint_satisfaction = ["penalty", "descent-ascent", "extra-gradient"][2]
+constraint_satisfaction = ["penalty", "descent-ascent", "extra-gradient"][0]
 dataset = ["mnist", "cifar10"][0]
 distributional = False
 
@@ -68,6 +68,9 @@ tb = experiment_buddy.deploy(
     sweep_yaml="sweep_hyper.yaml" if RUN_SWEEP else False,
     extra_slurm_headers="""
     """,
+    wandb_kwargs={
+        'project': "_".join((experiment, constraint_satisfaction, dataset))
+    },
     # SBATCH --mem=24GB
-    proc_num=10 if RUN_SWEEP else 1
+    proc_num=3 if RUN_SWEEP else 1
 )
