@@ -48,7 +48,7 @@ lambda_ = 0.06788
 
 batch_size = 1024
 warmup_epochs = 0  # 1 if DEBUG else 0
-num_epochs = 150
+num_epochs = 15# 0
 use_cuda = True  # not DEBUG
 
 ################################################################
@@ -63,11 +63,22 @@ if distributional:
 # Derivative parameters
 ################################################################
 
-tb = experiment_buddy.deploy(
-    host="mila" if REMOTE else "",
-    sweep_yaml="sweep_hyper.yaml" if RUN_SWEEP else False,
-    extra_slurm_headers="""
-    """,
-    # SBATCH --mem=24GB
-    proc_num=10 if RUN_SWEEP else 1
-)
+try:
+    tb = experiment_buddy.deploy(
+        host="mila" if REMOTE else "",
+        sweep_yaml="sweep_hyper.yaml" if RUN_SWEEP else False,
+        extra_slurm_headers="""
+        """,
+        experiment_id="_".join((experiment, constraint_satisfaction, dataset)),
+        # SBATCH --mem=24GB
+        proc_num=1 if RUN_SWEEP else 1
+    )
+except Exception as e:
+    print(e, file=sys.stderr)
+    tb = experiment_buddy.deploy(
+        host="mila" if REMOTE else "",
+        sweep_yaml="sweep_hyper.yaml" if RUN_SWEEP else False,
+        extra_slurm_headers="""
+        """,
+        proc_num=1 if RUN_SWEEP else 1
+    )
