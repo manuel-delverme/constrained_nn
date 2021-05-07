@@ -1,4 +1,5 @@
 import sys
+import inspect
 
 import torch
 import torch.autograd
@@ -13,9 +14,12 @@ import utils
 
 
 def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_optimizer=None):
+    config.tb.run.alert(f"{inspect.currentframe().f_lineno}", wait_duration=0)
     model.train()
 
     for batch_idx, (data, target, indices) in enumerate(train_loader):
+        config.tb.run.alert(f"{inspect.currentframe().f_lineno} {batch_idx}", wait_duration=0)
+
         data, target, indices = data.to(device), target.to(device), indices.to(device)
         config.tb.add_scalar("train/epoch", epoch, batch_idx + step)
         config.tb.add_scalar("train/adversarial", float(adversarial), batch_idx + step)
@@ -88,11 +92,13 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
             optimizer.step()
 
         print(f'Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)} ({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f}', file=sys.stderr)
+        sys.stderr.flush()
 
     return batch_idx + step
 
 
 def forward_step(data, indices, model, target):
+    config.tb.run.alert(f"{inspect.currentframe().f_lineno}", wait_duration=0)
     if config.experiment == "target-prop":
         y_hat, defect = model(data, indices)
         loss = F.nll_loss(y_hat, target)
@@ -121,6 +127,7 @@ def forward_step(data, indices, model, target):
 
 
 def test(model, device, test_loader, step):
+    config.tb.run.alert(f"{inspect.currentframe().f_lineno}", wait_duration=0)
     model.eval()
     test_loss = 0
     correct = 0
@@ -151,6 +158,7 @@ def test(model, device, test_loader, step):
 
 
 def main():
+    config.tb.run.alert(f"{inspect.currentframe().f_lineno}", wait_duration=0)
     torch.manual_seed(config.random_seed)
     train_loader, test_loader = utils.load_datasets()
 
@@ -170,6 +178,7 @@ def main():
         step = train(model, config.device, train_loader, optimizer, epoch, step, adversarial=False)
         test(model, config.device, test_loader, step)
 
+    config.tb.run.alert(f"{inspect.currentframe().f_lineno}", wait_duration=0)
     if constrained_epochs is not None:
         if config.constraint_satisfaction == "extra-gradient":
             optimizer_primal = extragradient.ExtraAdagrad
@@ -193,13 +202,17 @@ def main():
         aux_optimizer = optimizer_dual(dual_variables)
         config.tb.watch(model, log="all")
 
+        config.tb.run.alert(f"{inspect.currentframe().f_lineno}", wait_duration=0)
         for epoch in range(config.num_epochs):
             step = train(model, config.device, train_loader, optimizer, epoch, step, adversarial=True, aux_optimizer=aux_optimizer)
             test(model, config.device, test_loader, step)
+        config.tb.run.alert(f"{inspect.currentframe().f_lineno}", wait_duration=0)
+    config.tb.run.alert(f"{inspect.currentframe().f_lineno}", wait_duration=0)
     print("Done", file=sys.stderr)
 
 
 def load_model(train_loader):
+    config.tb.run.alert(f"{inspect.currentframe().f_lineno}", wait_duration=0)
     if config.experiment == "target-prop":
         if config.dataset == "mnist":
             model = network.TargetPropNetwork(train_loader)
@@ -227,4 +240,6 @@ def load_model(train_loader):
 
 
 if __name__ == '__main__':
+    config.tb.run.alert(f"{inspect.currentframe().f_lineno}", wait_duration=0)
     main()
+    config.tb.run.alert(f"{inspect.currentframe().f_lineno}", wait_duration=0)
