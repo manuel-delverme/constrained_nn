@@ -1,4 +1,6 @@
+import functools
 import sys
+import inspect
 
 import torch
 import torch.autograd
@@ -10,6 +12,8 @@ import config
 import extragradient
 import network
 import utils
+
+config.tb.run.alert = functools.partial(config.tb.run.alert, text="")
 
 
 def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_optimizer=None):
@@ -88,6 +92,7 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
             optimizer.step()
 
         print(f'Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)} ({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f}', file=sys.stderr)
+        sys.stderr.flush()
 
     return batch_idx + step
 
@@ -227,4 +232,6 @@ def load_model(train_loader):
 
 
 if __name__ == '__main__':
+    config.tb.run.alert(f"{inspect.currentframe().f_lineno}", wait_duration=0)
     main()
+    config.tb.run.alert(f"{inspect.currentframe().f_lineno}", wait_duration=0)
