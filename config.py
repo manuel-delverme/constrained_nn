@@ -4,7 +4,7 @@ import torch
 
 import experiment_buddy
 
-RUN_SWEEP = 0
+RUN_SWEEP = 1
 REMOTE = 1
 
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
@@ -35,7 +35,7 @@ constr_margin = {
 initial_forward = True
 
 random_seed = 1337
-eps_constraint = False
+eps_constraint = True
 
 initial_lr_theta = 0.003314
 initial_lr_x = 0.04527
@@ -63,11 +63,22 @@ if distributional:
 # Derivative parameters
 ################################################################
 
-tb = experiment_buddy.deploy(
-    host="mila" if REMOTE else "",
-    sweep_yaml="sweep_hyper.yaml" if RUN_SWEEP else False,
-    extra_slurm_headers="""
-    """,
-    # SBATCH --mem=24GB
-    proc_num=10 if RUN_SWEEP else 1
-)
+try:
+    tb = experiment_buddy.deploy(
+        host="mila" if REMOTE else "",
+        sweep_yaml="sweep_hyper.yaml" if RUN_SWEEP else False,
+        extra_slurm_headers="""
+        """,
+        experiment_id="_".join((experiment, constraint_satisfaction, dataset)),
+        # SBATCH --mem=24GB
+        proc_num=3 if RUN_SWEEP else 1
+    )
+except Exception as e:
+    print(e, file=sys.stderr)
+    tb = experiment_buddy.deploy(
+        host="mila" if REMOTE else "",
+        sweep_yaml="sweep_hyper.yaml" if RUN_SWEEP else False,
+        extra_slurm_headers="""
+        """,
+        proc_num=3 if RUN_SWEEP else 1
+    )
