@@ -1,0 +1,10 @@
+method: bayes
+metric:
+  goal: maximize
+  name: test/accuracy
+parameters:
+  ^constr_margin:
+    distribution: uniform
+    min: 0.01
+    max: 1.
+program: train.py
