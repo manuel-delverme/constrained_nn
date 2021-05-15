@@ -27,7 +27,7 @@ class TargetPropNetwork(nn.Module):
             if config.distributional:
                 dataset_size = len(train_loader.dataset)
                 num_classes = len(train_loader.dataset.classes)
-                self.targets = train_loader.dataset.targets
+                self.target_class = train_loader.dataset.target_class
 
                 self.means = nn.Parameter(torch.rand((num_classes, 128)))
                 self.scale = nn.Parameter(torch.ones(num_classes, 128))
@@ -57,9 +57,10 @@ class TargetPropNetwork(nn.Module):
         x1_hat = self.block1(x0)
 
         if config.distributional:
-            targets = self.targets[indices]
+            targets = self.target_class[indices]
             h = (x1_hat - self.x1.mean[targets]) / self.x1.scale[targets]
-            samples = self.x1.rsample((x0.shape[0],))
+
+            samples = self.x1.rsample((config.num_samples,))
             x1 = []
             for sample, target in zip(samples, targets):
                 x1.append(sample[target])

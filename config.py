@@ -1,10 +1,8 @@
 import sys
-
 import torch
-
 import experiment_buddy
 
-RUN_SWEEP = 0
+RUN_SWEEP = 1
 REMOTE = 1
 
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
@@ -12,14 +10,14 @@ dataset_path = "../data" if DEBUG else "/network/datasets/{}.var/{}_torchvision"
 
 experiment = ["sgd", "target-prop", "robust-classification"][1]
 constraint_satisfaction = ["penalty", "descent-ascent", "extra-gradient"][2]
-dataset = ["mnist", "cifar10"][0]
-distributional = False
-
-# experiment = "robust_classification"
-
+dataset = ["mnist", "cifar10"][1]
+distributional = True
 
 # Robust Classification experiments
 corruption_percentage = 0.00
+
+# Distributional
+num_samples = 124
 
 chance_constraint = {
     "sgd": False,
@@ -35,7 +33,7 @@ constr_margin = {
 initial_forward = True
 
 random_seed = 1337
-eps_constraint = False
+eps_constraint = True
 
 initial_lr_theta = 0.003314
 initial_lr_x = 0.04527
@@ -63,11 +61,22 @@ if distributional:
 # Derivative parameters
 ################################################################
 
-tb = experiment_buddy.deploy(
-    host="mila" if REMOTE else "",
-    sweep_yaml="sweep_hyper.yaml" if RUN_SWEEP else False,
-    extra_slurm_headers="""
-    """,
-    # SBATCH --mem=24GB
-    proc_num=10 if RUN_SWEEP else 1
-)
+try:
+    tb = experiment_buddy.deploy(
+        host="mila" if REMOTE else "",
+        sweep_yaml="sweep_hyper.yaml" if RUN_SWEEP else False,
+        extra_slurm_headers="""
+        """,
+        experiment_id="_".join((experiment, constraint_satisfaction, dataset, str(distributional))),
+        # SBATCH --mem=24GB
+        proc_num=15 if RUN_SWEEP else 1
+    )
+except Exception as e:
+    print(e, file=sys.stderr)
+    tb = experiment_buddy.deploy(
+        host="mila" if REMOTE else "",
+        sweep_yaml="sweep_hyper.yaml" if RUN_SWEEP else False,
+        extra_slurm_headers="""
+        """,
+        proc_num=15 if RUN_SWEEP else 1
+    )
