@@ -88,6 +88,7 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
             optimizer.step()
 
         print(f'Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)} ({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f}', file=sys.stderr)
+        sys.stderr.flush()
 
     return batch_idx + step
 
@@ -95,6 +96,8 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
 def forward_step(data, indices, model, target):
     if config.experiment == "target-prop":
         y_hat, defect = model(data, indices)
+        if config.distributional:
+            target = target[:config.num_samples]
         loss = F.nll_loss(y_hat, target)
         rhs = torch.einsum('bh,bh->', model.multipliers(indices), defect)
 
