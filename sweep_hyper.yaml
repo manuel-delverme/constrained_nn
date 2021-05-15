@@ -1,10 +1,34 @@
 method: bayes
 metric:
-  goal: minimize
-  name: test/loss
+  goal: maximize
+  name: test/accuracy
 parameters:
-  ^constr_margin:
-    distribution: uniform
-    min: 0.01
+  ^initial_lr_theta:
+    distribution: log_uniform
+    min: -14.
     max: 1.
+  ^initial_lr_x:
+    distribution: log_uniform
+    min: -4.30258509299
+    max: 1.20397280433
+  ^initial_lr_y:
+    distribution: log_uniform
+    min: -14.
+    max: -1.
+  ^constr_margin:
+    distribution: log_uniform
+    min: -4.
+    max: 1.
+  ^num_samples:
+    distribution: categorical
+    values:
+      - 32
+      - 64
+      - 128
+      - 256
+      - 512
+      - 1024
+      - 2048
+      - 4096
+
 program: train.py
