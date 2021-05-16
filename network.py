@@ -27,7 +27,7 @@ class TargetPropNetwork(nn.Module):
             if config.distributional:
                 dataset_size = len(train_loader.dataset)
                 num_classes = len(train_loader.dataset.classes)
-                self.targets = train_loader.dataset.targets
+                self.target_class = train_loader.dataset.targets
 
                 self.means = nn.Parameter(torch.rand((num_classes, 128)))
                 self.scale = nn.Parameter(torch.ones(num_classes, 128))
@@ -57,9 +57,10 @@ class TargetPropNetwork(nn.Module):
         x1_hat = self.block1(x0)
 
         if config.distributional:
-            targets = self.targets[indices]
+            targets = self.target_class[indices]
             h = (x1_hat - self.x1.mean[targets]) / self.x1.scale[targets]
-            samples = self.x1.rsample((x0.shape[0],))
+
+            samples = self.x1.rsample((config.num_samples,))
             x1 = []
             for sample, target in zip(samples, targets):
                 x1.append(sample[target])
@@ -83,6 +84,7 @@ class TargetPropNetwork(nn.Module):
 
 
 class CIAR10TargetProp(nn.Module):
+
     def __init__(self, train_loader=None, multi_stage=True):
         super().__init__()
 
@@ -106,33 +108,60 @@ class CIAR10TargetProp(nn.Module):
         )
 
         if multi_stage:
-            dataset_size = len(train_loader.dataset)
-            weight = torch.zeros(dataset_size, state_size)
+            if config.distributional:
+                dataset_size = len(train_loader.dataset)
+                num_classes = len(train_loader.dataset.classes)
+                self.target_class = torch.tensor(train_loader.dataset.targets)
 
-            if config.initial_forward:
-                with torch.no_grad():
-                    for batch_idx, (data, target, indices) in tqdm.tqdm(enumerate(train_loader), total=len(train_loader)):
-                        x_i = self.block1(data)
-                        weight[indices] = x_i
+                self.means = nn.Parameter(torch.rand((num_classes, state_size)))
+                self.scale = nn.Parameter(torch.ones(num_classes, state_size))
 
-            self.x1 = nn.Sequential(
-                nn.Embedding(dataset_size, state_size, _weight=weight, sparse=True),
-                nn.ReLU()
-            )
-            self.multipliers = nn.Sequential(
-                nn.Embedding(dataset_size, state_size, _weight=torch.zeros(dataset_size, state_size), sparse=True),
-            )
+                self.x1 = torch.distributions.Normal(self.means, self.scale)
+                self.multipliers = nn.Sequential(
+                    nn.Embedding(dataset_size, state_size, _weight=torch.zeros(dataset_size, state_size), sparse=True),
+                )
+            else:
+                dataset_size = len(train_loader.dataset)
+                weight = torch.zeros(dataset_size, state_size)
+
+                if config.initial_forward:
+                    with torch.no_grad():
+                        for batch_idx, (data, target, indices) in tqdm.tqdm(enumerate(train_loader), total=len(train_loader)):
+                            x_i = self.block1(data)
+                            weight[indices] = x_i
+
+                self.x1 = nn.Sequential(
+                    nn.Embedding(dataset_size, state_size, _weight=weight, sparse=True),
+                    nn.ReLU()
+                )
+                self.multipliers = nn.Sequential(
+                    nn.Embedding(dataset_size, state_size, _weight=torch.zeros(dataset_size, state_size), sparse=True),
+                )
 
     def forward(self, x0, indices):
-        x1_target = self.x1(indices)
-
         x1_hat = self.block1(x0)
+
+        if config.distributional:
+            print(self.target_class, len(self.target_class), indices.shape, indices[:10])
+            targets = self.target_class[indices]
+            h = (x1_hat - self.x1.mean[targets]) / self.x1.scale[targets]
+
+            samples = self.x1.rsample((config.num_samples,))
+            x1 = []
+            for sample, target in zip(samples, targets):
+                x1.append(sample[target])
+            x1_target = torch.stack(x1)
+        else:
+            x1_target = self.x1(indices)
+            h = x1_hat - x1_target
+
+        if config.eps_constraint:
+            h2 = F.softshrink(h, config.constr_margin)
+        else:
+            h2 = h
+
         x_T = self.block3(x1_target)
-
-        h = x1_hat - x1_target
-
-        eps_h = F.softshrink(h, config.constr_margin)
-        return x_T, eps_h
+        return x_T, h2
 
     def full_rollout(self, x):
         x = self.block1(x)

@@ -4,7 +4,7 @@ import torch
 
 import experiment_buddy
 
-RUN_SWEEP = 0
+RUN_SWEEP = 1
 REMOTE = 1
 
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
@@ -12,14 +12,14 @@ dataset_path = "../data" if DEBUG else "/network/datasets/{}.var/{}_torchvision"
 
 experiment = ["sgd", "target-prop", "robust-classification"][1]
 constraint_satisfaction = ["penalty", "descent-ascent", "extra-gradient"][2]
-dataset = ["mnist", "cifar10"][0]
-distributional = False
-
-# experiment = "robust_classification"
-
+dataset = ["mnist", "cifar10"][1]
+distributional = True
 
 # Robust Classification experiments
 corruption_percentage = 0.00
+
+# Distributional
+num_samples = 256
 
 chance_constraint = {
     "sgd": False,
@@ -35,7 +35,7 @@ constr_margin = {
 initial_forward = True
 
 random_seed = 1337
-eps_constraint = False
+eps_constraint = True
 
 initial_lr_theta = 0.003314
 initial_lr_x = 0.04527
@@ -49,7 +49,7 @@ lambda_ = 0.06788
 batch_size = 1024
 warmup_epochs = 0  # 1 if DEBUG else 0
 num_epochs = 150
-use_cuda = True  # not DEBUG
+use_cuda = not DEBUG
 
 ################################################################
 # END OF PARAMETERS
@@ -68,6 +68,5 @@ tb = experiment_buddy.deploy(
     sweep_yaml="sweep_hyper.yaml" if RUN_SWEEP else False,
     extra_slurm_headers="""
     """,
-    # SBATCH --mem=24GB
-    proc_num=10 if RUN_SWEEP else 1
+    proc_num=15 if RUN_SWEEP else 1
 )
