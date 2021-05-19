@@ -5,6 +5,7 @@ import torch.autograd
 import torch.nn.functional as F
 import torch.optim
 import torch.utils.data
+import tqdm
 
 import config
 import extragradient
@@ -67,7 +68,6 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
                 multiplier_grad = F.softshrink(multiplier_grad, config.constr_margin)
 
             model.multipliers[0].weight.grad = torch.sparse_coo_tensor(indices.unsqueeze(0), multiplier_grad, model.multipliers[0].weight.shape)
-
             aux_optimizer.step()
         else:
             optimizer.zero_grad()
@@ -196,7 +196,7 @@ def main():
         aux_optimizer = optimizer_dual(dual_variables)
         config.tb.watch(model, log="all")
 
-        for epoch in range(config.num_epochs):
+        for epoch in tqdm.trange(config.num_epochs):
             step = train(model, config.device, train_loader, optimizer, epoch, step, adversarial=True, aux_optimizer=aux_optimizer)
             test(model, config.device, test_loader, step)
     print("Done", file=sys.stderr)

@@ -61,10 +61,7 @@ class TargetPropNetwork(nn.Module):
             h = (x1_hat - self.x1.mean[targets]) / self.x1.scale[targets]
 
             samples = self.x1.rsample((config.num_samples,))
-            x1 = []
-            for sample, target in zip(samples, targets):
-                x1.append(sample[target])
-            x1_target = torch.stack(x1)
+            x1_target = samples[torch.arange(config.num_samples), targets[:config.num_samples]]
         else:
             x1_target = self.x1(indices)
             h = x1_hat - x1_target
@@ -84,10 +81,8 @@ class TargetPropNetwork(nn.Module):
 
 
 class CIAR10TargetProp(nn.Module):
-
     def __init__(self, train_loader=None, multi_stage=True):
         super().__init__()
-
         state_size = 84
         self.block1 = nn.Sequential(
             nn.Conv2d(3, 6, 5),
@@ -142,15 +137,11 @@ class CIAR10TargetProp(nn.Module):
         x1_hat = self.block1(x0)
 
         if config.distributional:
-            print(self.target_class, len(self.target_class), indices.shape, indices[:10])
             targets = self.target_class[indices]
             h = (x1_hat - self.x1.mean[targets]) / self.x1.scale[targets]
 
             samples = self.x1.rsample((config.num_samples,))
-            x1 = []
-            for sample, target in zip(samples, targets):
-                x1.append(sample[target])
-            x1_target = torch.stack(x1)
+            x1_target = samples[torch.arange(config.num_samples), targets[:config.num_samples]]
         else:
             x1_target = self.x1(indices)
             h = x1_hat - x1_target
