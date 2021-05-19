@@ -9,19 +9,23 @@ import config
 class TargetPropNetwork(nn.Module):
     def __init__(self, train_loader=None, multi_stage=True):
         super().__init__()
-        self.block1 = nn.Sequential(
-            nn.Conv2d(1, 32, 3, 1),
-            nn.ReLU(),
-            nn.Conv2d(32, 64, 3, 1),
-            nn.ReLU(),
-            nn.MaxPool2d(2),
-            nn.Flatten(1),
-            nn.Linear(9216, 128),
-            nn.Identity() if config.distributional else nn.ReLU(),
-        )
-        self.block3 = nn.Sequential(
-            nn.Linear(128, 10),
-            nn.LogSoftmax(dim=1)
+        self.blocks = nn.Sequential(
+            nn.Sequential(
+                nn.Conv2d(1, 32, 3, 1),
+                nn.ReLU(),
+                nn.Conv2d(32, 64, 3, 1),
+                nn.ReLU(),
+                nn.MaxPool2d(2),
+                nn.Flatten(1),
+            ),
+            nn.Sequential(
+                nn.Linear(9216, 128),
+                nn.Identity() if config.distributional else nn.ReLU(),
+            ),
+            nn.Sequential(
+                nn.Linear(128, 10),
+                nn.LogSoftmax(dim=1)
+            ),
         )
         if multi_stage:
             if config.distributional:
@@ -29,13 +33,11 @@ class TargetPropNetwork(nn.Module):
                 num_classes = len(train_loader.dataset.classes)
                 self.target_class = train_loader.dataset.targets
 
-                self.means = nn.Parameter(torch.rand((num_classes, 128)))
-                self.scale = nn.Parameter(torch.ones(num_classes, 128))
-
-                self.x1 = torch.distributions.Normal(self.means, self.scale)
-                self.multipliers = nn.Sequential(
-                    nn.Embedding(dataset_size, 128, _weight=torch.zeros(dataset_size, 128), sparse=True),
-                )
+                self.distributions = []
+                self.multipliers = []
+                for prev_block, next_block in zip(self.blocks[1:-1], self.blocks[2:]):
+                    state_features = next_block[0].in_features
+                    self.add_constraint(dataset_size, num_classes, state_features)
             else:
                 dataset_size = len(train_loader.dataset)
                 weight = torch.zeros(dataset_size, 128)
@@ -53,7 +55,20 @@ class TargetPropNetwork(nn.Module):
                     nn.Embedding(dataset_size, 128, _weight=torch.zeros(dataset_size, 128), sparse=True),
                 )
 
-    def forward(self, x0, indices):
+    def add_constraint(self, dataset_size, num_classes, state_features):
+        self.distributions.append(
+            torch.distributions.Normal(
+                nn.Parameter(torch.rand((num_classes, state_features))),
+                nn.Parameter(torch.ones(num_classes, state_features)),
+            )
+        )
+        self.multipliers.append(
+            nn.Sequential(
+                nn.Embedding(dataset_size, state_features, _weight=torch.zeros(dataset_size, state_features), sparse=True),
+            )
+        )
+
+    def constrained_forward(self, x0, indices):
         x1_hat = self.block1(x0)
 
         if config.distributional:
@@ -74,10 +89,8 @@ class TargetPropNetwork(nn.Module):
         x_T = self.block3(x1_target)
         return x_T, h2
 
-    def full_rollout(self, x):
-        x = self.block1(x)
-        x = self.block3(x)
-        return x
+    def forward(self, x):
+        return self.blocks(x)
 
 
 class CIAR10TargetProp(nn.Module):
