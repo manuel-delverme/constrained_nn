@@ -46,7 +46,7 @@ warmup_lr = 0.009185
 lambda_ = 0.06788
 # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
 
-batch_size = 1024
+batch_size = 2048
 warmup_epochs = 0  # 1 if DEBUG else 0
 num_epochs = 150
 use_cuda = not DEBUG

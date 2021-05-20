@@ -142,7 +142,7 @@ class CIAR10TargetProp(nn.Module):
         x1_hat = self.block1(x0)
 
         if config.distributional:
-            print(self.target_class, len(self.target_class), indices.shape, indices[:10])
+            # print(self.target_class, len(self.target_class), indices.shape, indices[:10])
             targets = self.target_class[indices]
             h = (x1_hat - self.x1.mean[targets]) / self.x1.scale[targets]
 
