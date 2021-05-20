@@ -4,7 +4,7 @@ import torch
 
 import experiment_buddy
 
-RUN_SWEEP = 1
+RUN_SWEEP = 0
 REMOTE = 1
 
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
