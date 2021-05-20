@@ -30,14 +30,16 @@ class TargetPropNetwork(nn.Module):
         if multi_stage:
             if config.distributional:
                 dataset_size = len(train_loader.dataset)
-                num_classes = len(train_loader.dataset.classes)
+                self.num_classes = len(train_loader.dataset.classes)
+                assert (config.num_samples // self.num_classes) > 0
                 self.target_class = train_loader.dataset.targets
 
-                self.distributions = []
+                self.constraints = []
                 self.multipliers = []
+                self.add_distributional_constraint(dataset_size, self.num_classes, self.blocks[1][0].in_features)
                 for prev_block, next_block in zip(self.blocks[1:-1], self.blocks[2:]):
                     state_features = next_block[0].in_features
-                    self.add_constraint(dataset_size, num_classes, state_features)
+                    self.add_distributional_constraint(dataset_size, self.num_classes, state_features)
             else:
                 dataset_size = len(train_loader.dataset)
                 weight = torch.zeros(dataset_size, 128)
@@ -55,8 +57,18 @@ class TargetPropNetwork(nn.Module):
                     nn.Embedding(dataset_size, 128, _weight=torch.zeros(dataset_size, 128), sparse=True),
                 )
 
-    def add_constraint(self, dataset_size, num_classes, state_features):
-        self.distributions.append(
+    def add_tabular_constraint(self, dataset_size, state_features):
+        self.constraints.append(
+            nn.Embedding(dataset_size, 128, sparse=True),
+        )
+        self.multipliers.append(
+            nn.Sequential(
+                nn.Embedding(dataset_size, state_features, _weight=torch.zeros(dataset_size, state_features), sparse=True),
+            )
+        )
+
+    def add_distributional_constraint(self, dataset_size, num_classes, state_features):
+        self.constraints.append(
             torch.distributions.Normal(
                 nn.Parameter(torch.rand((num_classes, state_features))),
                 nn.Parameter(torch.ones(num_classes, state_features)),
@@ -68,26 +80,36 @@ class TargetPropNetwork(nn.Module):
             )
         )
 
-    def constrained_forward(self, x0, indices):
-        x1_hat = self.block1(x0)
+    def constrained_forward(self, x0, indices, targets):
 
         if config.distributional:
-            targets = self.target_class[indices]
-            h = (x1_hat - self.x1.mean[targets]) / self.x1.scale[targets]
+            defects = []
 
-            samples = self.x1.rsample((config.num_samples,))
-            x1_target = samples[torch.arange(config.num_samples), targets[:config.num_samples]]
+            # Match data to the first distribution
+            a_i = self.blocks[0](x0)
+            h_i = (a_i - self.constraints[0].mean[targets]) / self.constraints[0].scale[targets]
+            defects.append(h_i.flatten())
+
+            # Match samples to the subsequent distributions
+            a_i = self.constraints[0].rsample((config.num_samples // self.num_classes,))
+            assert len(self.blocks) == len(self.constraints) + 1
+            for layer_function, target_distribution in zip(self.blocks[1:-1], self.constraints[1:]):
+                a_i = layer_function(a_i)
+                h_i = (a_i - target_distribution.mean) / target_distribution.scale
+                defects.append(h_i.flatten())
+                a_i = target_distribution.rsample((config.num_samples // self.num_classes,))
+            defects = torch.cat(defects, dim=0)
+
         else:
+            raise NotImplemented
             x1_target = self.x1(indices)
             h = x1_hat - x1_target
 
         if config.eps_constraint:
-            h2 = F.softshrink(h, config.constr_margin)
-        else:
-            h2 = h
+            defects = F.softshrink(defects, config.constr_margin)
 
-        x_T = self.block3(x1_target)
-        return x_T, h2
+        a_T = self.blocks[-1](a_i)
+        return a_T, defects
 
     def forward(self, x):
         return self.blocks(x)

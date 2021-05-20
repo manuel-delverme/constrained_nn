@@ -95,23 +95,14 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
 
 def forward_step(data, indices, model, target):
     if config.experiment == "target-prop":
-        y_hat, defect = model(data, indices)
+        y_hat, defect = model.constrained_forward(data, indices, target)
         if config.distributional:
-            target = target[:config.num_samples]
-        loss = F.nll_loss(y_hat, target)
-        rhs = torch.einsum('bh,bh->', model.multipliers(indices), defect)
-
-    elif config.experiment == "robust-classification":
-        y_hat = model(data, indices)
-        sample_weights = model.x1(indices)
-
-        p_data_ignored = 1. - sample_weights.mean()
-        prob_defect = torch.relu(p_data_ignored - config.chance_constraint)
-        defect = prob_defect.repeat(sample_weights.shape)
-
-        loss = F.nll_loss(y_hat, target, reduce=False)
-        robust_loss = loss * sample_weights.squeeze()
-        loss = robust_loss.mean()
+            y_hat.flatten(1, 1)
+            torch.arange(2, 3)
+            # target = target[:config.num_samples]
+            loss = F.nll_loss(y_hat, target)
+        else:
+            loss = F.nll_loss(y_hat, target)
         rhs = torch.einsum('bh,bh->', model.multipliers(indices), defect)
 
     elif config.experiment == "sgd":
