@@ -102,7 +102,7 @@ def forward_step(data, indices, model, target):
     if config.experiment == "target-prop":
         y_hat, defects = model.constrained_forward(data, indices, target)
         if config.distributional:
-            target = torch.arange(model.num_classes).repeat(y_hat.shape[0])
+            target = torch.arange(model.num_classes, device=y_hat.device).repeat(y_hat.shape[0])
             y_hat = y_hat.flatten(0, 1)  # [bs, classes]
             # target = target[:config.num_samples]
             loss = F.nll_loss(y_hat, target)
