@@ -4,8 +4,8 @@ import torch
 
 import experiment_buddy
 
-RUN_SWEEP = 0
-REMOTE = 0
+RUN_SWEEP = 1
+REMOTE = 1
 
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
 dataset_path = "../data" if DEBUG else "/network/datasets/{}.var/{}_torchvision"
@@ -48,7 +48,7 @@ lambda_ = 0.06788
 batch_size = 1024
 warmup_epochs = 0  # 1 if DEBUG else 0
 num_epochs = 150
-use_cuda = not DEBUG
+use_cuda = True  # not DEBUG
 
 ################################################################
 # END OF PARAMETERS
