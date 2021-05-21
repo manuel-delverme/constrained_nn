@@ -5,20 +5,20 @@ metric:
 parameters:
   ^initial_lr_theta:
     distribution: log_uniform
-    min: -6.
-    max: -3.
+    min: -7.
+    max: -2.3.
   ^initial_lr_x:
     distribution: log_uniform
     min: -3.30258509299
     max: 0.20397280433
   ^initial_lr_y:
     distribution: log_uniform
-    min: -6.
-    max: -2.
+    min: -15
+    max: -9.
   ^constr_margin:
     distribution: log_uniform
-    min: -3.
-    max: 1.
+    min: -2.3
+    max: -0.5
   ^num_samples:
     distribution: categorical
     values:
@@ -26,7 +26,5 @@ parameters:
       - 64
       - 128
       - 256
-      - 512
-      - 1024
 
 program: train.py
