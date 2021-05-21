@@ -2,6 +2,7 @@ import sys
 
 import torch
 import torch.autograd
+import torch.nn
 import torch.nn.functional as F
 import torch.optim
 import torch.utils.data
@@ -27,27 +28,29 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
             optimizer.zero_grad()
             aux_optimizer.zero_grad()
 
-            rhs, loss, defect = forward_step(data, indices, model, target)
+            rhs, loss, defects = forward_step(data, indices, model, target)
 
             config.tb.add_scalar("train/loss", float(loss.item()), batch_idx + step)
-            config.tb.add_scalar("train/abs_mean_defect", float(defect.abs().mean()), batch_idx + step)
-            config.tb.add_scalar("train/mean_rhs", float(rhs.mean()), batch_idx + step)
+            for idx, (defect, rh, xi) in enumerate(zip(defects, rhs, model.states)):
+                config.tb.add_scalar(f"train/h{idx}/abs_mean_defect", float(defect.abs().mean()), batch_idx + step)
+                config.tb.add_scalar(f"train/h{idx}/mean_rhs", float(rh.mean()), batch_idx + step)
 
-            if config.distributional:
-                config.tb.add_histogram("train/x1_scale", model.x1.scale.mean(axis=1).cpu().detach().numpy(), batch_idx + step)
-                config.tb.add_scalar("train/x1_mean", model.x1.mean.mean(), batch_idx + step)
-                config.tb.add_histogram("train/x1_dist_hist", torch.pdist(model.x1.mean).cpu().detach().numpy(), batch_idx + step)
+                if config.distributional:
+                    config.tb.add_histogram("train/x1_scale", xi.scale.mean(axis=1).cpu().detach().numpy(), batch_idx + step)
+                    config.tb.add_scalar("train/x1_mean", xi.mean.mean(), batch_idx + step)
+                    config.tb.add_histogram("train/x1_dist_hist", torch.pdist(xi.mean).cpu().detach().numpy(), batch_idx + step)
 
             if config.constraint_satisfaction == "extra-gradient":
-                (loss + rhs).backward()
+                (loss + sum(rhs)).backward()
                 optimizer.extrapolation()
 
                 # Player 2
-                multiplier_grad = -defect
-                if not config.eps_constraint:
-                    multiplier_grad = F.softshrink(multiplier_grad, config.constr_margin)
-
-                model.multipliers[0].weight.grad = torch.sparse_coo_tensor(indices.unsqueeze(0), multiplier_grad, model.multipliers[0].weight.shape)
+                for idx, (h_i, lambda_i) in enumerate(zip(defects, model.multipliers)):
+                    multiplier_grad = -h_i
+                    if isinstance(lambda_i, torch.nn.Embedding):
+                        lambda_i.weight.grad = torch.sparse_coo_tensor(indices.unsqueeze(0), multiplier_grad, model.multipliers[0].weight.shape)
+                    else:
+                        lambda_i.grad = multiplier_grad.mean(0)
 
                 aux_optimizer.extrapolation()
 
@@ -55,31 +58,33 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
                 aux_optimizer.zero_grad()
 
                 # Step
-                rhs, loss, defect = forward_step(data, indices, model, target)
+                rhs, loss, defects = forward_step(data, indices, model, target)
 
             # Grads
-            (loss + rhs).backward()  # Player 1
+            (loss + sum(rhs)).backward()  # Player 1
             optimizer.step()
 
             # Player 2
             # RYAN: this is not necessary
-            multiplier_grad = -defect
-            if not config.eps_constraint:
-                multiplier_grad = F.softshrink(multiplier_grad, config.constr_margin)
+            for idx, (h_i, lambda_i) in enumerate(zip(defects, model.multipliers)):
+                multiplier_grad = -h_i
+                if isinstance(lambda_i, torch.nn.Embedding):
+                    lambda_i.weight.grad = torch.sparse_coo_tensor(indices.unsqueeze(0), multiplier_grad, model.multipliers[0].weight.shape)
+                else:
+                    lambda_i.grad = multiplier_grad.mean(0)
 
-            model.multipliers[0].weight.grad = torch.sparse_coo_tensor(indices.unsqueeze(0), multiplier_grad, model.multipliers[0].weight.shape)
             aux_optimizer.step()
         else:
             optimizer.zero_grad()
 
-            rhs, loss, defect = forward_step(data, indices, model, target)
+            rhs, loss, defects = forward_step(data, indices, model, target)
             config.tb.add_scalar("train/loss", float(loss.item()), batch_idx + step)
 
             if config.experiment != "sgd":
-                config.tb.add_scalar("train/mean_defect", float(defect.mean()), batch_idx + step)
+                config.tb.add_scalar("train/mean_defect", float(defects.mean()), batch_idx + step)
                 config.tb.add_scalar("train/rhs_defect", float(rhs.mean()), batch_idx + step)
 
-                constr_loss = config.lambda_ * defect.pow(2).mean(1).mean(0)
+                constr_loss = config.lambda_ * defects.pow(2).mean(1).mean(0)
                 lagr = loss + constr_loss
             else:
                 lagr = loss
@@ -95,47 +100,44 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
 
 def forward_step(data, indices, model, target):
     if config.experiment == "target-prop":
-        y_hat, defect = model.constrained_forward(data, indices, target)
+        y_hat, defects = model.constrained_forward(data, indices, target)
         if config.distributional:
-            y_hat.flatten(1, 1)
-            torch.arange(2, 3)
+            target = torch.arange(model.num_classes).repeat(y_hat.shape[0])
+            y_hat = y_hat.flatten(0, 1)  # [bs, classes]
             # target = target[:config.num_samples]
             loss = F.nll_loss(y_hat, target)
+
+            rhs = [torch.einsum('bh,bh->', model.tabular_multipliers(indices), defects[0])]
+            for multiplier, h_i in zip(model.distribution_multipliers, defects[1:]):
+                rhs.append(torch.einsum('cf,bcf->', multiplier, h_i))
         else:
             loss = F.nll_loss(y_hat, target)
-        rhs = torch.einsum('bh,bh->', model.multipliers(indices), defect)
+            rhs = torch.einsum('bh,bh->', model.multipliers(indices), defects)
 
     elif config.experiment == "sgd":
         y_hat = model(data, indices)
         loss = F.nll_loss(y_hat, target)
-        rhs, defect = None, None
+        rhs, defects = None, None
     else:
         raise NotImplemented
-    return rhs, loss, defect
+    return rhs, loss, defects
 
 
 def test(model, device, test_loader, step):
     model.eval()
     test_loss = 0
     correct = 0
-    log_prob = 0
 
     with torch.no_grad():
         for (data, target, idx) in test_loader:
             data, target = data.to(device), target.to(device)
             data = data  # .double()
-            output = model.full_rollout(data)
-            if config.distributional:
-                for xi, yi in zip(data, target):
-                    x1_hat = model.block1(xi.unsqueeze(0))
-                    log_prob += model.x1.log_prob(x1_hat)[yi].mean()
+            output = model(data)
 
             test_loss += F.nll_loss(output, target, reduction='sum').item()  # sum up batch loss
             pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
 
-    if config.distributional:
-        config.tb.add_scalar("test/prob_x1", torch.exp(log_prob / len(test_loader.dataset)), step)
     test_loss /= len(test_loader.dataset)
     config.tb.add_scalar("test/loss", test_loss, step)
     config.tb.add_scalar("test/accuracy", correct / len(test_loader.dataset), step)

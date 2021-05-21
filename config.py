@@ -35,7 +35,6 @@ constr_margin = {
 initial_forward = True
 
 random_seed = 1337
-eps_constraint = True
 
 initial_lr_theta = 0.003314
 initial_lr_x = 0.04527
