@@ -41,7 +41,7 @@ initial_lr_x = 0.04527
 initial_lr_y = 0.0001389
 # 1e-2  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
 
-num_layers = 10
+num_layers = 0
 warmup_lr = 0.009185
 lambda_ = 0.06788
 # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
