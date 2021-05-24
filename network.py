@@ -7,7 +7,7 @@ import config
 
 
 class TargetPropNetwork(nn.Module):
-    def __init__(self, train_loader=None, multi_stage=True):
+    def __init__(self, train_loader=None):
         super().__init__()
         self.blocks = nn.Sequential(
             nn.Sequential(
@@ -27,107 +27,105 @@ class TargetPropNetwork(nn.Module):
                 nn.LogSoftmax(dim=1)
             ),
         )
-        if multi_stage:
-            if config.distributional:
-                dataset_size = len(train_loader.dataset)
-                self.num_classes = len(train_loader.dataset.classes)
-                assert (config.num_samples // self.num_classes) > 0
-                self.target_class = train_loader.dataset.targets
+        dataset_size = len(train_loader.dataset)
+        state_sizes = [b[0].in_features for b in self.blocks[1:]]
 
-                means = []
-                sigmas = []
-                multipliers = []
-                state_distributions = []
-                state_features = self.blocks[1][0].in_features
-                # self.num_classes,
-                means.append(nn.Parameter(torch.rand((self.num_classes, state_features))))
-                sigmas.append(nn.Parameter(torch.ones(self.num_classes, state_features)))
-                state_distributions.append(torch.distributions.Normal(means[-1], sigmas[-1], ))
-                dataset_match = nn.Embedding(dataset_size, state_features, _weight=torch.zeros(dataset_size, state_features), sparse=True)
+        if config.distributional:
+            num_classes = len(train_loader.dataset.classes)
+            assert (config.num_samples // num_classes) > 0
+            self.state_net = GaussianStateNet(dataset_size, num_classes, state_sizes)
+            self.multipliers = nn.ModuleList((
+                nn.Embedding(dataset_size, state_sizes[0], _weight=torch.zeros(dataset_size, state_sizes[0]), sparse=True),
+                nn.ParameterList(nn.Parameter(torch.zeros(num_classes, state_size)) for state_size in state_sizes[1:]),
+            ))
+        else:
+            self.state_net = StateNet(dataset_size, train_loader)
+            self.multipliers = nn.Sequential(
+                nn.Embedding(dataset_size, 128, _weight=torch.zeros(dataset_size, 128), sparse=True),
+            )
 
-                for prev_block, next_block in zip(self.blocks[1:-1], self.blocks[2:]):
-                    state_features = next_block[0].in_features
-                    means.append(nn.Parameter(torch.rand((self.num_classes, state_features))))
-                    sigmas.append(nn.Parameter(torch.ones(self.num_classes, state_features)))
-                    state_distributions.append(torch.distributions.Normal(means[-1], sigmas[-1], ))
-                    multipliers.append(nn.Parameter(torch.zeros(self.num_classes, state_features)))
+    def constrained_forward(self, x0, indices, targets):
+        states = self.state_net(x0)
+        activations = self.one_step(states)
+        x_t, x_T = activations[:-1], activations[-1]
+        defects = self.state_net.defect(x_t, targets)
+        return x_T, defects
 
-                self.multipliers = nn.ModuleList((
-                    dataset_match,
-                    nn.ParameterList(multipliers),
-                ))
-                self.means = nn.ParameterList(means)
-                self.scales = nn.ParameterList(sigmas)
-                self.states = state_distributions
-            else:
-                dataset_size = len(train_loader.dataset)
-                weight = torch.zeros(dataset_size, 128)
+    def forward(self, x):
+        return self.blocks(x)
 
-                with torch.no_grad():
-                    for batch_idx, (data, target, indices) in tqdm.tqdm(enumerate(train_loader), total=len(train_loader)):
-                        x_i = self.block1(data)
-                        weight[indices] = x_i
-
-                self.x1 = nn.Sequential(
-                    nn.Embedding(dataset_size, 128, _weight=weight, sparse=True),
-                    nn.ReLU()
-                )
-                self.multipliers = nn.Sequential(
-                    nn.Embedding(dataset_size, 128, _weight=torch.zeros(dataset_size, 128), sparse=True),
-                )
-
-    @property
-    def distribution_multipliers(self):
-        return self.multipliers[1]
+    def one_step(self, x_t):
+        # TODO: parallel
+        x_t1 = [block(x_t) for x_t, block in zip(x_t, self.blocks)]
+        return x_t1
 
     @property
     def tabular_multipliers(self):
         return self.multipliers[0]
 
-    def add_distributional_constraint(self, num_classes, state_features):
-        self.states.append(
-            torch.distributions.Normal(
-                nn.Parameter(torch.rand((num_classes, state_features))),
-                nn.Parameter(torch.ones(num_classes, state_features)),
-            )
+    @property
+    def distributional_multipliers(self):
+        return self.multipliers[1]
+
+
+class StateNet(nn.Module):
+    def __init__(self, dataset_size, train_loader):
+        super().__init__()
+        weight = torch.zeros(dataset_size, 128)
+
+        with torch.no_grad():
+            for batch_idx, (data, target, indices) in tqdm.tqdm(enumerate(train_loader), total=len(train_loader)):
+                x_i = self.block1(data)
+                weight[indices] = x_i
+
+        self.states = nn.Sequential(
+            nn.Embedding(dataset_size, 128, _weight=weight, sparse=True),
+            nn.ReLU()
         )
-        self.multipliers.append(
-            nn.Parameter(torch.zeros(num_classes, state_features))
-        )
-
-    def constrained_forward(self, x0, indices, targets):
-
-        if config.distributional:
-            defects = []
-
-            # Match data to the first distribution
-            a_i = self.blocks[0](x0)
-            h_i = (a_i - self.means[0][targets]) / self.scales[0][targets]
-            defects.append(h_i)  # .flatten())
-
-            # Match samples to the subsequent distributions
-            a_i = self.states[0].rsample((config.num_samples // self.num_classes,))
-            assert len(self.blocks) == len(self.states) + 1
-            for layer_function, target_distribution in zip(self.blocks[1:-1], self.states[1:]):
-                a_i = layer_function(a_i)
-
-                h_i = (a_i - target_distribution.mean) / target_distribution.scale
-                h_i = F.softshrink(h_i, config.constr_margin)
-
-                defects.append(h_i)  # .flatten())
-                a_i = target_distribution.rsample((config.num_samples // self.num_classes,))
-            # defects = torch.cat(defects, dim=0)
-
-        else:
-            raise NotImplemented
-            x1_target = self.x1(indices)
-            h = x1_hat - x1_target
-
-        a_T = self.blocks[-1](a_i)
-        return a_T, defects
 
     def forward(self, x):
         return self.blocks(x)
+
+    def defect(self, activations, targets):
+        defects = [(activations[0] - self.states[0].mean[targets]) / self.states[0].scale[targets]]
+        # TODO: parallelize
+        defects.extend([(a_i - target_distribution.mean) / target_distribution.scale for a_i, target_distribution in zip(activations[1:], self.states[1:])])
+        return defects
+
+
+class GaussianStateNet(nn.Module):
+    def __init__(self, dataset_size, num_classes, state_sizes):
+        super().__init__()
+        assert (config.num_samples // num_classes) > 0
+
+        self.states = []
+        state_size = state_sizes[0]
+
+        self.states.append(torch.distributions.Normal(
+            nn.Parameter(torch.rand((num_classes, state_size))),
+            nn.Parameter(torch.ones(num_classes, state_size))
+        ))
+
+        for state_size in state_sizes[1:]:
+            self.states.append(torch.distributions.Normal(
+                nn.Parameter(torch.rand((num_classes, state_size))),
+                nn.Parameter(torch.ones(num_classes, state_size))
+            ))
+        self.means = nn.ParameterList(m.loc for m in self.states)
+        self.scales = nn.ParameterList(m.scale for m in self.states)
+
+    def forward(self, x0):
+        xs = [x0, ] + [x.rsample((config.num_samples,)) for x in self.states]
+        return xs
+
+    def defect(self, activations, targets):
+        defects = [(activations[0] - self.states[0].mean[targets]) / self.states[0].scale[targets]]
+        # TODO: parallelize
+        h_distr = []
+        for idx, a_i in enumerate(activations[1:]):
+            h_distr.append((a_i - self.means[idx + 1]) / self.scales[idx + 1])
+        defects.extend(h_distr)
+        return defects
 
 
 class CIAR10TargetProp(nn.Module):
@@ -208,49 +206,3 @@ class CIAR10TargetProp(nn.Module):
         x = self.block1(x)
         x = self.block3(x)
         return x
-
-
-class MNISTNetwork(TargetPropNetwork):
-    def __init__(self):
-        super().__init__(multi_stage=False)
-
-    def forward(self, x0, indices):
-        return self.full_rollout(x0)
-
-
-class CIFAR10Network(CIAR10TargetProp):
-    def __init__(self):
-        super().__init__(multi_stage=False)
-
-    def forward(self, x0, indices):
-        return self.full_rollout(x0)
-
-
-class MNISTLiftedNetwork(TargetPropNetwork):
-    def __init__(self, num_constraints):
-        super().__init__(multi_stage=False)
-        self.x1 = nn.Sequential(
-            nn.Embedding(num_constraints, 1, sparse=True),
-            nn.ReLU()
-        )
-        self.multipliers = nn.Sequential(
-            nn.Embedding(num_constraints, 1, sparse=True),
-        )
-
-    def forward(self, x0, indices):
-        return self.full_rollout(x0)
-
-
-class CIFAR10LiftedNetwork(CIAR10TargetProp):
-    def __init__(self, num_constraints):
-        super().__init__(multi_stage=False)
-        self.x1 = nn.Sequential(
-            nn.Embedding(num_constraints, 1, sparse=True),
-            nn.ReLU()
-        )
-        self.multipliers = nn.Sequential(
-            nn.Embedding(num_constraints, 1, sparse=True),
-        )
-
-    def forward(self, x0, indices):
-        return self.full_rollout(x0)
