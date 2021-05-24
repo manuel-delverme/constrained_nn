@@ -31,14 +31,17 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
             rhs, loss, defects = forward_step(data, indices, model, target)
 
             config.tb.add_scalar("train/loss", float(loss.item()), batch_idx + step)
-            for idx, (defect, rh, xi) in enumerate(zip(defects, rhs, model.states)):
-                config.tb.add_scalar(f"train/h{idx}/abs_mean_defect", float(defect.abs().mean()), batch_idx + step)
-                config.tb.add_scalar(f"train/h{idx}/mean_rhs", float(rh.mean()), batch_idx + step)
+            assert len(defects) == len(rhs) == len(model.state_net.states)
+            for idx, (defect, rh, xi) in enumerate(zip(defects, rhs, model.state_net.states)):
+                config.tb.add_scalar(f"h{idx}/train/abs_mean_defect", float(defect.abs().mean()), batch_idx + step)
+                config.tb.add_scalar(f"h{idx}/train/mean_defect", float(defect.mean()), batch_idx + step)
+                config.tb.add_scalar(f"h{idx}/train/mean_rhs", float(rh.mean()), batch_idx + step)
 
                 if config.distributional:
-                    config.tb.add_histogram("train/x1_scale", xi.scale.mean(axis=1).cpu().detach().numpy(), batch_idx + step)
-                    config.tb.add_scalar("train/x1_mean", xi.mean.mean(), batch_idx + step)
-                    config.tb.add_histogram("train/x1_dist_hist", torch.pdist(xi.mean).cpu().detach().numpy(), batch_idx + step)
+                    mean, scale = xi()
+                    config.tb.add_histogram(f"h{idx}/train/state_scale_mean", scale.mean(axis=1).cpu().detach().numpy(), batch_idx + step)
+                    config.tb.add_scalar(f"h{idx}/train/state_loc_mean", mean.mean(), batch_idx + step)
+                    config.tb.add_histogram(f"h{idx}/train/state_mean_pdist", torch.pdist(mean).cpu().detach().numpy(), batch_idx + step)
 
             if config.constraint_satisfaction == "extra-gradient":
                 (loss + sum(rhs)).backward()
@@ -102,13 +105,14 @@ def forward_step(data, indices, model, target):
     if config.experiment == "target-prop":
         y_hat, defects = model.constrained_forward(data, indices, target)
         if config.distributional:
-            target = torch.arange(model.num_classes, device=y_hat.device).repeat(y_hat.shape[0])
+            num_classes = y_hat.shape[1]
+            target = torch.arange(num_classes, device=y_hat.device).repeat(y_hat.shape[0])
             y_hat = y_hat.flatten(0, 1)  # [bs, classes]
             # target = target[:config.num_samples]
             loss = F.nll_loss(y_hat, target)
 
             rhs = [torch.einsum('bh,bh->', model.tabular_multipliers(indices), defects[0])]
-            for multiplier, h_i in zip(model.distribution_multipliers, defects[1:]):
+            for multiplier, h_i in zip(model.distributional_multipliers, defects[1:]):
                 rhs.append(torch.einsum('cf,bcf->', multiplier, h_i))
         else:
             loss = F.nll_loss(y_hat, target)
@@ -176,14 +180,11 @@ def main():
         else:
             raise NotImplemented
 
-        theta = [v for k, v in model.named_parameters() if not k.startswith("x1") and not k.startswith("multipliers")]
-        x = [v for k, v in model.named_parameters() if k.startswith("x1")]
-        multi = [v for k, v in model.named_parameters() if k.startswith("multipliers")]
         primal_variables = [
-            {'params': theta, 'lr': config.initial_lr_theta},
-            {'params': x, 'lr': config.initial_lr_x},
+            {'params': model.blocks.parameters(), 'lr': config.initial_lr_theta},
+            {'params': model.state_net.parameters(), 'lr': config.initial_lr_x},
         ]
-        dual_variables = [{'params': multi, 'lr': config.initial_lr_y}]
+        dual_variables = [{'params': model.multipliers.parameters(), 'lr': config.initial_lr_y}]
 
         optimizer = optimizer_primal(primal_variables)
         aux_optimizer = optimizer_dual(dual_variables)
