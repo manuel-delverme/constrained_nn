@@ -4,7 +4,7 @@ import torch
 
 import experiment_buddy
 
-RUN_SWEEP = 1
+RUN_SWEEP = 0
 REMOTE = 1
 
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
@@ -41,6 +41,7 @@ initial_lr_x = 0.04527
 initial_lr_y = 0.0001389
 # 1e-2  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
 
+num_layers = 10
 warmup_lr = 0.009185
 lambda_ = 0.06788
 # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0

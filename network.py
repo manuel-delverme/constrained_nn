@@ -67,6 +67,71 @@ class TargetPropNetwork(nn.Module):
         return self.multipliers[1]
 
 
+class HugeTargetPropNetwork(nn.Module):
+    def __init__(self, train_loader=None):
+        super().__init__()
+        self.blocks = nn.Sequential(
+            nn.Sequential(
+                nn.Conv2d(1, 32, 3, 1),
+                nn.ReLU(),
+                nn.Conv2d(32, 64, 3, 1),
+                nn.ReLU(),
+                nn.MaxPool2d(2),
+                nn.Flatten(1),
+            ),
+            nn.Sequential(
+                nn.Linear(9216, 128),
+                nn.Identity() if config.distributional else nn.ReLU(),
+            ),
+            *([nn.Sequential(
+                nn.Linear(128, 128),
+                nn.Identity() if config.distributional else nn.ReLU(),
+            )] * config.num_layers),
+            nn.Sequential(
+                nn.Linear(128, 10),
+                nn.LogSoftmax(dim=1)
+            ),
+        )
+        dataset_size = len(train_loader.dataset)
+        state_sizes = [b[0].in_features for b in self.blocks[1:]]
+
+        if config.distributional:
+            num_classes = len(train_loader.dataset.classes)
+            self.state_net = GaussianStateNet(dataset_size, num_classes, state_sizes)
+            self.multipliers = nn.ModuleList((
+                nn.Embedding(dataset_size, state_sizes[0], _weight=torch.zeros(dataset_size, state_sizes[0]), sparse=True),
+                nn.ParameterList(nn.Parameter(torch.zeros(num_classes, state_size)) for state_size in state_sizes[1:]),
+            ))
+        else:
+            self.state_net = StateNet(dataset_size, train_loader)
+            self.multipliers = nn.Sequential(
+                nn.Embedding(dataset_size, 128, _weight=torch.zeros(dataset_size, 128), sparse=True),
+            )
+
+    def constrained_forward(self, x0, indices, targets):
+        states = self.state_net(x0)
+        activations = self.one_step(states)
+        x_t, x_T = activations[:-1], activations[-1]
+        defects = self.state_net.defect(x_t, targets)
+        return x_T, defects
+
+    def forward(self, x):
+        return self.blocks(x)
+
+    def one_step(self, x_t):
+        # TODO: parallel
+        x_t1 = [block(x_t) for x_t, block in zip(x_t, self.blocks)]
+        return x_t1
+
+    @property
+    def tabular_multipliers(self):
+        return self.multipliers[0]
+
+    @property
+    def distributional_multipliers(self):
+        return self.multipliers[1]
+
+
 class StateNet(nn.Module):
     def __init__(self, dataset_size, train_loader):
         super().__init__()
