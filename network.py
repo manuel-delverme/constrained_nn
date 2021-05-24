@@ -132,9 +132,8 @@ class GaussianState(nn.Module):
 
 
 class CIAR10TargetProp(nn.Module):
-    raise NotImplementedError
-
     def __init__(self, train_loader=None, multi_stage=True):
+        raise NotImplementedError
         super().__init__()
         state_size = 84
         self.block1 = nn.Sequential(
