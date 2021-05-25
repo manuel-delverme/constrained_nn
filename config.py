@@ -67,5 +67,5 @@ tb = experiment_buddy.deploy(
     sweep_yaml="sweep_hyper.yaml" if RUN_SWEEP else False,
     extra_slurm_headers="""
     """,
-    proc_num=5 if RUN_SWEEP else 1
+    proc_num=15 if RUN_SWEEP else 1
 )
