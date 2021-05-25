@@ -50,7 +50,8 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
                     config.tb.add_histogram(f"h{idx}/train/state_mean_pdist", torch.pdist(mean).cpu().detach().numpy(), batch_idx + step)
 
             if config.constraint_satisfaction == "extra-gradient":
-                (loss + sum(rhs)).backward()
+                lagrangian = loss + sum(rhs)
+                lagrangian.backward(retain_graph=True)
                 optimizer.extrapolation()
 
                 dual_backward(defects, indices, model)

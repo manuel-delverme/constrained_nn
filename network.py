@@ -118,9 +118,9 @@ class GaussianStateNet(nn.Module):
 class GaussianState(nn.Module):
     def __init__(self, num_classes, state_size):
         super().__init__()
-        self.means = nn.Linear(num_classes, state_size)
+        self.means = nn.Linear(num_classes, state_size, bias=False)
         self.scales = nn.Sequential(
-            nn.Linear(num_classes, state_size),
+            nn.Linear(num_classes, state_size, bias=False),
             nn.Softplus(),
         )
         self.ys = torch.eye(num_classes).to(device=config.device, dtype=torch.float)
