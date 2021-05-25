@@ -4,11 +4,12 @@ import torch
 
 import experiment_buddy
 
-RUN_SWEEP = 0
+RUN_SWEEP = 1
 REMOTE = 1
 
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
 dataset_path = "../data" if DEBUG else "/network/datasets/{}.var/{}_torchvision"
+
 
 experiment = ["sgd", "target-prop", "robust-classification"][1]
 constraint_satisfaction = ["penalty", "descent-ascent", "extra-gradient"][2]
@@ -41,7 +42,7 @@ initial_lr_x = 0.04527
 initial_lr_y = 0.0001389
 # 1e-2  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
 
-num_layers = 10
+num_layers = 1
 warmup_lr = 0.009185
 lambda_ = 0.06788
 # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
@@ -68,5 +69,5 @@ tb = experiment_buddy.deploy(
     sweep_yaml="sweep_hyper.yaml" if RUN_SWEEP else False,
     extra_slurm_headers="""
     """,
-    proc_num=5 if RUN_SWEEP else 1
+    proc_num=15 if RUN_SWEEP else 1
 )
