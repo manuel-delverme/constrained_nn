@@ -17,8 +17,8 @@ class TargetPropNetwork(nn.Module):
                 nn.ReLU(),
                 nn.MaxPool2d(2),
                 nn.Flatten(1),
-            ),
-            nn.Sequential(
+            # ),
+            # nn.Sequential(
                 nn.Linear(9216, 128),
                 nn.Identity() if config.distributional else nn.ReLU(),
             ),
