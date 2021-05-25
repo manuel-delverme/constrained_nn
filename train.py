@@ -47,14 +47,7 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
                 (loss + sum(rhs)).backward()
                 optimizer.extrapolation()
 
-                # Player 2
-                for idx, (h_i, lambda_i) in enumerate(zip(defects, model.multipliers)):
-                    multiplier_grad = -h_i
-                    if isinstance(lambda_i, torch.nn.Embedding):
-                        lambda_i.weight.grad = torch.sparse_coo_tensor(indices.unsqueeze(0), multiplier_grad, model.multipliers[0].weight.shape)
-                    else:
-                        lambda_i.grad = multiplier_grad.mean(0)
-
+                dual_backward(defects, indices, model)
                 aux_optimizer.extrapolation()
 
                 optimizer.zero_grad()
@@ -69,14 +62,9 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
 
             # Player 2
             # RYAN: this is not necessary
-            for idx, (h_i, lambda_i) in enumerate(zip(defects, model.multipliers)):
-                multiplier_grad = -h_i
-                if isinstance(lambda_i, torch.nn.Embedding):
-                    lambda_i.weight.grad = torch.sparse_coo_tensor(indices.unsqueeze(0), multiplier_grad, model.multipliers[0].weight.shape)
-                else:
-                    lambda_i.grad = multiplier_grad.mean(0)
-
+            dual_backward(defects, indices, model)
             aux_optimizer.step()
+
         else:
             optimizer.zero_grad()
 
@@ -99,6 +87,14 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
         sys.stderr.flush()
 
     return batch_idx + step
+
+
+def dual_backward(defects, indices, model):
+    multiplier_grad = -defects[0]
+    model.tabular_multipliers.weight.grad = torch.sparse_coo_tensor(indices.unsqueeze(0), multiplier_grad, model.multipliers[0].weight.shape)
+    for idx, (h_i, lambda_i) in enumerate(zip(defects[1:], model.distributional_multipliers)):
+        multiplier_grad = -h_i
+        lambda_i.grad = multiplier_grad.mean(0)
 
 
 def forward_step(data, indices, model, target):
