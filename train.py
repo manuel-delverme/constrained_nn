@@ -1,5 +1,4 @@
 import sys
-import warnings
 
 import torch
 import torch.autograd
@@ -13,8 +12,6 @@ import config
 import extragradient
 import network
 import utils
-
-warnings.filterwarnings("error")  # mama didn't raise no bitch
 
 
 def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_optimizer=None):
