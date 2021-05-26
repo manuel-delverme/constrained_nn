@@ -1,4 +1,5 @@
 import sys
+import warnings
 
 import torch
 import torch.autograd
@@ -12,6 +13,8 @@ import config
 import extragradient
 import network
 import utils
+
+warnings.filterwarnings("error")
 
 
 def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_optimizer=None):
@@ -40,9 +43,9 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
                 if config.distributional:
                     mean, scale = xi()
                     if idx == 0:
-                        config.tb.add_scalar(f"h{idx}/train/multipliers_mean", model.tabular_multipliers.weight.abs().mean().cpu().detach().numpy(), batch_idx + step)
+                        config.tb.add_scalar(f"h{idx}/train/multipliers_abs_mean", model.tabular_multipliers.weight.abs().mean().cpu().detach().numpy(), batch_idx + step)
                     else:
-                        config.tb.add_histogram(f"h{idx}/train/per_class_multipliers", model.distributional_multipliers[idx - 1].mean(axis=1).cpu().detach().numpy(),
+                        config.tb.add_histogram(f"h{idx}/train/per_class_multipliers", model.distributional_multipliers[idx - 1].abs().mean(axis=1).cpu().detach().numpy(),
                                                 batch_idx + step)
 
                     config.tb.add_histogram(f"h{idx}/train/state_scale_mean", scale.mean(axis=1).cpu().detach().numpy(), batch_idx + step)
@@ -51,7 +54,7 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
 
             if config.constraint_satisfaction == "extra-gradient":
                 lagrangian = loss + sum(rhs)
-                lagrangian.backward(retain_graph=True)
+                lagrangian.backward()
                 optimizer.extrapolation()
 
                 dual_backward(defects, indices, model)
