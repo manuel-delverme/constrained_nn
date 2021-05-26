@@ -87,9 +87,13 @@ class StateNet(nn.Module):
         return self.blocks(x)
 
     def defect(self, activations, targets):
-        defects = [(activations[0] - self.states[0].mean[targets]) / self.states[0].scale[targets]]
-        # TODO: parallelize
-        defects.extend([(a_i - target_distribution.mean) / target_distribution.scale for a_i, target_distribution in zip(activations[1:], self.states[1:])])
+        tabular_defect = (activations[0] - self.states[0].mean[targets]) / self.states[0].scale[targets]
+        defects = [F.softshrink(tabular_defect, config.tabular_margin), ]
+
+        for a_i, target_distribution in zip(activations[1:], self.states[1:]):
+            h_i = (a_i - target_distribution.mean) / target_distribution.scale
+            defects.append(F.softshrink(h_i, config.distributional_margin))
+
         return defects
 
 
@@ -130,84 +134,3 @@ class GaussianState(nn.Module):
 
     def rsample(self, num_samples):
         return torch.distributions.Normal(*self()).rsample((num_samples,))
-
-
-class CIAR10TargetProp(nn.Module):
-    def __init__(self, train_loader=None, multi_stage=True):
-        raise NotImplementedError
-        super().__init__()
-        state_size = 84
-        self.block1 = nn.Sequential(
-            nn.Conv2d(3, 6, 5),
-            nn.ReLU(),
-            nn.MaxPool2d(2, 2),
-            nn.Conv2d(6, 16, 5),
-            nn.ReLU(),
-            nn.MaxPool2d(2, 2),
-            nn.Flatten(1),
-            nn.Linear(16 * 5 * 5, 120),
-            nn.ReLU(),
-            nn.Linear(120, state_size),
-
-        )
-        self.block3 = nn.Sequential(
-            nn.Linear(state_size, 10),
-            nn.LogSoftmax(dim=1)
-        )
-
-        if multi_stage:
-            if config.distributional:
-                dataset_size = len(train_loader.dataset)
-                num_classes = len(train_loader.dataset.classes)
-                self.target_class = torch.tensor(train_loader.dataset.targets)
-
-                self.means = nn.Parameter(torch.rand((num_classes, state_size)))
-                self.scale = nn.Parameter(torch.ones(num_classes, state_size))
-
-                self.x1 = torch.distributions.Normal(self.means, self.scale)
-                self.multipliers = nn.Sequential(
-                    nn.Embedding(dataset_size, state_size, _weight=torch.zeros(dataset_size, state_size), sparse=True),
-                )
-            else:
-                dataset_size = len(train_loader.dataset)
-                weight = torch.zeros(dataset_size, state_size)
-
-                if config.initial_forward:
-                    with torch.no_grad():
-                        for batch_idx, (data, target, indices) in tqdm.tqdm(enumerate(train_loader), total=len(train_loader)):
-                            x_i = self.block1(data)
-                            weight[indices] = x_i
-
-                self.x1 = nn.Sequential(
-                    nn.Embedding(dataset_size, state_size, _weight=weight, sparse=True),
-                    nn.ReLU()
-                )
-                self.multipliers = nn.Sequential(
-                    nn.Embedding(dataset_size, state_size, _weight=torch.zeros(dataset_size, state_size), sparse=True),
-                )
-
-    def forward(self, x0, indices):
-        x1_hat = self.block1(x0)
-
-        if config.distributional:
-            targets = self.target_class[indices]
-            h = (x1_hat - self.x1.mean[targets]) / self.x1.scale[targets]
-
-            samples = self.x1.rsample((config.num_samples,))
-            x1_target = samples[torch.arange(config.num_samples), targets[:config.num_samples]]
-        else:
-            x1_target = self.x1(indices)
-            h = x1_hat - x1_target
-
-        if config.eps_constraint:
-            h2 = F.softshrink(h, config.constr_margin)
-        else:
-            h2 = h
-
-        x_T = self.block3(x1_target)
-        return x_T, h2
-
-    def full_rollout(self, x):
-        x = self.block1(x)
-        x = self.block3(x)
-        return x

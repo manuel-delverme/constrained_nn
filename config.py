@@ -28,10 +28,9 @@ chance_constraint = {
 }[experiment]
 
 # Target Prop Experiments
-constr_margin = {
-    True: 0.492,  # 68%
-    False: 0.15779255009939092,
-}[distributional]
+distributional_margin = 0.492
+tabular_margin = 0.15779255009939092
+
 initial_forward = True
 
 random_seed = 1337
