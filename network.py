@@ -134,4 +134,5 @@ class GaussianState(nn.Module):
         return F.softshrink(h, config.distributional_margin)
 
     def rsample(self, num_samples):
-        return torch.distributions.Normal(*self()).rsample((num_samples,))
+        loc, scale = self()
+        return torch.distributions.Uniform(loc - scale * config.distributional_margin, loc + scale * config.distributional_margin).rsample((num_samples,))
