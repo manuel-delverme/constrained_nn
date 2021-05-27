@@ -87,6 +87,7 @@ class StateNet(nn.Module):
         return self.blocks(x)
 
     def defect(self, activations, targets):
+        raise NotImplemented
         tabular_defect = (activations[0] - self.states[0].mean[targets]) / self.states[0].scale[targets]
         defects = [F.softshrink(tabular_defect, config.tabular_margin), ]
 
@@ -108,14 +109,9 @@ class GaussianStateNet(nn.Module):
         return xs
 
     def defect(self, activations, targets):
-        loc, scale = self.states[0]()
-        defects = [(activations[0] - loc[targets]) / scale[targets]]
-        # TODO: parallelize
-        h_distr = []
+        defects = [self.states[0].defect(activations[0], targets), ]
         for a_i, state in zip(activations[1:], self.states[1:]):
-            loc, scale = state()
-            h_distr.append((a_i - loc) / scale)
-        defects.extend(h_distr)
+            defects.append(state.defect(a_i))
         return defects
 
 
@@ -131,6 +127,11 @@ class GaussianState(nn.Module):
 
     def forward(self):
         return self.means(self.ys), self.scales(self.ys)
+
+    def defect(self, a_i, targets=None):
+        loc, scale = self()
+        h = (a_i - loc[targets]) / scale[targets]
+        return F.softshrink(h, config.distributional_margin)
 
     def rsample(self, num_samples):
         return torch.distributions.Normal(*self()).rsample((num_samples,))
