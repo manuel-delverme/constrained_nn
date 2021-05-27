@@ -28,25 +28,25 @@ chance_constraint = {
 }[experiment]
 
 # Target Prop Experiments
-distributional_margin = 0.492
+distributional_margin = 0.3967
 tabular_margin = 0.15779255009939092
 
 initial_forward = True
 
 random_seed = 1337
 
-initial_lr_theta = 0.001073
-initial_lr_x = 0.005094
-initial_lr_y = 0.0001046
+initial_lr_theta = 0.0003638
+initial_lr_x = 0.05649
+initial_lr_y = 3.725e-7
 # 1e-2  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
 
-num_layers = 10
+num_layers = 0
 warmup_lr = 0.009185
 lambda_ = 0.06788
 
 batch_size = 1024
 warmup_epochs = 0  # 1 if DEBUG else 0
-num_epochs = 150
+num_epochs = 1000
 use_cuda = True  # not DEBUG
 
 ################################################################
@@ -66,5 +66,5 @@ tb = experiment_buddy.deploy(
     sweep_yaml="sweep_hyper.yaml" if RUN_SWEEP else False,
     extra_slurm_headers="""
     """,
-    proc_num=15 if RUN_SWEEP else 1
+    proc_num=10 if RUN_SWEEP else 1
 )
