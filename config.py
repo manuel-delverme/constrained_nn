@@ -11,7 +11,7 @@ DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
 dataset_path = "../data" if DEBUG else "/network/datasets/{}.var/{}_torchvision"
 
 experiment = ["sgd", "target-prop"][1]
-constraint_satisfaction = ["penalty", "descent-ascent", "extra-gradient"][0]
+constraint_satisfaction = ["penalty", "descent-ascent", "extra-gradient"][1]
 dataset = ["mnist", "cifar10"][0]
 distributional = False
 
@@ -35,6 +35,11 @@ elif constraint_satisfaction == "penalty":
     initial_lr_y = 3.725e-7
     lambda_ = 0.06788
     # 1e-2  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
+elif constraint_satisfaction == "descent-ascent":
+    tabular_margin = 0.9658136136534436
+    initial_lr_theta = 0.003314
+    initial_lr_x = 0.04527
+    initial_lr_y = 0.0001389
 
 initial_forward = True
 random_seed = 1337

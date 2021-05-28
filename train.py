@@ -37,7 +37,7 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
                     config.tb.add_scalar(f"h{idx}/train/abs_mean_defect", float(defect.abs().mean()), batch_idx + step)
                     config.tb.add_scalar(f"h{idx}/train/mean_defect", float(defect.mean()), batch_idx + step)
                     config.tb.add_scalar(f"h{idx}/train/mean_rhs", float(rh.mean()), batch_idx + step)
-                    config.tb.add_histogram(f"h{idx}/train/defect", defect, batch_idx + step)
+                    config.tb.add_histogram(f"h{idx}/train/defect", defect.detach().cpu().numpy(), batch_idx + step)
 
                     if config.distributional:
                         mean, scale = xi()
@@ -104,9 +104,12 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
 def dual_backward(defects, indices, model):
     multiplier_grad = -defects[0]
     model.tabular_multipliers.weight.grad = torch.sparse_coo_tensor(indices.unsqueeze(0), multiplier_grad, model.multipliers[0].weight.shape)
-    for idx, (h_i, lambda_i) in enumerate(zip(defects[1:], model.distributional_multipliers)):
-        multiplier_grad = -h_i
-        lambda_i.grad = multiplier_grad.mean(0)
+    if config.distributional:
+        for idx, (h_i, lambda_i) in enumerate(zip(defects[1:], model.distributional_multipliers)):
+            multiplier_grad = -h_i
+            lambda_i.grad = multiplier_grad.mean(0)
+        else:
+            raise NotImplemented
 
 
 def forward_step(data, indices, model, target):
