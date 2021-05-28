@@ -13,7 +13,7 @@ dataset_path = "../data" if DEBUG else "/network/datasets/{}.var/{}_torchvision"
 experiment = ["sgd", "target-prop"][1]
 constraint_satisfaction = ["penalty", "descent-ascent", "extra-gradient"][2]
 dataset = ["mnist", "cifar10"][1]
-distributional = False
+distributional = True
 
 # Robust Classification experiments
 corruption_percentage = 0.00
@@ -25,12 +25,21 @@ if dataset == "mnist":
             num_samples = 32
             distributional_margin = 0.3967
             tabular_margin = 0.15779255009939092
-            initial_lr_theta = 0.00001413
-            initial_lr_x = 0.168
-            initial_lr_y = 0.0003177
+            # initial_lr_theta = 0.00001413
+            # initial_lr_x = 0.168
+            # initial_lr_y = 0.0003177
+
             # 1e-2  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
+            tabular_constr_margin = 0.2425845357759189
+            initial_lr_theta = 0.005233439584777225
+            initial_lr_x = 0.17822032849836658
+            initial_lr_y = 8.576474073228177e-06
+            # num_samples = 512
         else:
-            raise NotImplemented
+            tabular_margin = 0.4373272842992752
+            initial_lr_theta = 0.0008636215301536897
+            initial_lr_x = 0.12499896839056827
+            initial_lr_y = 7.270811457366213e-06
     elif constraint_satisfaction == "penalty":
         tabular_margin = 0.1017
         initial_lr_theta = 0.0003638
@@ -61,14 +70,12 @@ elif dataset == "cifar10":
         initial_lr_theta = 4.6397470184556474e-05
         initial_lr_x = 0.27691927629931706
         initial_lr_y = 0.004094357077137722
-        raise NotImplemented
         # 1e-2  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
     elif constraint_satisfaction == "descent-ascent":
         tabular_margin = 0.13308695791662822
         initial_lr_theta = 0.00029136889726434325
         initial_lr_x = 0.25009935678225476
         initial_lr_y = 0.00015235056347032218
-        raise NotImplemented
 
 initial_forward = True
 random_seed = 1337
@@ -96,5 +103,5 @@ tb = experiment_buddy.deploy(
     sweep_yaml="sweep_hyper.yaml" if RUN_SWEEP else False,
     extra_slurm_headers="""
     """,
-    proc_num=10 if RUN_SWEEP else 1
+    proc_num=20 if RUN_SWEEP else 1
 )
