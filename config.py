@@ -4,7 +4,7 @@ import torch
 
 import experiment_buddy
 
-RUN_SWEEP = 1
+RUN_SWEEP = 0
 REMOTE = 1
 
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
@@ -13,7 +13,7 @@ dataset_path = "../data" if DEBUG else "/network/datasets/{}.var/{}_torchvision"
 experiment = ["sgd", "target-prop"][0]
 constraint_satisfaction = ["penalty", "descent-ascent", "extra-gradient"][2]
 dataset = ["mnist", "cifar10"][1]
-distributional = True
+distributional = False
 
 batch_size = 1024
 
