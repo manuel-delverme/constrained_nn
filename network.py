@@ -7,29 +7,30 @@ import config
 
 
 class TargetPropNetwork(nn.Module):
-    def __init__(self, train_loader=None, cifar=False):
+    def __init__(self, train_loader=None, dataset="mnist"):
         super().__init__()
-        self.blocks = nn.Sequential(
-            nn.Sequential(
-                nn.Conv2d(1, 32, 3, 1),
-                nn.ReLU(),
-                nn.Conv2d(32, 64, 3, 1),
-                nn.ReLU(),
-                nn.MaxPool2d(2),
-                nn.Flatten(1),
-                nn.Linear(9216, 128),
-                nn.Identity() if config.distributional else nn.ReLU(),
-            ),
-            *([nn.Sequential(
-                nn.Linear(128, 128),
-                nn.Identity() if config.distributional else nn.ReLU(),
-            )] * config.num_layers),
-            nn.Sequential(
-                nn.Linear(128, 10),
-                nn.LogSoftmax(dim=1)
-            ),
-        )
-        if cifar:
+        if dataset == "mnist":
+            self.blocks = nn.Sequential(
+                nn.Sequential(
+                    nn.Conv2d(1, 32, 3, 1),
+                    nn.ReLU(),
+                    nn.Conv2d(32, 64, 3, 1),
+                    nn.ReLU(),
+                    nn.MaxPool2d(2),
+                    nn.Flatten(1),
+                    nn.Linear(9216, 128),
+                    nn.Identity() if config.distributional else nn.ReLU(),
+                ),
+                *([nn.Sequential(
+                    nn.Linear(128, 128),
+                    nn.Identity() if config.distributional else nn.ReLU(),
+                )] * config.num_layers),
+                nn.Sequential(
+                    nn.Linear(128, 10),
+                    nn.LogSoftmax(dim=1)
+                ),
+            )
+        elif dataset == "cifar10":
             self.blocks = nn.Sequential(
                 nn.Sequential(
                     nn.Conv2d(3, 6, 5),
