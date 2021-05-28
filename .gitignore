@@ -152,3 +152,4 @@ wandb/
 /runs/
 /tensorboard/
 /data/
+/cache/
