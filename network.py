@@ -40,16 +40,21 @@ class TargetPropNetwork(nn.Module):
                 nn.ParameterList(nn.Parameter(torch.zeros(num_classes, state_size)) for state_size in state_sizes[1:]),
             ))
         else:
-            self.state_net = StateNet(dataset_size, train_loader)
-            self.multipliers = nn.Sequential(
-                nn.Embedding(dataset_size, 128, _weight=torch.zeros(dataset_size, 128), sparse=True),
-            )
+            weights = [torch.zeros(dataset_size, state_size) for state_size in state_sizes]
+            with torch.no_grad():
+                for batch_idx, (data, target, indices) in tqdm.tqdm(enumerate(train_loader), total=len(train_loader)):
+                    a_i = data
+                    for t, block in enumerate(self.blocks[:-1]):
+                        a_i = block(a_i)
+                        weights[t][indices] = a_i
+            self.state_net = StateNet(dataset_size, weights, state_sizes)
+            self.multipliers = nn.Sequential(*[nn.Embedding(dataset_size, state_size, _weight=torch.zeros(dataset_size, 128), sparse=True) for state_size in state_sizes])
 
     def constrained_forward(self, x0, indices, targets):
-        states = self.state_net(x0)
+        states = self.state_net(x0, indices)
         activations = self.one_step(states)
         x_t, x_T = activations[:-1], activations[-1]
-        defects = self.state_net.defect(x_t, targets)
+        defects = self.state_net.defect(x_t, targets, indices)
         return x_T, defects
 
     def forward(self, x):
@@ -69,33 +74,37 @@ class TargetPropNetwork(nn.Module):
 
 
 class StateNet(nn.Module):
-    def __init__(self, dataset_size, train_loader):
+    def __init__(self, dataset_size, weights, state_sizes):
         super().__init__()
-        weight = torch.zeros(dataset_size, 128)
+        self.states = nn.ModuleList(TabularState(dataset_size, state_size, weight) for weight, state_size in zip(weights, state_sizes))
 
-        with torch.no_grad():
-            for batch_idx, (data, target, indices) in tqdm.tqdm(enumerate(train_loader), total=len(train_loader)):
-                x_i = self.block1(data)
-                weight[indices] = x_i
+    def forward(self, x0, indices):
+        return [x0, ] + [s(indices) for s in self.states]
 
-        self.states = nn.Sequential(
-            nn.Embedding(dataset_size, 128, _weight=weight, sparse=True),
+    def defect(self, activations, targets, indices):
+        defects = []
+        for a_i, state in zip(activations, self.states):
+            defects.append(state.defect(a_i, indices=indices))
+        return defects
+
+
+class TabularState(nn.Module):
+    def __init__(self, dataset_size, state_size, weight):
+        super().__init__()
+        self.state = nn.Sequential(
+            nn.Embedding(dataset_size, state_size, _weight=weight, sparse=True),
             nn.ReLU()
         )
 
-    def forward(self, x):
-        return self.blocks(x)
+    def forward(self, indices):
+        return self.state(indices)
 
-    def defect(self, activations, targets):
-        raise NotImplemented
-        tabular_defect = (activations[0] - self.states[0].mean[targets]) / self.states[0].scale[targets]
-        defects = [F.softshrink(tabular_defect, config.tabular_margin), ]
+    def defect(self, activations, targets=None, indices=None):
+        h = activations - self.state(indices)
+        return F.softshrink(h, config.tabular_margin)
 
-        for a_i, target_distribution in zip(activations[1:], self.states[1:]):
-            h_i = (a_i - target_distribution.mean) / target_distribution.scale
-            defects.append(F.softshrink(h_i, config.distributional_margin))
-
-        return defects
+    def rsample(self, num_samples):
+        return torch.distributions.Normal(*self()).rsample((num_samples,))
 
 
 class GaussianStateNet(nn.Module):
@@ -104,7 +113,7 @@ class GaussianStateNet(nn.Module):
         assert (config.num_samples // num_classes) > 0
         self.states = nn.ModuleList(GaussianState(num_classes, state_size) for state_size in state_sizes)
 
-    def forward(self, x0):
+    def forward(self, x0, indices):
         xs = [x0, ] + [s.rsample(config.num_samples) for s in self.states]
         return xs
 
@@ -128,7 +137,7 @@ class GaussianState(nn.Module):
     def forward(self):
         return self.means(self.ys), self.scales(self.ys)
 
-    def defect(self, a_i, targets=None):
+    def defect(self, a_i, targets=None, indices=None):
         loc, scale = self()
         h = (a_i - loc[targets]) / scale[targets]
         return F.softshrink(h, config.distributional_margin)

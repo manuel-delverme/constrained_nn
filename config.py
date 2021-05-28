@@ -10,43 +10,39 @@ REMOTE = 1
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
 dataset_path = "../data" if DEBUG else "/network/datasets/{}.var/{}_torchvision"
 
-experiment = ["sgd", "target-prop", "robust-classification"][1]
-constraint_satisfaction = ["penalty", "descent-ascent", "extra-gradient"][2]
+experiment = ["sgd", "target-prop"][1]
+constraint_satisfaction = ["penalty", "descent-ascent", "extra-gradient"][0]
 dataset = ["mnist", "cifar10"][0]
-distributional = True
+distributional = False
 
 # Robust Classification experiments
 corruption_percentage = 0.00
+batch_size = 1024
 
-# Distributional
-num_samples = 32
-
-chance_constraint = {
-    "sgd": False,
-    "target-prop": False,
-    "robust-classification": 0.05
-}[experiment]
-
-# Target Prop Experiments
-distributional_margin = 0.492
-tabular_margin = 0.15779255009939092
+if constraint_satisfaction == "extra-gradient":
+    if distributional:
+        num_samples = 32
+        distributional_margin = 0.3967
+        tabular_margin = 0.15779255009939092
+        initial_lr_theta = 0.00001413
+        initial_lr_x = 0.168
+        initial_lr_y = 0.0003177
+        # 1e-2  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
+elif constraint_satisfaction == "penalty":
+    tabular_margin = 0.1017
+    initial_lr_theta = 0.0003638
+    initial_lr_x = 0.05649
+    initial_lr_y = 3.725e-7
+    lambda_ = 0.06788
+    # 1e-2  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
 
 initial_forward = True
-
 random_seed = 1337
-
-initial_lr_theta = 0.001073
-initial_lr_x = 0.005094
-initial_lr_y = 0.0001046
-# 1e-2  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
-
-num_layers = 10
+num_layers = 0
 warmup_lr = 0.009185
-lambda_ = 0.06788
 
-batch_size = 1024
 warmup_epochs = 0  # 1 if DEBUG else 0
-num_epochs = 150
+num_epochs = 431
 use_cuda = True  # not DEBUG
 
 ################################################################
@@ -66,5 +62,5 @@ tb = experiment_buddy.deploy(
     sweep_yaml="sweep_hyper.yaml" if RUN_SWEEP else False,
     extra_slurm_headers="""
     """,
-    proc_num=15 if RUN_SWEEP else 1
+    proc_num=10 if RUN_SWEEP else 1
 )

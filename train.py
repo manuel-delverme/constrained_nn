@@ -37,6 +37,7 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
                     config.tb.add_scalar(f"h{idx}/train/abs_mean_defect", float(defect.abs().mean()), batch_idx + step)
                     config.tb.add_scalar(f"h{idx}/train/mean_defect", float(defect.mean()), batch_idx + step)
                     config.tb.add_scalar(f"h{idx}/train/mean_rhs", float(rh.mean()), batch_idx + step)
+                    config.tb.add_histogram(f"h{idx}/train/defect", defect, batch_idx + step)
 
                     if config.distributional:
                         mean, scale = xi()
@@ -80,10 +81,13 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
             config.tb.add_scalar("train/loss", float(loss.item()), batch_idx + step)
 
             if config.experiment != "sgd":
-                config.tb.add_scalar("train/mean_defect", float(defects.mean()), batch_idx + step)
-                config.tb.add_scalar("train/rhs_defect", float(rhs.mean()), batch_idx + step)
+                defect_sqrt = 0.
+                for idx, (defect, rh, xi) in enumerate(zip(defects, rhs, model.state_net.states)):
+                    config.tb.add_scalar("train/mean_defect", float(defect.mean()), batch_idx + step)
+                    config.tb.add_scalar("train/rhs_defect", float(rh.mean()), batch_idx + step)
+                    defect_sqrt = defect.pow(2).mean(1).mean(0)
 
-                constr_loss = config.lambda_ * defects.pow(2).mean(1).mean(0)
+                constr_loss = config.lambda_ * defect_sqrt
                 lagr = loss + constr_loss
             else:
                 lagr = loss
@@ -108,6 +112,7 @@ def dual_backward(defects, indices, model):
 def forward_step(data, indices, model, target):
     if config.experiment == "target-prop":
         y_hat, defects = model.constrained_forward(data, indices, target)
+        rhs = []
         if config.distributional:
             num_classes = y_hat.shape[1]
             target = torch.arange(num_classes, device=y_hat.device).repeat(y_hat.shape[0])
@@ -115,12 +120,13 @@ def forward_step(data, indices, model, target):
             # target = target[:config.num_samples]
             loss = F.nll_loss(y_hat, target)
 
-            rhs = [torch.einsum('bh,bh->', model.tabular_multipliers(indices), defects[0])]
+            rhs.append(torch.einsum('bh,bh->', model.tabular_multipliers(indices), defects[0]))
             for multiplier, h_i in zip(model.distributional_multipliers, defects[1:]):
                 rhs.append(torch.einsum('cf,bcf->', multiplier, h_i))
         else:
             loss = F.nll_loss(y_hat, target)
-            rhs = torch.einsum('bh,bh->', model.multipliers(indices), defects)
+            for multiplier, h_i in zip(model.multipliers, defects):
+                rhs.append(torch.einsum('bh,bh->', multiplier(indices), h_i))
 
     elif config.experiment == "sgd":
         y_hat = model(data, indices)

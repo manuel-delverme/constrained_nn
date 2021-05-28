@@ -1,29 +1,16 @@
-method: bayes
-metric:
-  goal: maximize
-  name: test/accuracy
+method: random
 parameters:
-  ^initial_lr_theta:
-    distribution: log_uniform
-    min: -13.
-    max: -3.3
-  ^initial_lr_x:
-    distribution: log_uniform
-    min: -8
-    max: -1
-  ^initial_lr_y:
-    distribution: log_uniform
-    min: -16.
-    max: -10.
-  ^distributional_margin:
-    distribution: uniform
-    min: 0.2
-    max: 2
-  ^num_samples:
+  ^random_seed:
     distribution: categorical
     values:
-      - 32
-      - 256
-      - 2048
-
+      - 0
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      - 6
+      - 7
+      - 8
+      - 9
 program: train.py
