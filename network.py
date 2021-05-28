@@ -7,7 +7,7 @@ import config
 
 
 class TargetPropNetwork(nn.Module):
-    def __init__(self, train_loader=None):
+    def __init__(self, train_loader=None, cifar=False):
         super().__init__()
         self.blocks = nn.Sequential(
             nn.Sequential(
@@ -29,6 +29,31 @@ class TargetPropNetwork(nn.Module):
                 nn.LogSoftmax(dim=1)
             ),
         )
+        if cifar:
+            self.blocks = nn.Sequential(
+                nn.Sequential(
+                    nn.Conv2d(3, 6, 5),
+                    nn.ReLU(),
+                    nn.MaxPool2d(2, 2),
+                    nn.Conv2d(6, 16, 5),
+                    nn.ReLU(),
+                    nn.MaxPool2d(2, 2),
+                    nn.Flatten(1),
+                    nn.Linear(16 * 5 * 5, 120),
+                    nn.ReLU(),
+                    nn.Linear(120, 84),
+                    nn.Identity() if config.distributional else nn.ReLU(),
+                ),
+                *([nn.Sequential(
+                    nn.Linear(84, 84),
+                    nn.Identity() if config.distributional else nn.ReLU(),
+                )] * config.num_layers),
+                nn.Sequential(
+                    nn.Linear(84, 10),
+                    nn.LogSoftmax(dim=1)
+                ),
+            )
+
         dataset_size = len(train_loader.dataset)
         state_sizes = [b[0].in_features for b in self.blocks[1:]]
 
@@ -48,7 +73,7 @@ class TargetPropNetwork(nn.Module):
                         a_i = block(a_i)
                         weights[t][indices] = a_i
             self.state_net = StateNet(dataset_size, weights, state_sizes)
-            self.multipliers = nn.Sequential(*[nn.Embedding(dataset_size, state_size, _weight=torch.zeros(dataset_size, 128), sparse=True) for state_size in state_sizes])
+            self.multipliers = nn.Sequential(*[nn.Embedding(dataset_size, state_size, _weight=torch.zeros(dataset_size, state_size), sparse=True) for state_size in state_sizes])
 
     def constrained_forward(self, x0, indices, targets):
         states = self.state_net(x0, indices)

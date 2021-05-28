@@ -211,19 +211,7 @@ def main():
 
 def load_model(train_loader):
     if config.experiment == "target-prop":
-        if config.dataset == "mnist":
-            model = network.TargetPropNetwork(train_loader)
-        elif config.dataset == "cifar10":
-            model = network.CIAR10TargetProp(train_loader)
-        else:
-            raise NotImplemented
-    elif config.experiment == "robust-classification":
-        if config.dataset == "mnist":
-            model = network.MNISTLiftedNetwork(len(train_loader.dataset))
-        elif config.dataset == "cifar10":
-            model = network.CIFAR10LiftedNetwork(len(train_loader.dataset))
-        else:
-            raise NotImplemented
+        model = network.TargetPropNetwork(train_loader, config.dataset)
     elif config.experiment == "sgd":
         if config.dataset == "mnist":
             model = network.MNISTNetwork()

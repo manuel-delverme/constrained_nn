@@ -1,7 +1,6 @@
-method: random
+method: grid
 parameters:
   ^random_seed:
-    distribution: categorical
     values:
       - 0
       - 1

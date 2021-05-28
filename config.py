@@ -11,35 +11,64 @@ DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
 dataset_path = "../data" if DEBUG else "/network/datasets/{}.var/{}_torchvision"
 
 experiment = ["sgd", "target-prop"][1]
-constraint_satisfaction = ["penalty", "descent-ascent", "extra-gradient"][1]
-dataset = ["mnist", "cifar10"][0]
+constraint_satisfaction = ["penalty", "descent-ascent", "extra-gradient"][2]
+dataset = ["mnist", "cifar10"][1]
 distributional = False
 
 # Robust Classification experiments
 corruption_percentage = 0.00
 batch_size = 1024
 
-if constraint_satisfaction == "extra-gradient":
-    if distributional:
-        num_samples = 32
-        distributional_margin = 0.3967
-        tabular_margin = 0.15779255009939092
-        initial_lr_theta = 0.00001413
-        initial_lr_x = 0.168
-        initial_lr_y = 0.0003177
+if dataset == "mnist":
+    if constraint_satisfaction == "extra-gradient":
+        if distributional:
+            num_samples = 32
+            distributional_margin = 0.3967
+            tabular_margin = 0.15779255009939092
+            initial_lr_theta = 0.00001413
+            initial_lr_x = 0.168
+            initial_lr_y = 0.0003177
+            # 1e-2  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
+        else:
+            raise NotImplemented
+    elif constraint_satisfaction == "penalty":
+        tabular_margin = 0.1017
+        initial_lr_theta = 0.0003638
+        initial_lr_x = 0.05649
+        initial_lr_y = 3.725e-7
+        lambda_ = 0.06788
         # 1e-2  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
-elif constraint_satisfaction == "penalty":
-    tabular_margin = 0.1017
-    initial_lr_theta = 0.0003638
-    initial_lr_x = 0.05649
-    initial_lr_y = 3.725e-7
-    lambda_ = 0.06788
-    # 1e-2  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
-elif constraint_satisfaction == "descent-ascent":
-    tabular_margin = 0.9658136136534436
-    initial_lr_theta = 0.003314
-    initial_lr_x = 0.04527
-    initial_lr_y = 0.0001389
+    elif constraint_satisfaction == "descent-ascent":
+        tabular_margin = 0.9658136136534436
+        initial_lr_theta = 0.003314
+        initial_lr_x = 0.04527
+        initial_lr_y = 0.0001389
+elif dataset == "cifar10":
+    if constraint_satisfaction == "extra-gradient":
+        if distributional:
+            tabular_margin = 0.2470519487851573
+            initial_lr_theta = 0.004169182899797638
+            initial_lr_x = 0.25530572068931
+            initial_lr_y = 9.356607499463217e-07
+            num_samples = 32
+        else:
+            tabular_margin = 0.06640108363973078
+            initial_lr_theta = 0.003175211334723672
+            initial_lr_x = 0.03977922031861909
+            initial_lr_y = 2.311834855494428e-06
+    elif constraint_satisfaction == "penalty":
+        tabular_margin = 0.10063086881740957
+        initial_lr_theta = 4.6397470184556474e-05
+        initial_lr_x = 0.27691927629931706
+        initial_lr_y = 0.004094357077137722
+        raise NotImplemented
+        # 1e-2  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
+    elif constraint_satisfaction == "descent-ascent":
+        tabular_margin = 0.13308695791662822
+        initial_lr_theta = 0.00029136889726434325
+        initial_lr_x = 0.25009935678225476
+        initial_lr_y = 0.00015235056347032218
+        raise NotImplemented
 
 initial_forward = True
 random_seed = 1337
