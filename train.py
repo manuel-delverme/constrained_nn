@@ -132,7 +132,7 @@ def forward_step(data, indices, model, target):
                 rhs.append(torch.einsum('bh,bh->', multiplier(indices), h_i))
 
     elif config.experiment == "sgd":
-        y_hat = model(data, indices)
+        y_hat = model(data)
         loss = F.nll_loss(y_hat, target)
         rhs, defects = None, None
     else:
@@ -210,17 +210,7 @@ def main():
 
 
 def load_model(train_loader):
-    if config.experiment == "target-prop":
-        model = network.TargetPropNetwork(train_loader, config.dataset)
-    elif config.experiment == "sgd":
-        if config.dataset == "mnist":
-            model = network.MNISTNetwork()
-        elif config.dataset == "cifar10":
-            model = network.CIFAR10Network()
-        else:
-            raise NotImplemented
-    else:
-        raise NotImplemented
+    model = network.TargetPropNetwork(train_loader, config.dataset)
     return model
 
 
