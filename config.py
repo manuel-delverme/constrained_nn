@@ -11,9 +11,9 @@ DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
 dataset_path = "../data" if DEBUG else "/network/datasets/{}.var/{}_torchvision"
 
 experiment = ["sgd", "target-prop"][1]
-constraint_satisfaction = ["penalty", "descent-ascent", "extra-gradient"][0]
+constraint_satisfaction = ["penalty", "descent-ascent", "extra-gradient"][2]
 dataset = ["mnist", "cifar10"][1]
-distributional = 0
+distributional = 1
 
 batch_size = 1024
 
