@@ -11,9 +11,9 @@ DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
 dataset_path = "../data" if DEBUG else "/network/datasets/{}.var/{}_torchvision"
 
 experiment = ["sgd", "target-prop"][1]
-constraint_satisfaction = ["penalty", "descent-ascent", "extra-gradient"][0]
-dataset = ["mnist", "cifar10"][0]
-distributional = 0
+constraint_satisfaction = ["penalty", "descent-ascent", "extra-gradient"][2]
+dataset = ["mnist", "cifar10"][1]
+distributional = True
 
 batch_size = 1024
 
@@ -21,14 +21,13 @@ if dataset == "mnist":
     if constraint_satisfaction == "extra-gradient":
         if distributional:
             num_samples = 32
-            distributional_margin = 0.3967
-            tabular_margin = 0.15779255009939092
+            # distributional_margin = 0.3967
+            # tabular_margin = 0.15779255009939092
             # initial_lr_theta = 0.00001413
             # initial_lr_x = 0.168
             # initial_lr_y = 0.0003177
 
-            # 1e-2  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
-            tabular_constr_margin = 0.2425845357759189
+            distributional_margin = 0.2425845357759189
             initial_lr_theta = 0.005233439584777225
             initial_lr_x = 0.17822032849836658
             initial_lr_y = 8.576474073228177e-06
@@ -53,7 +52,7 @@ if dataset == "mnist":
 elif dataset == "cifar10":
     if constraint_satisfaction == "extra-gradient":
         if distributional:
-            tabular_margin = 0.2470519487851573
+            distributional_margin = 0.2470519487851573
             initial_lr_theta = 0.004169182899797638
             initial_lr_x = 0.25530572068931
             initial_lr_y = 9.356607499463217e-07

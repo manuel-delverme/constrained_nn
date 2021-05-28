@@ -143,7 +143,7 @@ class GaussianStateNet(nn.Module):
         xs = [x0, ] + [s.rsample(config.num_samples) for s in self.states]
         return xs
 
-    def defect(self, activations, targets):
+    def defect(self, activations, targets, indices):
         defects = [self.states[0].defect(activations[0], targets), ]
         for a_i, state in zip(activations[1:], self.states[1:]):
             defects.append(state.defect(a_i))

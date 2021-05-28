@@ -108,8 +108,8 @@ def dual_backward(defects, indices, model):
         for idx, (h_i, lambda_i) in enumerate(zip(defects[1:], model.distributional_multipliers)):
             multiplier_grad = -h_i
             lambda_i.grad = multiplier_grad.mean(0)
-        else:
-            raise NotImplemented
+    else:
+        raise NotImplemented
 
 
 def forward_step(data, indices, model, target):
