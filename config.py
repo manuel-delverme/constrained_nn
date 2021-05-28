@@ -10,7 +10,7 @@ REMOTE = 1
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
 dataset_path = "../data" if DEBUG else "/network/datasets/{}.var/{}_torchvision"
 
-experiment = ["sgd", "target-prop"][1]
+experiment = ["sgd", "target-prop"][0]
 constraint_satisfaction = ["penalty", "descent-ascent", "extra-gradient"][2]
 dataset = ["mnist", "cifar10"][1]
 distributional = True
@@ -101,5 +101,5 @@ tb = experiment_buddy.deploy(
     sweep_yaml="sweep_hyper.yaml" if RUN_SWEEP else False,
     extra_slurm_headers="""
     """,
-    proc_num=1 if RUN_SWEEP else 1
+    proc_num=20 if RUN_SWEEP else 1
 )
