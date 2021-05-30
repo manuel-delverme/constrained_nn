@@ -14,11 +14,11 @@ import network
 import utils
 
 
-def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_optimizer=None):
-    model.train()
+def train(primal, dual, train_loader, optimizer, epoch, step, adversarial, aux_optimizer=None):
+    primal.train()
 
     for batch_idx, (data, target, indices) in enumerate(train_loader):
-        data, target, indices = data.to(device), target.to(device), indices.to(device)
+        data, target, indices = data.to(config.device), target.to(config.device), indices.to(config.device)
         config.tb.add_scalar("train/epoch", epoch, batch_idx + step)
         config.tb.add_scalar("train/adversarial", float(adversarial), batch_idx + step)
         config.tb.add_histogram("train/indices", indices.cpu(), batch_idx + step)
@@ -28,11 +28,11 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
             optimizer.zero_grad()
             aux_optimizer.zero_grad()
 
-            rhs, loss, defects = forward_step(data, indices, model, target)
+            rhs, loss, defects = forward_step(data, indices, primal, dual, target)
 
             config.tb.add_scalar("train/loss", float(loss.item()), batch_idx + step)
-            assert len(defects) == len(rhs) == len(model.state_net.states)
-            for idx, (defect, rh, xi) in enumerate(zip(defects, rhs, model.state_net.states)):
+            assert len(defects) == len(rhs) == len(primal.state_model.state_params)
+            for idx, (defect, rh, xi) in enumerate(zip(defects, rhs, primal.state_model.state_params)):
                 if idx < 5 or (idx % 10) == 0:
                     config.tb.add_scalar(f"h{idx}/train/abs_mean_defect", float(defect.abs().mean()), batch_idx + step)
                     config.tb.add_scalar(f"h{idx}/train/mean_defect", float(defect.mean()), batch_idx + step)
@@ -40,12 +40,11 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
                     config.tb.add_histogram(f"h{idx}/train/defect", defect.detach().cpu().numpy(), batch_idx + step)
 
                     if config.distributional:
-                        mean, scale = xi()
+                        mean, scale = xi.means(xi.ys), xi.scales(xi.ys)
                         if idx == 0:
-                            config.tb.add_scalar(f"h{idx}/train/multipliers_abs_mean", model.tabular_multipliers.weight.abs().mean().cpu().detach().numpy(), batch_idx + step)
+                            config.tb.add_scalar(f"h{idx}/train/multipliers_abs_mean", dual[0].weight.abs().mean().cpu().detach().numpy(), batch_idx + step)
                         else:
-                            config.tb.add_histogram(f"h{idx}/train/per_class_multipliers", model.distributional_multipliers[idx - 1].abs().mean(axis=1).cpu().detach().numpy(),
-                                                    batch_idx + step)
+                            config.tb.add_histogram(f"h{idx}/train/distributional_multipliers", dual[1][idx - 1].abs().mean(axis=1).cpu().detach().numpy(), batch_idx + step)
 
                         config.tb.add_histogram(f"h{idx}/train/state_scale_mean", scale.mean(axis=1).cpu().detach().numpy(), batch_idx + step)
                         config.tb.add_scalar(f"h{idx}/train/state_loc_mean", mean.mean(), batch_idx + step)
@@ -56,14 +55,14 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
                 lagrangian.backward()
                 optimizer.extrapolation()
 
-                dual_backward(defects, indices, model)
+                dual_backward(defects, indices, dual)
                 aux_optimizer.extrapolation()
 
                 optimizer.zero_grad()
                 aux_optimizer.zero_grad()
 
                 # Step
-                rhs, loss, defects = forward_step(data, indices, model, target)
+                rhs, loss, defects = forward_step(data, indices, primal, dual, target)
 
             # Grads
             (loss + sum(rhs)).backward()  # Player 1
@@ -71,18 +70,18 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
 
             # Player 2
             # RYAN: this is not necessary
-            dual_backward(defects, indices, model)
+            dual_backward(defects, indices, dual)
             aux_optimizer.step()
 
         else:
             optimizer.zero_grad()
 
-            rhs, loss, defects = forward_step(data, indices, model, target)
+            rhs, loss, defects = forward_step(data, indices, primal, dual, target)
             config.tb.add_scalar("train/loss", float(loss.item()), batch_idx + step)
 
             if config.experiment != "sgd":
                 defect_sqrt = 0.
-                for idx, (defect, rh, xi) in enumerate(zip(defects, rhs, model.state_net.states)):
+                for idx, (defect, rh, xi) in enumerate(zip(defects, rhs, primal.state_model.states)):
                     config.tb.add_scalar("train/mean_defect", float(defect.mean()), batch_idx + step)
                     config.tb.add_scalar("train/rhs_defect", float(rh.mean()), batch_idx + step)
                     defect_sqrt = defect.pow(2).mean(1).mean(0)
@@ -101,43 +100,70 @@ def train(model, device, train_loader, optimizer, epoch, step, adversarial, aux_
     return batch_idx + step
 
 
-def dual_backward(defects, indices, model):
+def dual_backward(defects, indices, multipliers):
     multiplier_grad = -defects[0]
-    model.tabular_multipliers.weight.grad = torch.sparse_coo_tensor(indices.unsqueeze(0), multiplier_grad, model.multipliers[0].weight.shape)
-    if config.distributional:
-        for idx, (h_i, lambda_i) in enumerate(zip(defects[1:], model.distributional_multipliers)):
+    multipliers[0].weight.grad = torch.sparse_coo_tensor(indices.unsqueeze(0), multiplier_grad, multipliers[0].weight.shape)
+    for idx, (h_i, lambda_i) in enumerate(zip(defects[1:], multipliers[1:])):
+        if config.distributional:
             multiplier_grad = -h_i
             lambda_i.grad = multiplier_grad.mean(0)
-    else:
-        raise NotImplemented
+        else:
+            raise NotImplemented
 
 
-def forward_step(data, indices, model, target):
+def forward_step(x, indices, model: network.TargetPropNetwork, multipliers, targets):
     if config.experiment == "target-prop":
-        y_hat, defects = model.constrained_forward(data, indices, target)
+
+        states = [x, ] + model.state_model(indices)
+        activations = model.transition_model.one_step(states)
+        y_i, y_T = activations[:-1], activations[-1]
+        defects = defect_fn(indices, model, y_i, targets)
+
         rhs = []
         if config.distributional:
-            num_classes = y_hat.shape[1]
-            target = torch.arange(num_classes, device=y_hat.device).repeat(y_hat.shape[0])
-            y_hat = y_hat.flatten(0, 1)  # [bs, classes]
+            num_classes = y_T.shape[1]
+            targets = torch.arange(num_classes, device=y_T.device).repeat(y_T.shape[0])
+            y_hat = y_T.flatten(0, 1)  # [bs, classes]
             # target = target[:config.num_samples]
-            loss = F.nll_loss(y_hat, target)
+            loss = F.nll_loss(y_hat, targets)
 
-            rhs.append(torch.einsum('bh,bh->', model.tabular_multipliers(indices), defects[0]))
-            for multiplier, h_i in zip(model.distributional_multipliers, defects[1:]):
+            rhs.append(torch.einsum('bh,bh->', multipliers[0](indices), defects[0]))
+            for multiplier, h_i in zip(multipliers[1], defects[1:]):
                 rhs.append(torch.einsum('cf,bcf->', multiplier, h_i))
         else:
-            loss = F.nll_loss(y_hat, target)
-            for multiplier, h_i in zip(model.multipliers, defects):
+            loss = F.nll_loss(y_T, targets)
+            for multiplier, h_i in zip(multipliers, defects):
                 rhs.append(torch.einsum('bh,bh->', multiplier(indices), h_i))
 
     elif config.experiment == "sgd":
-        y_hat = model(data)
-        loss = F.nll_loss(y_hat, target)
-        rhs, defects = None, None
+        y_hat = model(x)
+        loss = F.nll_loss(y_hat, targets)
     else:
         raise NotImplemented
     return rhs, loss, defects
+
+
+def defect_fn(indices, model, hat_y, targets):
+    defects = []
+    if config.distributional:
+        first_distr = model.state_model.state_params[0]
+        loc, scale = first_distr.means(first_distr.ys), first_distr.scales(first_distr.ys)
+        h = (hat_y[0] - loc[targets]) / scale[targets]
+        h = F.softshrink(h, config.distributional_margin)
+        defects.append(h)
+
+        for hat_y_i, y_i in zip(hat_y[1:], model.state_model.state_params[1:]):
+            loc, scale = first_distr.means(y_i.ys), first_distr.scales(y_i.ys)
+            h = (hat_y_i - loc[targets]) / scale[targets]
+            h = F.softshrink(h, config.distributional_margin)
+            defects.append(h)
+
+    else:
+        for a_i, state in zip(hat_y, model.state_model.state_params):
+            h = a_i - state(indices)
+            h = F.softshrink(h, config.tabular_margin)
+            defects.append(h)
+    return defects
 
 
 def test(model, device, test_loader, step):
@@ -149,7 +175,7 @@ def test(model, device, test_loader, step):
         for (data, target, idx) in test_loader:
             data, target = data.to(device), target.to(device)
             data = data  # .double()
-            output = model(data)
+            output = model.transition_model(data)
 
             test_loss += F.nll_loss(output, target, reduction='sum').item()  # sum up batch loss
             pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
@@ -167,8 +193,7 @@ def main():
     torch.manual_seed(config.random_seed)
     train_loader, test_loader = utils.load_datasets()
 
-    model = load_model(train_loader).to(config.device)
-
+    tp_net, multipliers = load_models(train_loader)
     step = 0
 
     if config.experiment == "sgd" or config.constraint_satisfaction == "penalty":
@@ -178,10 +203,10 @@ def main():
         unconstrained_epochs = config.warmup_epochs
         constrained_epochs = config.num_epochs
 
-    optimizer = torch.optim.Adagrad(model.parameters(), lr=config.warmup_lr)
+    optimizer = torch.optim.Adagrad(tp_net.parameters(), lr=config.warmup_lr)
     for epoch in range(unconstrained_epochs):
-        step = train(model, config.device, train_loader, optimizer, epoch, step, adversarial=False)
-        test(model, config.device, test_loader, step)
+        step = train(tp_net, config.device, train_loader, optimizer, epoch, step, adversarial=False)
+        test(tp_net, config.device, test_loader, step)
 
     if constrained_epochs is not None:
         if config.constraint_satisfaction == "extra-gradient":
@@ -194,24 +219,46 @@ def main():
             raise NotImplemented
 
         primal_variables = [
-            {'params': model.blocks.parameters(), 'lr': config.initial_lr_theta},
-            {'params': model.state_net.parameters(), 'lr': config.initial_lr_x},
+            {'params': tp_net.transition_model.parameters(), 'lr': config.initial_lr_theta},
+            {'params': tp_net.state_model.parameters(), 'lr': config.initial_lr_x},
         ]
-        dual_variables = [{'params': model.multipliers.parameters(), 'lr': config.initial_lr_y}]
+        dual_variables = [{'params': multipliers.parameters(), 'lr': config.initial_lr_y}]
 
         optimizer = optimizer_primal(primal_variables)
         aux_optimizer = optimizer_dual(dual_variables)
-        config.tb.watch(model, log="all")
+        config.tb.watch(tp_net, log="all")
+        config.tb.watch(multipliers, log="all")
 
         for epoch in tqdm.trange(config.num_epochs):
-            step = train(model, config.device, train_loader, optimizer, epoch, step, adversarial=True, aux_optimizer=aux_optimizer)
-            test(model, config.device, test_loader, step)
+            step = train(tp_net, multipliers, train_loader, optimizer, epoch, step, adversarial=True, aux_optimizer=aux_optimizer)
+            test(tp_net, config.device, test_loader, step)
     print("Done", file=sys.stderr)
 
 
-def load_model(train_loader):
-    model = network.TargetPropNetwork(train_loader, config.dataset)
-    return model
+def load_models(train_loader):
+    model = network.SplitNet(config.dataset)
+    dataset_size = len(train_loader.dataset)
+    state_sizes = [b[0].in_features for b in model.blocks[1:]]
+
+    if config.distributional:
+        num_classes = len(train_loader.dataset.classes)
+        state_net = network.GaussianStateNet(dataset_size, num_classes, state_sizes, config.num_samples)
+        multipliers = torch.nn.ModuleList((
+            torch.nn.Embedding(dataset_size, state_sizes[0], _weight=torch.zeros(dataset_size, state_sizes[0]), sparse=True),
+            torch.nn.ParameterList(torch.nn.Parameter(torch.zeros(num_classes, state_size)) for state_size in state_sizes[1:]),
+        ))
+    else:
+        weights = [torch.zeros(dataset_size, state_size) for state_size in state_sizes]
+        with torch.no_grad():
+            for batch_idx, (data, target, indices) in tqdm.tqdm(enumerate(train_loader), total=len(train_loader)):
+                a_i = data
+                for t, block in enumerate(model.blocks[:-1]):
+                    a_i = block(a_i)
+                    weights[t][indices] = a_i
+        state_net = network.TabularStateNet(dataset_size, weights, state_sizes)
+        multipliers = torch.nn.Sequential(*[torch.nn.Embedding(dataset_size, state_size, _weight=torch.zeros(dataset_size, state_size), sparse=True) for state_size in state_sizes])
+    tp_net = network.TargetPropNetwork(model, state_net)
+    return tp_net.to(config.device), multipliers.to(config.device)
 
 
 if __name__ == '__main__':
