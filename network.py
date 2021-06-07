@@ -85,7 +85,7 @@ class GaussianStateNet(nn.Module):
         self.state_params = nn.ModuleList(GaussianState(num_classes, state_size, num_samples) for state_size in state_sizes)
 
     def forward(self, indices):
-        xs = [state_distr() for state_distr in self.state_params]
+        xs = [state_distr(indices) for state_distr in self.state_params]
         return xs
 
 
@@ -112,7 +112,7 @@ class GaussianState(nn.Module):
         self.ys = torch.eye(num_classes).to(device=config.device, dtype=torch.float)
         self.num_samples = num_samples
 
-    def forward(self, indices=None):
+    def forward(self, indices):
         loc, scale = self.means(self.ys), self.scales(self.ys)
         return torch.distributions.Normal(loc, scale).rsample((self.num_samples,))
 

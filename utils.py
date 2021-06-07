@@ -12,7 +12,7 @@ class MNIST(datasets.MNIST):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if config.DEBUG:
-            self.data, self.targets = self.data[:config.batch_size * 2], self.targets[:config.batch_size * 2]
+            self.data, self.targets = self.data[:config.batch_size * 2 - 1], self.targets[:config.batch_size * 2 - 1]
 
     def __getitem__(self, index):
         data, target = super().__getitem__(index)
@@ -23,7 +23,7 @@ class CIFAR10(datasets.CIFAR10):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if config.DEBUG:
-            self.data, self.targets = self.data[:config.batch_size * 2], self.targets[:config.batch_size * 2]
+            self.data, self.targets = self.data[:config.batch_size * 2 - 1], self.targets[:config.batch_size * 2 - 1]
 
     def __getitem__(self, index):
         data, target = super().__getitem__(index)
