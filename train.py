@@ -7,16 +7,16 @@ import torch.nn
 import torch.nn.functional as F
 import torch.optim
 import torch.utils.data
+import torch_constrained
 import tqdm
 
 import config
-import constrained_optimizer
 import extragradient
 import network
 import utils
 
 
-def train(primal, train_loader, optimizer: constrained_optimizer.ConstrainedOptimizer, epoch, step, adversarial):
+def train(primal, train_loader, optimizer: torch_constrained.ConstrainedOptimizer, epoch, step, adversarial):
     primal.train()
 
     for batch_idx, (data, target, indices) in enumerate(train_loader):
@@ -175,7 +175,7 @@ def main():
             {'params': tp_net.state_model.parameters(), 'lr': config.initial_lr_x},
         ]
 
-        optimizer = constrained_optimizer.ConstrainedOptimizer(optimizer_primal, optimizer_dual, config.initial_lr_x, config.initial_lr_y, primal_variables)
+        optimizer = torch_constrained.ConstrainedOptimizer(optimizer_primal, optimizer_dual, config.initial_lr_x, config.initial_lr_y, primal_variables)
         config.tb.watch(tp_net, log="all")
         # config.tb.watch(multipliers, log="all")
 
