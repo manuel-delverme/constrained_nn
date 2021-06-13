@@ -52,6 +52,8 @@ class SplitNet(nn.Module):
                     nn.LogSoftmax(dim=1)
                 ),
             )
+        else:
+            raise NotImplementedError
 
     def forward(self, x):
         return self.blocks(x)
