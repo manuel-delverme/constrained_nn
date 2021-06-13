@@ -11,7 +11,6 @@ import torch_constrained
 import tqdm
 
 import config
-import extragradient
 import network
 import utils
 
@@ -174,8 +173,8 @@ def main():
 
     if constrained_epochs is not None:
         if config.constraint_satisfaction == "extra-gradient":
-            optimizer_primal = extragradient.ExtraAdagrad
-            optimizer_dual = extragradient.ExtraSGD
+            optimizer_primal = torch_constrained.ExtraAdagrad
+            optimizer_dual = torch_constrained.ExtraSGD
         elif config.constraint_satisfaction == "descent-ascent":
             optimizer_primal = torch.optim.Adagrad
             optimizer_dual = torch.optim.SGD
