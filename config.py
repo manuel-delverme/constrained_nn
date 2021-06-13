@@ -21,16 +21,16 @@ if dataset == "mnist":
     if constraint_satisfaction == "extra-gradient":
         if distributional:
             num_samples = 32
-            # distributional_margin = 0.3967
+            distributional_margin = 0.3967
             # tabular_margin = 0.15779255009939092
-            # initial_lr_theta = 0.00001413
-            # initial_lr_x = 0.168
-            # initial_lr_y = 0.0003177
+            initial_lr_theta = 0.00001413
+            initial_lr_x = 0.168
+            initial_lr_y = 0.0003177
 
-            distributional_margin = 0.2425845357759189
-            initial_lr_theta = 0.005233439584777225
-            initial_lr_x = 0.17822032849836658
-            initial_lr_y = 8.576474073228177e-06
+            # distributional_margin = 0.2425845357759189
+            # initial_lr_theta = 0.005233439584777225
+            # initial_lr_x = 0.17822032849836658
+            # initial_lr_y = 8.576474073228177e-06
             # num_samples = 512
         else:
             tabular_margin = 0.4373272842992752
@@ -76,7 +76,8 @@ elif dataset == "cifar10":
 
 # # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
 initial_forward = True
-random_seed = 1337
+# random_seed = 1337
+random_seed = 1
 num_layers = 0
 warmup_lr = 0.009185
 
