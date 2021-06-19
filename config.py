@@ -13,7 +13,7 @@ dataset_path = "../data" if DEBUG else "/network/datasets/{}.var/{}_torchvision"
 experiment = ["sgd", "target-prop"][1]
 constraint_satisfaction = ["penalty", "descent-ascent", "extra-gradient"][2]
 dataset = ["mnist", "cifar10"][0]
-distributional = True
+distributional = False
 
 batch_size = 1024
 
@@ -78,6 +78,10 @@ warmup_lr = 0.009185
 warmup_epochs = 0  # 1 if DEBUG else 0
 num_epochs = 431
 use_cuda = True  # not DEBUG
+
+initial_lr_theta = 1.
+initial_lr_x = 1.
+initial_lr_y = 1.
 
 ################################################################
 # END OF PARAMETERS

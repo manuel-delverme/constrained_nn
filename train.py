@@ -40,10 +40,10 @@ def train(primal, train_loader, optimizer: torch_constrained.ConstrainedOptimize
 
 
 def parameter_metrics(batch_idx, defects, loss, primal, step, optimizer):
-    rhs = optimizer.weighted_constraint(defects)
+    rhs = optimizer.weighted_constraint(defects, None)
     config.tb.add_scalar("train/loss", float(loss.item()), batch_idx + step)
     assert len(defects) == len(rhs) == len(primal.state_model.state_params)
-    for idx, (defect, rh, xi, dual) in enumerate(zip(defects, rhs, primal.state_model.state_params, optimizer.multipliers)):
+    for idx, (defect, rh, xi, dual) in enumerate(zip(defects, rhs, primal.state_model.state_params, optimizer.equality_multipliers)):
         if defect.is_sparse:
             defect = defect.to_dense()
         if idx < 5 or (idx % 10) == 0:
@@ -125,7 +125,8 @@ def defect_fn(indices, model, hat_y, targets, dataset_size):
         for a_i, state in zip(hat_y, model.state_model.state_params):
             h = a_i - state(indices)
             h = F.softshrink(h, config.tabular_margin)
-            defects.append(h)
+            sparse_h = torch.sparse_coo_tensor(indices.unsqueeze(0), h, (dataset_size, h.shape[1]))
+            defects.append(sparse_h)
     return defects
 
 
@@ -173,8 +174,10 @@ def main():
 
     if constrained_epochs is not None:
         if config.constraint_satisfaction == "extra-gradient":
-            optimizer_primal = torch_constrained.ExtraAdagrad
-            optimizer_dual = torch_constrained.ExtraSGD
+            # optimizer_primal = torch_constrained.ExtraAdagrad
+            # optimizer_dual = torch_constrained.ExtraSGD
+            optimizer_primal = torch_constrained.RyanStep
+            optimizer_dual = torch_constrained.RyanStep
         elif config.constraint_satisfaction == "descent-ascent":
             optimizer_primal = torch.optim.Adagrad
             optimizer_dual = torch.optim.SGD
@@ -186,7 +189,7 @@ def main():
             {'params': tp_net.state_model.parameters(), 'lr': config.initial_lr_x},
         ]
 
-        optimizer = torch_constrained.ConstrainedOptimizer(optimizer_primal, optimizer_dual, config.initial_lr_x, config.initial_lr_y, primal_variables)
+        optimizer = torch_constrained.ConstrainedOptimizer(optimizer_primal, optimizer_dual, config.initial_lr_x, config.initial_lr_y, primal_variables, ryan_step=True)
         config.tb.watch(tp_net, log="all")
         # config.tb.watch(multipliers, log="all")
 
