@@ -17,6 +17,34 @@ distributional = False
 
 batch_size = 1024
 
+# # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
+initial_forward = True
+# random_seed = 1337
+random_seed = 1
+num_layers = 0
+warmup_lr = 0.009185
+
+warmup_epochs = 0  # 1 if DEBUG else 0
+num_epochs = 431
+use_cuda = True  # not DEBUG
+
+initial_lr_theta = 1.
+initial_lr_x = 1.
+initial_lr_y = 1.
+
+################################################################
+# END OF PARAMETERS
+################################################################
+experiment_buddy.register(locals())
+
+if distributional:
+    assert experiment == "target-prop"
+
+################################################################
+# Derivative parameters
+################################################################
+device = torch.device("cuda" if use_cuda else "cpu")
+
 if dataset == "mnist":
     if constraint_satisfaction == "extra-gradient":
         if distributional:
@@ -68,36 +96,9 @@ elif dataset == "cifar10":
         initial_lr_x = 0.25009935678225476
         initial_lr_y = 0.00015235056347032218
 
-# # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
-initial_forward = True
-# random_seed = 1337
-random_seed = 1
-num_layers = 0
-warmup_lr = 0.009185
-
-warmup_epochs = 0  # 1 if DEBUG else 0
-num_epochs = 431
-use_cuda = True  # not DEBUG
-
-initial_lr_theta = 1.
-initial_lr_x = 1.
-initial_lr_y = 1.
-
-################################################################
-# END OF PARAMETERS
-################################################################
-experiment_buddy.register(locals())
-device = torch.device("cuda" if use_cuda else "cpu")
-if distributional:
-    assert experiment == "target-prop"
-
-################################################################
-# Derivative parameters
-################################################################
-
 tb = experiment_buddy.deploy(
     host="mila" if REMOTE else "",
-    sweep_yaml="sweep_hyper.yaml" if RUN_SWEEP else False,
+    sweep_yaml="test_suite.yaml" if RUN_SWEEP else False,
     extra_slurm_headers="""
     """,
     proc_num=20 if RUN_SWEEP else 1
