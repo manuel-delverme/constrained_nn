@@ -29,7 +29,8 @@ def train(primal, train_loader, optimizer: torch_constrained.ConstrainedOptimize
                 loss_, eq_defect = forward_step(data, indices, primal, target, len(train_loader.dataset))
                 return loss_, eq_defect, None
 
-            loss, defect = optimizer.step(evaluate)
+            _lagrangian = optimizer.step(evaluate)
+            loss, defect, _ = evaluate()
             config.tb.add_scalar("train/loss", float(loss.item()), batch_idx + step)
             parameter_metrics(batch_idx, defect, loss, primal, step, optimizer)
 
@@ -176,8 +177,8 @@ def main():
         if config.constraint_satisfaction == "extra-gradient":
             # optimizer_primal = torch_constrained.ExtraAdagrad
             # optimizer_dual = torch_constrained.ExtraSGD
-            optimizer_primal = torch_constrained.RyanStep
-            optimizer_dual = torch_constrained.RyanStep
+            optimizer_primal = torch_constrained.ExtraSGD
+            optimizer_dual = torch_constrained.ExtraSGD
         elif config.constraint_satisfaction == "descent-ascent":
             optimizer_primal = torch.optim.Adagrad
             optimizer_dual = torch.optim.SGD
@@ -189,7 +190,8 @@ def main():
             {'params': tp_net.state_model.parameters(), 'lr': config.initial_lr_x},
         ]
 
-        optimizer = torch_constrained.ConstrainedOptimizer(optimizer_primal, optimizer_dual, config.initial_lr_x, config.initial_lr_y, primal_variables, ryan_step=True)
+        optimizer = torch_constrained.ConstrainedOptimizer(
+            optimizer_primal, optimizer_dual, config.initial_lr_x, config.initial_lr_y, primal_variables, augmented_lagrangian_coefficient=1.)
         config.tb.watch(tp_net, log="all")
         # config.tb.watch(multipliers, log="all")
 
