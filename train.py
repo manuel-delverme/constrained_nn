@@ -11,6 +11,7 @@ import torch_constrained
 import tqdm
 
 import config
+import experiment_buddy
 import network
 import utils
 
@@ -131,7 +132,7 @@ def defect_fn(indices, model, hat_y, targets, dataset_size):
     return defects
 
 
-def test(model, device, test_loader, step):
+def test(tb, model, device, test_loader, step):
     model.eval()
     test_loss = 0
     correct = 0
@@ -147,14 +148,14 @@ def test(model, device, test_loader, step):
             correct += pred.eq(target.view_as(pred)).sum().item()
 
     test_loss /= len(test_loader.dataset)
-    config.tb.add_scalar("test/loss", test_loss, step)
-    config.tb.add_scalar("test/accuracy", correct / len(test_loader.dataset), step)
+    tb.add_scalar("test/loss", test_loss, step)
+    tb.add_scalar("test/accuracy", correct / len(test_loader.dataset), step)
 
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(test_loss, correct, len(test_loader.dataset), 100. * correct / len(test_loader.dataset)),
           file=sys.stderr)
 
 
-def main():
+def main(tb):
     torch.manual_seed(config.random_seed)
     train_loader, test_loader = utils.load_datasets()
 
@@ -223,4 +224,13 @@ def load_models(train_loader):
 
 
 if __name__ == '__main__':
-    main()
+    experiment_buddy.register_defaults(vars(config))
+    tb = experiment_buddy.deploy(
+        host="mila" if config.REMOTE else "",
+        sweep_yaml="test_suite.yaml" if config.RUN_SWEEP else False,
+        extra_slurm_headers="""
+        """,
+        proc_num=20 if config.RUN_SWEEP else 1
+    )
+    utils.update_hyperparams()
+    main(tb)
