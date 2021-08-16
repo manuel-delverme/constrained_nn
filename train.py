@@ -11,6 +11,7 @@ import torch_constrained
 import tqdm
 
 import config
+import experiment_buddy
 import network
 import utils
 
@@ -223,4 +224,13 @@ def load_models(train_loader):
 
 
 if __name__ == '__main__':
+    experiment_buddy.register_defaults(vars(config))
+    tb = experiment_buddy.deploy(
+        host="mila" if config.REMOTE else "",
+        sweep_yaml="test_suite.yaml" if config.RUN_SWEEP else False,
+        extra_slurm_headers="""
+        """,
+        proc_num=20 if config.RUN_SWEEP else 1
+    )
+    utils.update_hyperparams()
     main()
