@@ -226,7 +226,7 @@ if __name__ == '__main__':
         sweep_yaml="test_suite.yaml" if config.RUN_SWEEP else False,
         extra_slurm_headers="""
         """,
-        proc_num=20 if config.RUN_SWEEP else 1
+        proc_num=1 if config.RUN_SWEEP else 1
     )
     utils.update_hyper_parameters()
     main(tb)
