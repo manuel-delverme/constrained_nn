@@ -1,5 +1,6 @@
 import sys
 
+import experiment_buddy
 import torch
 import torch.autograd
 import torch.functional
@@ -11,7 +12,6 @@ import torch_constrained
 import tqdm
 
 import config
-import experiment_buddy
 import network
 import utils
 
@@ -105,8 +105,8 @@ def forward_step(x, indices, model: network.TargetPropNetwork, targets, dataset_
 def defect_fn(indices, model, hat_y, targets, dataset_size):
     defects = []
     if config.distributional:
-        first_distr = model.state_model.state_params[0]
-        loc, scale = first_distr.means(first_distr.ys), first_distr.scales(first_distr.ys)
+        first_distribution = model.state_model.state_params[0]
+        loc, scale = first_distribution.means(first_distribution.ys), first_distribution.scales(first_distribution.ys)
         h = (hat_y[0] - loc[targets]) / scale[targets]
         h = F.softshrink(h, config.distributional_margin)
 
@@ -114,7 +114,7 @@ def defect_fn(indices, model, hat_y, targets, dataset_size):
         defects.append(sparse_h)
 
         for hat_y_i, y_i in zip(hat_y[1:], model.state_model.state_params[1:]):
-            loc, scale = first_distr.means(y_i.ys), first_distr.scales(y_i.ys)
+            loc, scale = first_distribution.means(y_i.ys), first_distribution.scales(y_i.ys)
             h = (hat_y_i - loc[targets]) / scale[targets]
             h = F.softshrink(h, config.distributional_margin)
             defects.append(h)
