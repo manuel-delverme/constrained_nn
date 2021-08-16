@@ -9,5 +9,5 @@ parameters:
   dataset:
     values: [ "mnist", "cifar10" ]
   distributional:
-    values: False
+    values: True
 program: train.py
