@@ -1,4 +1,3 @@
-program: main.py
 method: grid
 metric:
   name: test/accuracy
@@ -11,3 +10,4 @@ parameters:
     values: [ "mnist", "cifar10" ]
   distributional:
     values: True, False
+program: train.py
