@@ -73,3 +73,64 @@ def plot(loss, model):
     import os
     torchviz.make_dot(loss, params=dict(model.named_parameters())).render("/tmp/plot.gv")
     os.system("evince /tmp/plot.gv.pdf")
+
+
+def update_hyperparams():
+    if config.distributional:
+        assert config.experiment == "target-prop"
+
+    ################################################################
+    # Derivative parameters
+    ################################################################
+    config.device = torch.device("cuda" if config.use_cuda else "cpu")
+
+    if config.dataset == "mnist":
+        if config.constraint_satisfaction == "extra-gradient":
+            if config.distributional:
+                # WARNING: these are not the best hyperparameters
+                config.num_samples = 32
+                config.distributional_margin = 0.3967
+                config.initial_lr_theta = 0.0003638
+                config.initial_lr_x = 0.05649
+                config.initial_lr_y = 3.725e-07
+            else:
+                config.tabular_margin = 0.4373272842992752
+                config.initial_lr_theta = 0.0008636215301536897
+                config.initial_lr_x = 0.12499896839056827
+                config.initial_lr_y = 7.270811457366213e-06
+        elif config.constraint_satisfaction == "penalty":
+            config.tabular_margin = 0.1017
+            config.initial_lr_theta = 0.0003638
+            config.initial_lr_x = 0.05649
+            config.initial_lr_y = 3.725e-7
+            config.lambda_ = 0.06788
+            # 1e-2  # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
+        elif config.constraint_satisfaction == "descent-ascent":
+            config.tabular_margin = 0.9658136136534436
+            config.initial_lr_theta = 0.003314
+            config.initial_lr_x = 0.04527
+            config.initial_lr_y = 0.0001389
+    elif config.dataset == "cifar10":
+        if config.constraint_satisfaction == "extra-gradient":
+            if config.distributional:
+                config.distributional_margin = 0.2470519487851573
+                config.initial_lr_theta = 0.004169182899797638
+                config.initial_lr_x = 0.25530572068931
+                config.initial_lr_y = 9.356607499463217e-07
+                config.num_samples = 32
+            else:
+                config.tabular_margin = 0.06640108363973078
+                config.initial_lr_theta = 0.003175211334723672
+                config.initial_lr_x = 0.03977922031861909
+                config.initial_lr_y = 2.311834855494428e-06
+        elif config.constraint_satisfaction == "penalty":
+            config.tabular_margin = 0.10063086881740957
+            config.initial_lr_theta = 4.6397470184556474e-05
+            config.initial_lr_x = 0.27691927629931706
+            config.initial_lr_y = 0.004094357077137722
+            config.lambda_ = 0.06788
+        elif config.constraint_satisfaction == "descent-ascent":
+            config.tabular_margin = 0.13308695791662822
+            config.initial_lr_theta = 0.00029136889726434325
+            config.initial_lr_x = 0.25009935678225476
+            config.initial_lr_y = 0.00015235056347032218
