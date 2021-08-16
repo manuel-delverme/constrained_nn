@@ -87,7 +87,7 @@ class GaussianStateNet(nn.Module):
         self.state_params = nn.ModuleList(GaussianState(num_classes, state_size, num_samples) for state_size in state_sizes)
 
     def forward(self, indices):
-        xs = [state_distr(indices) for state_distr in self.state_params]
+        xs = [state_distribution(indices) for state_distribution in self.state_params]
         return xs
 
 

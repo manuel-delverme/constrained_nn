@@ -19,24 +19,25 @@ def disk_cache(f):
         cache_file += ".pkl"
         try:
             with open(cache_file, "rb") as fin:
-                retr = pickle.load(fin)
+                cached_return = pickle.load(fin)
         except FileNotFoundError:
-            retr = f(*args, **kwargs)
-            with open(cache_file, "wb") as fout:
-                pickle.dump(retr, fout)
-        return retr
+            cached_return = f(*args, **kwargs)
+            with open(cache_file, "wb") as file_out:
+                pickle.dump(cached_return, file_out)
+        return cached_return
 
     return wrapper
 
 
 def main():
+    min_timestamp = None
     mnist_sweeps = [
         "ijz3s64d",
         "6cfcvtam",
         "933xomle",
         "ybu8nps8",
     ]
-    sweep_prettynames = {
+    sweep_pretty_names = {
         "ijz3s64d": "Gaussian States",
         "6cfcvtam": "Regularization",
         "933xomle": "GDA",
@@ -65,7 +66,7 @@ def main():
         title = pretty_keys[k]
         ax.set_title(title)
         min_time = float('inf')
-        ax.set_xlabel('minibatches')
+        ax.set_xlabel('mini-batches')
         for sweep_id, data in zip(mnist_sweeps, sweeps_data):
             if not data[k]:
                 continue
@@ -80,7 +81,7 @@ def main():
             time = [row[:min_time] for row in time]
             time = np.stack(time)[0]
 
-            # Nsteps length arrays empirical means and standard deviations of both
+            # N steps length arrays empirical means and standard deviations of both
             # populations over time
             mu1 = values.mean(axis=0)
             sigma1 = values.std(axis=0)
@@ -91,18 +92,15 @@ def main():
             # 'h0/train/multipliers_abs_mean': "Mean Multipliers Magnitude",
             # 'h0/train/abs_mean_defect': "Mean Defect Magnitude",
             if title == "Train Loss" or title == "Mean Defect Magnitude":  # or title ==:
-                line, = ax.semilogy(time, mu1, lw=2, label=sweep_prettynames[sweep_id], nonpositive="clip")
+                line, = ax.semilogy(time, mu1, lw=2, label=sweep_pretty_names[sweep_id], nonpositive="clip")
             elif title == "Test Error":  # or title == "Test Loss" or title ==:
                 mu1 = 1 - mu1
-                line, = ax.semilogy(time, mu1, lw=1, label=sweep_prettynames[sweep_id])
+                line, = ax.semilogy(time, mu1, lw=1, label=sweep_pretty_names[sweep_id])
                 ax.yaxis.set_major_formatter(matplotlib.ticker.FormatStrFormatter('%.3f'))
                 # ax.yaxis.set_minor_formatter(matplotlib.ticker.FormatStrFormatter('%.3f'))
             else:
-                line, = ax.plot(time, mu1, lw=1, label=sweep_prettynames[sweep_id])
-            # line.set_label()
-            ax.fill_between(time, mu1 + sigma1, mu1 - sigma1, facecolor=line._color, alpha=0.3)
-            # ax.set_ylabel('position')
-            # ax.grid()
+                line, = ax.plot(time, mu1, lw=1, label=sweep_pretty_names[sweep_id])
+            ax.fill_between(time, mu1 + sigma1, mu1 - sigma1, facecolor=line._color, alpha=0.3)  # noqa
 
         ax.legend(loc='upper right')
         ax.set_xlim(0, min_timestamp)

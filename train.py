@@ -4,35 +4,37 @@ import torch
 import torch.autograd
 import torch.functional
 import torch.nn
-import torch.nn.functional as F
+import torch.nn.functional as F  # noqa
 import torch.optim
 import torch.utils.data
 import torch_constrained
 import tqdm
 
 import config
+import experiment_buddy
 import network
 import utils
 
 
-def train(primal, train_loader, optimizer: torch_constrained.ConstrainedOptimizer, epoch, step, adversarial):
+def train(logger, primal, train_loader, optimizer: torch_constrained.ConstrainedOptimizer, epoch, step, adversarial):
     primal.train()
+    loss, batch_idx = None, None
 
     for batch_idx, (data, target, indices) in enumerate(train_loader):
         data, target, indices = data.to(config.device), target.to(config.device), indices.to(config.device)
-        config.tb.add_scalar("train/epoch", epoch, batch_idx + step)
-        config.tb.add_scalar("train/adversarial", float(adversarial), batch_idx + step)
-        config.tb.add_histogram("train/indices", indices.cpu(), batch_idx + step)
+        logger.add_scalar("train/epoch", epoch, batch_idx + step)
+        logger.add_scalar("train/adversarial", float(adversarial), batch_idx + step)
+        logger.add_histogram("train/indices", indices.cpu(), batch_idx + step)
 
         if adversarial:
-            def evaluate():
+            def closure():
                 loss_, eq_defect = forward_step(data, indices, primal, target, len(train_loader.dataset))
                 return loss_, eq_defect, None
 
-            _lagrangian = optimizer.step(evaluate)
-            loss, defect, _ = evaluate()
-            config.tb.add_scalar("train/loss", float(loss.item()), batch_idx + step)
-            parameter_metrics(batch_idx, defect, loss, primal, step, optimizer)
+            _lagrangian = optimizer.step(closure)  # noqa
+            loss, defect, _ = closure()
+            logger.add_scalar("train/loss", float(loss.item()), batch_idx + step)
+            parameter_metrics(logger, batch_idx, defect, loss, primal, step, optimizer)
 
         print(f'Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)} ({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f}', file=sys.stderr)
         sys.stderr.flush()
@@ -40,29 +42,29 @@ def train(primal, train_loader, optimizer: torch_constrained.ConstrainedOptimize
     return batch_idx + step
 
 
-def parameter_metrics(batch_idx, defects, loss, primal, step, optimizer):
+def parameter_metrics(logger, batch_idx, defects, loss, primal, step, optimizer):
     rhs = optimizer.weighted_constraint(defects, None)
-    config.tb.add_scalar("train/loss", float(loss.item()), batch_idx + step)
+    logger.add_scalar("train/loss", float(loss.item()), batch_idx + step)
     assert len(defects) == len(rhs) == len(primal.state_model.state_params)
     for idx, (defect, rh, xi, dual) in enumerate(zip(defects, rhs, primal.state_model.state_params, optimizer.equality_multipliers)):
         if defect.is_sparse:
             defect = defect.to_dense()
         if idx < 5 or (idx % 10) == 0:
-            config.tb.add_scalar(f"h{idx}/train/abs_mean_defect", float(defect.abs().mean()), batch_idx + step)
-            config.tb.add_scalar(f"h{idx}/train/mean_defect", float(defect.mean()), batch_idx + step)
-            config.tb.add_scalar(f"h{idx}/train/mean_rhs", float(rh.mean()), batch_idx + step)
-            config.tb.add_histogram(f"h{idx}/train/defect", defect.detach().cpu().numpy(), batch_idx + step)
+            logger.add_scalar(f"h{idx}/train/abs_mean_defect", float(defect.abs().mean()), batch_idx + step)
+            logger.add_scalar(f"h{idx}/train/mean_defect", float(defect.mean()), batch_idx + step)
+            logger.add_scalar(f"h{idx}/train/mean_rhs", float(rh.mean()), batch_idx + step)
+            logger.add_histogram(f"h{idx}/train/defect", defect.detach().cpu().numpy(), batch_idx + step)
 
             if config.distributional:
                 mean, scale = xi.means(xi.ys), xi.scales(xi.ys)
                 if idx == 0:
-                    config.tb.add_scalar(f"h{idx}/train/multipliers_abs_mean", dual.weight.abs().mean().cpu().detach().numpy(), batch_idx + step)
+                    logger.add_scalar(f"h{idx}/train/multipliers_abs_mean", dual.weight.abs().mean().cpu().detach().numpy(), batch_idx + step)
                 else:
-                    config.tb.add_histogram(f"h{idx}/train/distributional_multipliers", dual[1][idx - 1].abs().mean(axis=1).cpu().detach().numpy(), batch_idx + step)
+                    logger.add_histogram(f"h{idx}/train/distributional_multipliers", dual[1][idx - 1].abs().mean(axis=1).cpu().detach().numpy(), batch_idx + step)
 
-                config.tb.add_histogram(f"h{idx}/train/state_scale_mean", scale.mean(axis=1).cpu().detach().numpy(), batch_idx + step)
-                config.tb.add_scalar(f"h{idx}/train/state_loc_mean", mean.mean(), batch_idx + step)
-                config.tb.add_histogram(f"h{idx}/train/state_mean_pdist", torch.pdist(mean).cpu().detach().numpy(), batch_idx + step)
+                logger.add_histogram(f"h{idx}/train/state_scale_mean", scale.mean(axis=1).cpu().detach().numpy(), batch_idx + step)
+                logger.add_scalar(f"h{idx}/train/state_loc_mean", mean.mean(), batch_idx + step)
+                logger.add_histogram(f"h{idx}/train/state_mean_pairwise_dist", torch.pdist(mean).cpu().detach().numpy(), batch_idx + step)
 
 
 def dual_backward(defects, indices, multipliers):
@@ -102,11 +104,6 @@ def forward_step(x, indices, model: network.TargetPropNetwork, targets, dataset_
 
 def defect_fn(indices, model, hat_y, targets, dataset_size):
     defects = []
-    """
-    loc, scale = self()
-    h = (a_i - loc[targets]) / scale[targets]
-    return F.softshrink(h, config.distributional_margin)
-    """
     if config.distributional:
         first_distr = model.state_model.state_params[0]
         loc, scale = first_distr.means(first_distr.ys), first_distr.scales(first_distr.ys)
@@ -131,7 +128,7 @@ def defect_fn(indices, model, hat_y, targets, dataset_size):
     return defects
 
 
-def test(model, device, test_loader, step):
+def test(logger: experiment_buddy.WandbWrapper, model: torch.nn.Module, device, test_loader, step: int):
     model.eval()
     test_loss = 0
     correct = 0
@@ -147,14 +144,14 @@ def test(model, device, test_loader, step):
             correct += pred.eq(target.view_as(pred)).sum().item()
 
     test_loss /= len(test_loader.dataset)
-    config.tb.add_scalar("test/loss", test_loss, step)
-    config.tb.add_scalar("test/accuracy", correct / len(test_loader.dataset), step)
+    logger.add_scalar("test/loss", test_loss, step)
+    logger.add_scalar("test/accuracy", correct / len(test_loader.dataset), step)
 
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(test_loss, correct, len(test_loader.dataset), 100. * correct / len(test_loader.dataset)),
           file=sys.stderr)
 
 
-def main():
+def main(logger):
     torch.manual_seed(config.random_seed)
     train_loader, test_loader = utils.load_datasets()
 
@@ -170,8 +167,8 @@ def main():
 
     optimizer = torch.optim.Adagrad(tp_net.parameters(), lr=config.warmup_lr)
     for epoch in range(unconstrained_epochs):
-        step = train(tp_net, config.device, train_loader, optimizer, epoch, step, adversarial=False)
-        test(tp_net, config.device, test_loader, step)
+        step = train(logger, tp_net, train_loader, optimizer, epoch, step, adversarial=False)
+        test(logger, tp_net, config.device, test_loader, step)
 
     if constrained_epochs is not None:
         if config.constraint_satisfaction == "extra-gradient":
@@ -192,12 +189,12 @@ def main():
 
         optimizer = torch_constrained.ConstrainedOptimizer(
             optimizer_primal, optimizer_dual, config.initial_lr_x, config.initial_lr_y, primal_variables, augmented_lagrangian_coefficient=1.)
-        config.tb.watch(tp_net, log="all")
-        # config.tb.watch(multipliers, log="all")
+        logger.watch(tp_net, log="all")
+        # tb.watch(multipliers, log="all")
 
         for epoch in tqdm.trange(config.num_epochs):
-            step = train(tp_net, train_loader, optimizer, epoch, step, adversarial=True)
-            test(tp_net, config.device, test_loader, step)
+            step = train(logger, tp_net, train_loader, optimizer, epoch, step, adversarial=True)
+            test(logger, tp_net, config.device, test_loader, step)
     print("Done", file=sys.stderr)
 
 
@@ -223,4 +220,13 @@ def load_models(train_loader):
 
 
 if __name__ == '__main__':
-    main()
+    experiment_buddy.register_defaults(vars(config))
+    tb = experiment_buddy.deploy(
+        host="mila" if config.REMOTE else "",
+        sweep_yaml="test_suite.yaml" if config.RUN_SWEEP else False,
+        extra_slurm_headers="""
+        """,
+        proc_num=20 if config.RUN_SWEEP else 1
+    )
+    utils.update_hyper_parameters()
+    main(tb)
