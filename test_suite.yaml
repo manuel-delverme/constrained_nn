@@ -1,0 +1,13 @@
+program: main.py
+method: grid
+metric:
+  name: test/accuracy
+parameters:
+  experiment:
+    values: [ "sgd", "target-prop" ]
+  constraint_satisfaction:
+    values: [ "penalty", "descent-ascent", "extra-gradient" ]
+  dataset:
+    values: [ "mnist", "cifar10" ]
+  distributional:
+    values: True, False
