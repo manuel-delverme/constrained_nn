@@ -35,7 +35,7 @@ initial_lr_y = 1.
 ################################################################
 # END OF PARAMETERS
 ################################################################
-experiment_buddy.register(locals())
+experiment_buddy.register_defaults(locals())
 
 if distributional:
     assert experiment == "target-prop"
