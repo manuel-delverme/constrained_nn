@@ -31,9 +31,10 @@ def train(logger, primal, train_loader, optimizer: torch_constrained.Constrained
                 loss_, eq_defect = forward_step(data, indices, primal, target, len(train_loader.dataset))
                 return loss_, eq_defect, None
 
-            _lagrangian = optimizer.step(closure)  # noqa
+            lagrangian = optimizer.step(closure)  # noqa
             loss, defect, _ = closure()
             logger.add_scalar("train/loss", float(loss.item()), batch_idx + step)
+            logger.add_scalar("train/lagrangian", float(lagrangian), batch_idx + step)
             parameter_metrics(logger, batch_idx, defect, loss, primal, step, optimizer)
 
         print(f'Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)} ({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f}', file=sys.stderr)
@@ -188,7 +189,12 @@ def main(logger):
         ]
 
         optimizer = torch_constrained.ConstrainedOptimizer(
-            optimizer_primal, optimizer_dual, config.initial_lr_x, config.initial_lr_y, primal_variables, augmented_lagrangian_coefficient=1.)
+            optimizer_primal,
+            optimizer_dual,
+            config.initial_lr_x,
+            config.initial_lr_y,
+            primal_variables,
+        )
         logger.watch(tp_net, log="all")
         # tb.watch(multipliers, log="all")
 
