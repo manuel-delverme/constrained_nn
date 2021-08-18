@@ -175,7 +175,7 @@ def main(logger):
         if config.constraint_satisfaction == "extra-gradient":
             # optimizer_primal = torch_constrained.ExtraAdagrad
             # optimizer_dual = torch_constrained.ExtraSGD
-            optimizer_primal = torch_constrained.ExtraSGD
+            optimizer_primal = torch_constrained.ExtraAdagrad
             optimizer_dual = torch_constrained.ExtraSGD
         elif config.constraint_satisfaction == "descent-ascent":
             optimizer_primal = torch.optim.Adagrad
@@ -229,10 +229,10 @@ if __name__ == '__main__':
     experiment_buddy.register_defaults(vars(config))
     tb = experiment_buddy.deploy(
         host="mila" if config.REMOTE else "",
-        sweep_yaml="test_suite.yaml" if config.RUN_SWEEP else False,
+        sweep_yaml="sweep_hyper.yaml" if config.RUN_SWEEP else False,
         extra_slurm_headers="""
         """,
-        proc_num=20 if config.RUN_SWEEP else 1
+        proc_num=10 if config.RUN_SWEEP else 1
     )
-    utils.update_hyper_parameters()
+    # utils.update_hyper_parameters()
     main(tb)
