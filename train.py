@@ -186,13 +186,18 @@ def main(logger):
             {'params': tp_net.state_model.parameters(), 'lr': config.initial_lr_x},
         ]
 
+        margin = config.distributional_margin if config.distributional else config.tabular_margin
+
+        def shrinkage(h):
+            F.softshrink(h, margin)
+
         optimizer = torch_constrained.ConstrainedOptimizer(
             optimizer_primal,
             optimizer_dual,
             config.initial_lr_x,
             config.initial_lr_y,
             primal_variables,
-            shrinkage=config.distributional_margin if config.distributional else config.tabular_margin
+            # shrinkage=shrinkage
         )
         logger.watch(tp_net, config.model_log, log_freq=config.model_log_freq)
 

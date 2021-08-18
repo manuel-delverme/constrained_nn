@@ -1,6 +1,6 @@
 import sys
 
-RUN_SWEEP = 1
+RUN_SWEEP = 0
 REMOTE = 1
 
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
@@ -30,7 +30,7 @@ initial_lr_y = 1.
 device = "cuda"
 num_samples = None
 distributional_margin = 0.
-tabular_margin = 0.
+tabular_margin = 2.538115624834669
 lambda_ = None
 
 model_log = "all"
