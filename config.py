@@ -30,7 +30,7 @@ initial_lr_y = 1.
 device = "cuda"
 num_samples = None
 distributional_margin = 0.
-tabular_margin = 0.
+tabular_margin = 2.538115624834669
 lambda_ = None
 
 model_log = "all"
