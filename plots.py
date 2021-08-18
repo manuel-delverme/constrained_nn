@@ -37,11 +37,16 @@ def main():
         "933xomle",
         "ybu8nps8",
     ]
+    baselines = {
+        "difference_target_propagation/runs/7rfgdxkq": "DTP",
+        "online-alt-min/runs/73jzusur": "OAM"
+    }
     sweep_pretty_names = {
         "ijz3s64d": "Gaussian States",
         "6cfcvtam": "Regularization",
         "933xomle": "GDA",
         "ybu8nps8": "Tabular States",
+        **baselines
     }
     keys_to_plot = [
         'train/loss',
@@ -56,11 +61,12 @@ def main():
         'h0/train/abs_mean_defect': "Mean Defect Magnitude",
     }
 
-    sweeps_data = get_data(keys_to_plot, mnist_sweeps)
+    sweeps_data = get_data(keys_to_plot, mnist_sweeps, baselines)
 
     # for k in data:
     #     data[k] = np.array(data[k])
 
+    mnist_sweeps = [*mnist_sweeps, *baselines.keys()]
     for k in keys_to_plot:
         fig, ax = plt.subplots(1)
         title = pretty_keys[k]
@@ -109,21 +115,24 @@ def main():
 
 
 @disk_cache
-def get_data(keys_to_plot, mnist_sweeps):
+def get_data(keys_to_plot, mnist_sweeps, baselines):
     api = wandb.Api()
     data = []
-    for sweep_id in mnist_sweeps:
-        sweep = api.sweep(f"delvermm/constrained_nn/sweeps/{sweep_id}")
-        data_sweep = {k: list() for k in keys_to_plot + ["_step", ]}
 
-        for run in sweep.runs:
+    sweeps_runs = [api.sweep(f"delvermm/constrained_nn/sweeps/{sweep_id}").runs for sweep_id in mnist_sweeps]
+    for baseline in baselines:
+        sweeps_runs.append([api.run(f"delvermm/{baseline}",), ])
+
+    for sweep_runs in sweeps_runs:
+        data_sweep = {k: list() for k in keys_to_plot + ["_step", ]}
+        for run in sweep_runs:
             # run.summary are the output key/values like accuracy.
             # We call ._json_dict to omit large files
-            history = run.history(keys=keys_to_plot, pandas=True, samples=1000)  # .to_numpy()
+            history = run.history(keys=keys_to_plot, pandas=True, samples=1000)
             if len(history) == 0:
                 keys_to_plot.remove('h0/train/abs_mean_defect')
-                # keys_to_plot.append('train/mean_defect')
-                history = run.history(keys=keys_to_plot, pandas=True, samples=1000)  # .to_numpy()
+
+                history = run.history(keys=keys_to_plot, pandas=True, samples=1000)
                 keys_to_plot.append('h0/train/abs_mean_defect')
 
             for k in keys_to_plot + ["_step", ]:
