@@ -173,8 +173,6 @@ def main(logger):
 
     if constrained_epochs is not None:
         if config.constraint_satisfaction == "extra-gradient":
-            # optimizer_primal = torch_constrained.ExtraAdagrad
-            # optimizer_dual = torch_constrained.ExtraSGD
             optimizer_primal = torch_constrained.ExtraAdagrad
             optimizer_dual = torch_constrained.ExtraSGD
         elif config.constraint_satisfaction == "descent-ascent":
@@ -194,9 +192,9 @@ def main(logger):
             config.initial_lr_x,
             config.initial_lr_y,
             primal_variables,
+            shrinkage=config.distributional_margin if config.distributional else config.tabular_margin
         )
         logger.watch(tp_net, config.model_log, log_freq=config.model_log_freq)
-        # tb.watch(multipliers, log="all")
 
         for epoch in tqdm.trange(config.num_epochs):
             step = train(logger, tp_net, train_loader, optimizer, epoch, step, adversarial=True)
