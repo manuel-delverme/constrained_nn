@@ -8,6 +8,4 @@ parameters:
     values: [ "penalty", "descent-ascent", "extra-gradient" ]
   dataset:
     values: [ "mnist", "cifar10" ]
-  distributional:
-    values: True, False
 program: train.py
