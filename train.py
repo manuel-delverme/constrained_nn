@@ -1,6 +1,5 @@
 import sys
 
-import experiment_buddy
 import torch
 import torch.autograd
 import torch.functional
@@ -12,6 +11,7 @@ import torch_constrained
 import tqdm
 
 import config
+import experiment_buddy
 import network
 import utils
 
@@ -109,7 +109,6 @@ def defect_fn(indices, model, hat_y, targets, dataset_size):
         first_distribution = model.state_model.state_params[0]
         loc, scale = first_distribution.means(first_distribution.ys), first_distribution.scales(first_distribution.ys)
         h = (hat_y[0] - loc[targets]) / scale[targets]
-        h = F.softshrink(h, config.distributional_margin)
 
         sparse_h = torch.sparse_coo_tensor(indices.unsqueeze(0), h, (dataset_size, h.shape[1]))
         defects.append(sparse_h)
@@ -117,13 +116,11 @@ def defect_fn(indices, model, hat_y, targets, dataset_size):
         for hat_y_i, y_i in zip(hat_y[1:], model.state_model.state_params[1:]):
             loc, scale = first_distribution.means(y_i.ys), first_distribution.scales(y_i.ys)
             h = (hat_y_i - loc[targets]) / scale[targets]
-            h = F.softshrink(h, config.distributional_margin)
             defects.append(h)
 
     else:
         for a_i, state in zip(hat_y, model.state_model.state_params):
             h = a_i - state(indices)
-            h = F.softshrink(h, config.tabular_margin)
             sparse_h = torch.sparse_coo_tensor(indices.unsqueeze(0), h, (dataset_size, h.shape[1]))
             defects.append(sparse_h)
     return defects
@@ -186,13 +183,18 @@ def main(logger):
             {'params': tp_net.state_model.parameters(), 'lr': config.initial_lr_x},
         ]
 
+        margin = config.distributional_margin if config.distributional else config.tabular_margin
+
+        def shrinkage(h):
+            F.softshrink(h, margin)
+
         optimizer = torch_constrained.ConstrainedOptimizer(
             optimizer_primal,
             optimizer_dual,
             config.initial_lr_x,
             config.initial_lr_y,
             primal_variables,
-            shrinkage=config.distributional_margin if config.distributional else config.tabular_margin
+            shrinkage=shrinkage
         )
         logger.watch(tp_net, config.model_log, log_freq=config.model_log_freq)
 
