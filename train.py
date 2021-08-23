@@ -207,7 +207,14 @@ def main(logger):
 def load_models(train_loader):
     model = network.SplitNet(config.dataset)
     dataset_size = len(train_loader.dataset)
-    state_sizes = [b[0].in_features for b in model.blocks[1:]]
+
+    def input_size(b):
+        if hasattr(b[0], "in_features"):
+            return b[0].in_features
+        else:
+            return input_size(b[1:])
+
+    state_sizes = [input_size(b) for b in model.blocks[1:]]
 
     if config.distributional:
         num_classes = len(train_loader.dataset.classes)
@@ -215,11 +222,12 @@ def load_models(train_loader):
     else:
         weights = [torch.zeros(dataset_size, state_size) for state_size in state_sizes]
         with torch.no_grad():
-            for batch_idx, (data, target, indices) in tqdm.tqdm(enumerate(train_loader), total=len(train_loader)):
-                a_i = data
-                for t, block in enumerate(model.blocks[:-1]):
-                    a_i = block(a_i)
-                    weights[t][indices] = a_i
+            if not config.DEBUG:
+                for batch_idx, (data, target, indices) in tqdm.tqdm(enumerate(train_loader), total=len(train_loader)):
+                    a_i = data
+                    for t, block in enumerate(model.blocks[:-1]):
+                        a_i = block(a_i)
+                        weights[t][indices] = a_i
         state_net = network.TabularStateNet(dataset_size, weights, state_sizes)
     tp_net = network.TargetPropNetwork(model, state_net)
     return tp_net.to(config.device)  # , multipliers.to(config.device)
@@ -235,4 +243,9 @@ if __name__ == '__main__':
         proc_num=10 if config.RUN_SWEEP else 1
     )
     # utils.update_hyper_parameters()
-    main(tb)
+    if config.dataset == "imagenet":
+        import imagenet
+
+        imagenet.main(tb, config, config.ImageNet)
+    else:
+        main(tb)
