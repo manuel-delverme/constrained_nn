@@ -84,7 +84,7 @@ def forward_step(x, indices, model: network.TargetPropNetwork, targets, dataset_
         states = [x, ] + model.state_model(indices)
         activations = model.transition_model.one_step(states)
         y_i, y_T = activations[:-1], activations[-1]
-        defects = defect_fn(indices, model, y_i, targets, dataset_size)
+        defects = defect_fn(indices, model, y_i, targets, dataset_size, per_example=config.dataset == "imagenet")
 
         if config.distributional:
             num_classes = y_T.shape[1]
@@ -103,7 +103,7 @@ def forward_step(x, indices, model: network.TargetPropNetwork, targets, dataset_
     return loss, defects
 
 
-def defect_fn(indices, model, hat_y, targets, dataset_size):
+def defect_fn(indices, model, hat_y, targets, dataset_size, per_example=False):
     defects = []
     if config.distributional:
         first_distribution = model.state_model.state_params[0]
@@ -120,7 +120,10 @@ def defect_fn(indices, model, hat_y, targets, dataset_size):
 
     else:
         for a_i, state in zip(hat_y, model.state_model.state_params):
-            h = a_i - state(indices)
+            if per_example:
+                h = torch.abs(a_i - state(indices)).sum()
+            else:
+                h = a_i - state(indices)
             sparse_h = torch.sparse_coo_tensor(indices.unsqueeze(0), h, (dataset_size, h.shape[1]))
             defects.append(sparse_h)
     return defects
@@ -207,20 +210,32 @@ def main(logger):
 def load_models(train_loader):
     model = network.SplitNet(config.dataset)
     dataset_size = len(train_loader.dataset)
-    state_sizes = [b[0].in_features for b in model.blocks[1:]]
+
+    def input_size(b):
+        if hasattr(b[0], "in_features"):
+            return b[0].in_features
+        else:
+            return input_size(b[1:])
+
+    if config.dataset == "imagenet" and config.distributional == False:
+        # features_size = [1 for _ in model.blocks[1:]]
+        raise ValueError("Memory Error :(")
+    else:
+        features_size = [input_size(b) for b in model.blocks[1:]]
 
     if config.distributional:
         num_classes = len(train_loader.dataset.classes)
-        state_net = network.GaussianStateNet(dataset_size, num_classes, state_sizes, config.num_samples)
+        state_net = network.GaussianStateNet(dataset_size, num_classes, features_size, config.num_samples)
     else:
-        weights = [torch.zeros(dataset_size, state_size) for state_size in state_sizes]
+        weights = [torch.zeros(dataset_size, state_size) for state_size in features_size]
         with torch.no_grad():
-            for batch_idx, (data, target, indices) in tqdm.tqdm(enumerate(train_loader), total=len(train_loader)):
-                a_i = data
-                for t, block in enumerate(model.blocks[:-1]):
-                    a_i = block(a_i)
-                    weights[t][indices] = a_i
-        state_net = network.TabularStateNet(dataset_size, weights, state_sizes)
+            if not config.DEBUG:
+                for batch_idx, (data, target, indices) in tqdm.tqdm(enumerate(train_loader), total=len(train_loader)):
+                    a_i = data
+                    for t, block in enumerate(model.blocks[:-1]):
+                        a_i = block(a_i)
+                        weights[t][indices] = a_i
+        state_net = network.TabularStateNet(dataset_size, weights, features_size)
     tp_net = network.TargetPropNetwork(model, state_net)
     return tp_net.to(config.device)  # , multipliers.to(config.device)
 
@@ -235,4 +250,9 @@ if __name__ == '__main__':
         proc_num=10 if config.RUN_SWEEP else 1
     )
     # utils.update_hyper_parameters()
-    main(tb)
+    if config.dataset == "imagenet":
+        import imagenet
+
+        imagenet.main(tb, config, config.ImageNet)
+    else:
+        main(tb)
