@@ -1,4 +1,5 @@
 import torch
+import torchvision.models
 from torch import nn as nn
 
 import config
@@ -52,6 +53,19 @@ class SplitNet(nn.Module):
                     nn.LogSoftmax(dim=1)
                 ),
             )
+        elif dataset == "imagenet":
+            alexnet = torchvision.models.alexnet()
+            self.features = alexnet.features
+            self.classifier = alexnet.classifier
+            self.avgpool = alexnet.avgpool
+            self.blocks = nn.Sequential(
+                nn.Sequential(
+                    *self.features,
+                    self.avgpool,
+                    torch.nn.Flatten(1),
+                ),
+                self.classifier
+            )
         else:
             raise NotImplementedError
 
@@ -61,14 +75,6 @@ class SplitNet(nn.Module):
     def one_step(self, x_t):
         x_t1 = [block(x_t) for x_t, block in zip(x_t, self.blocks)]
         return x_t1
-
-    @property
-    def tabular_multipliers(self):
-        return self.multipliers[0]
-
-    @property
-    def distributional_multipliers(self):
-        return self.multipliers[1]
 
 
 class TabularStateNet(nn.Module):
