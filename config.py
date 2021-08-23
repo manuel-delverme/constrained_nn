@@ -1,6 +1,6 @@
 import sys
 
-RUN_SWEEP = 1
+RUN_SWEEP = 0
 REMOTE = 1
 
 DEBUG = '_pydev_bundle.pydev_log' in sys.modules.keys()
@@ -8,7 +8,7 @@ dataset_path = "../data" if DEBUG else "/network/datasets/{}.var/{}_torchvision"
 
 experiment = ["sgd", "target-prop"][1]
 constraint_satisfaction = ["penalty", "descent-ascent", "extra-gradient"][2]
-dataset = ["mnist", "cifar10"][0]
+dataset = ["mnist", "cifar10", "imagenet"][2]
 distributional = False
 
 batch_size = 1024
@@ -48,6 +48,9 @@ class ImageNet:
     resume = False
     print_freq = 100
     device = "cuda"
+    initial_lr_theta = 0.01
+    initial_lr_x = 0.01
+    initial_lr_y = 0.01
 
 
 evaluate = False
