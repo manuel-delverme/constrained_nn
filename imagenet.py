@@ -1,3 +1,4 @@
+import functools
 import os
 import shutil
 import time
@@ -14,6 +15,7 @@ import torch.optim
 import torch.utils.data
 import torch.utils.data
 import torch.utils.data.distributed
+import torch_constrained
 import torchvision.datasets as datasets
 import torchvision.models
 import torchvision.models as models
@@ -26,6 +28,10 @@ best_acc1 = 0
 
 
 def main(tb, args, task_config):
+    class MomentumSXGD(torch_constrained.ExtraSGD):
+        def __init__(self, params, lr):
+            super().__init__(params, lr, momentum=task_config.momentum, weight_decay=task_config.weight_decay)
+
     global best_acc1
     model = models.alexnet()
 
@@ -38,7 +44,13 @@ def main(tb, args, task_config):
 
     # define loss function (criterion) and optimizer
     criterion = nn.CrossEntropyLoss().cuda()
-    optimizer = torch.optim.SGD(model.parameters(), task_config.lr, momentum=task_config.momentum, weight_decay=task_config.weight_decay)
+    optimizer = torch_constrained.ConstrainedOptimizer(
+        MomentumSXGD,
+        torch_constrained.ExtraSGD,
+        task_config.initial_lr_theta,
+        task_config.initial_lr_y,
+        model.parameters(),
+    )
 
     # optionally resume from a checkpoint
     if task_config.resume:
@@ -49,6 +61,7 @@ def main(tb, args, task_config):
         dataset_path = args.dataset_path.format("imagenet", "imagenet")
     else:
         dataset_path = "../data/ImageNet"
+    print("dataset:", dataset_path)
 
     traindir = os.path.join(dataset_path, 'train')
     valdir = os.path.join(dataset_path, 'val')
@@ -125,7 +138,7 @@ def resume(args, model, optimizer):
         print("=> no checkpoint found at '{}'".format(args.resume))
 
 
-def train(tb, train_loader, model, criterion, optimizer, epoch, args, total_gradients):
+def train(tb, train_loader, model, criterion, optimizer, epoch, args, num_gradient_steps):
     batch_time = AverageMeter('Time', ':6.3f')
     data_time = AverageMeter('Data', ':6.3f')
     losses = AverageMeter('Loss', ':.4e')
@@ -137,6 +150,8 @@ def train(tb, train_loader, model, criterion, optimizer, epoch, args, total_grad
     model.train()
 
     end = time.time()
+    i = 0
+
     for i, (images, target) in enumerate(train_loader):
         # measure data loading time
         data_time.update(time.time() - end)
@@ -144,9 +159,16 @@ def train(tb, train_loader, model, criterion, optimizer, epoch, args, total_grad
         if torch.cuda.is_available():
             target = target.cuda(non_blocking=True)
 
-        # compute output
+        def closure():
+            output = model(images)
+            loss_ = criterion(output, target)
+            defect_ = output.sum(-1, keepdim=True)
+            return loss_, [defect_], None
+
+        lagrangian = optimizer.step(closure)  # noqa
+        loss, defect, _ = closure()
         output = model(images)
-        loss = criterion(output, target)
+
         if loss.isnan():
             raise ValueError
 
@@ -156,18 +178,13 @@ def train(tb, train_loader, model, criterion, optimizer, epoch, args, total_grad
         top1.update(acc1[0], images.size(0))
         top5.update(acc5[0], images.size(0))
 
-        # compute gradient and do SGD step
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-
         # measure elapsed time
         batch_time.update(time.time() - end)
         end = time.time()
 
         if i % args.print_freq == 0:
             progress.display(tb, i)
-    return total_gradients + i
+    return num_gradient_steps + i
 
 
 def validate(tb, val_loader, model: torchvision.models.AlexNet, criterion, args, total_batches):
