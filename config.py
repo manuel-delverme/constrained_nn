@@ -48,6 +48,9 @@ class ImageNet:
     resume = False
     print_freq = 100
     device = "cuda"
+    initial_lr_theta = 1.
+    initial_lr_x = 1.
+    initial_lr_y = 1.
 
 
 evaluate = False
