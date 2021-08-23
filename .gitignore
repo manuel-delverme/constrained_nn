@@ -153,3 +153,5 @@ wandb/
 /tensorboard/
 /data/
 /cache/
+/model_best.pth.tar
+/checkpoint.pth.tar
