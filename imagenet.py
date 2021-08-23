@@ -49,6 +49,7 @@ def main(tb, args, task_config):
         dataset_path = args.dataset_path.format("imagenet", "imagenet")
     else:
         dataset_path = "../data/ImageNet"
+    print("dataset:", dataset_path)
 
     traindir = os.path.join(dataset_path, 'train')
     valdir = os.path.join(dataset_path, 'val')
