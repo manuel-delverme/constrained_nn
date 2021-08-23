@@ -14,66 +14,46 @@ import torch.optim
 import torch.utils.data
 import torch.utils.data
 import torch.utils.data.distributed
-import torchvision.datasets as datasets
+import torch_constrained
 import torchvision.models
-import torchvision.models as models
-import torchvision.transforms as transforms
 
 import config
-import experiment_buddy
+import train as train_module
+import utils
 
 best_acc1 = 0
 
 
 def main(tb, args, task_config):
+    class MomentumSXGD(torch_constrained.ExtraSGD):
+        def __init__(self, params, lr):
+            super().__init__(params, lr, momentum=task_config.momentum)
+
     global best_acc1
-    model = models.alexnet()
+
+    train_loader, val_loader = utils.load_datasets()
+    model = train_module.load_models(train_loader)
 
     if args.device != "cuda":
         print('using CPU, this will be slow')
 
     # DataParallel will divide and allocate batch_size to all available GPUs
-    model.features = torch.nn.DataParallel(model.features)
+    model.transition_model.features = torch.nn.DataParallel(model.transition_model.features)
     model.cuda()
 
     # define loss function (criterion) and optimizer
     criterion = nn.CrossEntropyLoss().cuda()
-    optimizer = torch.optim.SGD(model.parameters(), task_config.lr, momentum=task_config.momentum, weight_decay=task_config.weight_decay)
+    optimizer = torch_constrained.ConstrainedOptimizer(
+        MomentumSXGD,
+        torch_constrained.ExtraSGD,
+        task_config.initial_lr_theta,
+        task_config.initial_lr_y,
+        model.parameters(),
+    )
 
     # optionally resume from a checkpoint
     if task_config.resume:
         resume(task_config, model, optimizer)
-
-    # Data loading code
-    if "SLURM_JOB_ID" in os.environ.keys():
-        dataset_path = args.dataset_path.format("imagenet", "imagenet")
-    else:
-        dataset_path = "../data/ImageNet"
-
-    traindir = os.path.join(dataset_path, 'train')
-    valdir = os.path.join(dataset_path, 'val')
-    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-
-    train_dataset = datasets.ImageFolder(
-        traindir,
-        transforms.Compose([
-            transforms.RandomResizedCrop(224),
-            transforms.RandomHorizontalFlip(),
-            transforms.ToTensor(),
-            normalize,
-        ]))
-
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=task_config.batch_size, shuffle=True, num_workers=task_config.workers, pin_memory=True)
-
-    val_loader = torch.utils.data.DataLoader(
-        datasets.ImageFolder(valdir, transforms.Compose([
-            transforms.Resize(256),
-            transforms.CenterCrop(224),
-            transforms.ToTensor(),
-            normalize,
-        ])),
-        batch_size=task_config.batch_size, shuffle=False,
-        num_workers=task_config.workers, pin_memory=True)
 
     total_gradients = 0
 
@@ -125,28 +105,41 @@ def resume(args, model, optimizer):
         print("=> no checkpoint found at '{}'".format(args.resume))
 
 
-def train(tb, train_loader, model, criterion, optimizer, epoch, args, total_gradients):
+def train(tb, train_loader, model, criterion, optimizer, epoch, args, num_gradient_steps):
     batch_time = AverageMeter('Time', ':6.3f')
     data_time = AverageMeter('Data', ':6.3f')
     losses = AverageMeter('Loss', ':.4e')
     top1 = AverageMeter('Acc@1', ':6.2f')
     top5 = AverageMeter('Acc@5', ':6.2f')
+    defects = AverageMeter('defect', ':6.2f')
+
     progress = ProgressMeter(len(train_loader), [batch_time, data_time, losses, top1, top5], prefix="Epoch: [{}]".format(epoch))
 
     # switch to train mode
     model.train()
 
     end = time.time()
-    for i, (images, target) in enumerate(train_loader):
+    i = 0
+
+    for i, (images, target, indices) in enumerate(train_loader):
         # measure data loading time
         data_time.update(time.time() - end)
 
-        if torch.cuda.is_available():
-            target = target.cuda(non_blocking=True)
+        images = images.cuda(non_blocking=True)
+        target = target.cuda(non_blocking=True)
+        indices = indices.cuda(non_blocking=True)
 
-        # compute output
-        output = model(images)
-        loss = criterion(output, target)
+        def closure():
+            loss_, eq_defect = train_module.forward_step(images, indices, model, target, len(train_loader.dataset))
+            # output = model(images)
+            # loss_ = criterion(output, target)
+            # defect_ = output.sum(-1, keepdim=True)
+            return loss_, eq_defect, None
+
+        lagrangian = optimizer.step(closure)  # noqa
+        loss, (defect,), _ = closure()
+        output = model.transition_model(images)
+
         if loss.isnan():
             raise ValueError
 
@@ -155,11 +148,9 @@ def train(tb, train_loader, model, criterion, optimizer, epoch, args, total_grad
         losses.update(loss.item(), images.size(0))
         top1.update(acc1[0], images.size(0))
         top5.update(acc5[0], images.size(0))
-
-        # compute gradient and do SGD step
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
+        if defect.is_sparse:
+            defect = defect.to_dense()
+        defects.update(defect.mean().item(), images.size(0))
 
         # measure elapsed time
         batch_time.update(time.time() - end)
@@ -167,7 +158,7 @@ def train(tb, train_loader, model, criterion, optimizer, epoch, args, total_grad
 
         if i % args.print_freq == 0:
             progress.display(tb, i)
-    return total_gradients + i
+    return num_gradient_steps + i
 
 
 def validate(tb, val_loader, model: torchvision.models.AlexNet, criterion, args, total_batches):
@@ -283,9 +274,3 @@ def accuracy(output, target, topk=(1,)):
             correct_k = correct[:k].reshape(-1).float().sum(0, keepdim=True)
             res.append(correct_k.mul_(100.0 / batch_size))
         return res
-
-
-if __name__ == '__main__':
-    experiment_buddy.register_defaults(vars(config))
-    tb = experiment_buddy.deploy("mila")
-    main(tb, config, config.ImageNet)
