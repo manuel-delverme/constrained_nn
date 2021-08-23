@@ -35,3 +35,19 @@ lambda_ = None
 
 model_log = "all"
 model_log_freq = 10000
+
+
+class ImageNet:
+    workers = 4
+    epochs = 90
+    start_epoch = 0
+    batch_size = 256
+    lr = 0.0001 if DEBUG else 0.1
+    momentum = 0.9
+    weight_decay = 1e-4
+    resume = False
+    print_freq = 100
+    device = "cuda"
+
+
+evaluate = False
