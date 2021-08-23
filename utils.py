@@ -8,6 +8,12 @@ from torchvision import datasets
 import config
 
 
+class ImageNet(datasets.ImageFolder):
+    def __getitem__(self, index):
+        data, target = super().__getitem__(index)
+        return data, target, index
+
+
 class MNIST(datasets.MNIST):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -44,6 +50,8 @@ def load_datasets():
             torchvision.transforms.ToTensor(),
             torchvision.transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
         ])
+    elif config.dataset == "imagenet":
+        return load_imagenet()
     else:
         raise NotImplemented
 
@@ -66,6 +74,36 @@ def load_datasets():
 
     test_loader = torch.utils.data.DataLoader(dataset_class(dataset_path, train=False, transform=transform), **test_kwargs)
     return train_loader, test_loader
+
+
+def load_imagenet():
+    if "SLURM_JOB_ID" in os.environ.keys():
+        dataset_path = config.dataset_path.format("imagenet", "imagenet")
+    else:
+        dataset_path = "../data/ImageNet"
+    print("dataset:", dataset_path)
+    train_dir = os.path.join(dataset_path, 'train')
+    test_dir = os.path.join(dataset_path, 'val')
+    normalize = torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    train_dataset = ImageNet(
+        train_dir,
+        torchvision.transforms.Compose([
+            torchvision.transforms.RandomResizedCrop(224),
+            torchvision.transforms.RandomHorizontalFlip(),
+            torchvision.transforms.ToTensor(),
+            normalize,
+        ]))
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=config.ImageNet.batch_size, shuffle=True, num_workers=config.ImageNet.workers, pin_memory=True)
+    val_loader = torch.utils.data.DataLoader(
+        datasets.ImageFolder(test_dir, torchvision.transforms.Compose([
+            torchvision.transforms.Resize(256),
+            torchvision.transforms.CenterCrop(224),
+            torchvision.transforms.ToTensor(),
+            normalize,
+        ])),
+        batch_size=config.ImageNet.batch_size, shuffle=False,
+        num_workers=config.ImageNet.workers, pin_memory=True)
+    return train_loader, val_loader
 
 
 def plot(loss, model):
