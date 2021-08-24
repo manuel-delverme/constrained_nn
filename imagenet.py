@@ -25,10 +25,6 @@ best_acc1 = 0
 
 
 def main(tb, args, task_config):
-    class MomentumSXGD(torch_constrained.ExtraSGD):
-        def __init__(self, params, lr):
-            super().__init__(params, lr, momentum=task_config.momentum)
-
     global best_acc1
 
     train_loader, val_loader = utils.load_datasets()
@@ -44,7 +40,7 @@ def main(tb, args, task_config):
     # define loss function (criterion) and optimizer
     criterion = nn.CrossEntropyLoss().cuda()
     optimizer = torch_constrained.ConstrainedOptimizer(
-        MomentumSXGD,
+        torch_constrained.ExtraSGD,
         torch_constrained.ExtraSGD,
         task_config.initial_lr_theta,
         task_config.initial_lr_y,
