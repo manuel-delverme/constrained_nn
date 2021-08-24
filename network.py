@@ -2,11 +2,12 @@ import torch
 import torchvision.models
 from torch import nn as nn
 
-import config
+
+# import config
 
 
 class SplitNet(nn.Module):
-    def __init__(self, dataset="mnist"):
+    def __init__(self, dataset, distributional):
         super().__init__()
         if dataset == "mnist":
             self.blocks = nn.Sequential(
@@ -18,12 +19,8 @@ class SplitNet(nn.Module):
                     nn.MaxPool2d(2),
                     nn.Flatten(1),
                     nn.Linear(9216, 128),
-                    nn.Identity() if config.distributional else nn.ReLU(),
+                    nn.Identity() if distributional else nn.ReLU(),
                 ),
-                *([nn.Sequential(
-                    nn.Linear(128, 128),
-                    nn.Identity() if config.distributional else nn.ReLU(),
-                )] * config.num_layers),
                 nn.Sequential(
                     nn.Linear(128, 10),
                     nn.LogSoftmax(dim=1)
@@ -42,12 +39,8 @@ class SplitNet(nn.Module):
                     nn.Linear(16 * 5 * 5, 120),
                     nn.ReLU(),
                     nn.Linear(120, 84),
-                    nn.Identity() if config.distributional else nn.ReLU(),
+                    nn.Identity() if distributional else nn.ReLU(),
                 ),
-                *([nn.Sequential(
-                    nn.Linear(84, 84),
-                    nn.Identity() if config.distributional else nn.ReLU(),
-                )] * config.num_layers),
                 nn.Sequential(
                     nn.Linear(84, 10),
                     nn.LogSoftmax(dim=1)
@@ -89,7 +82,7 @@ class TabularStateNet(nn.Module):
 class GaussianStateNet(nn.Module):
     def __init__(self, dataset_size, num_classes, state_sizes, num_samples):
         super().__init__()
-        assert (config.num_samples // num_classes) > 0
+        assert (num_samples // num_classes) > 0
         self.state_params = nn.ModuleList(GaussianState(num_classes, state_size, num_samples) for state_size in state_sizes)
 
     def forward(self, indices):
@@ -117,7 +110,7 @@ class GaussianState(nn.Module):
             nn.Linear(num_classes, state_size, bias=False),
             nn.Softplus(),
         )
-        self.ys = torch.eye(num_classes).to(device=config.device, dtype=torch.float)
+        self.ys = nn.Parameter(torch.eye(num_classes).to(dtype=torch.float))  # device=config.device,
         self.num_samples = num_samples
 
     def forward(self, indices):

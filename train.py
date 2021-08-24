@@ -126,7 +126,7 @@ def defect_fn(indices, model, hat_y, targets, dataset_size):
     return defects
 
 
-def test(logger: experiment_buddy.WandbWrapper, model: torch.nn.Module, device, test_loader, step: int):
+def evaluate(logger: experiment_buddy.WandbWrapper, model: torch.nn.Module, device, test_loader, step: int):
     model.eval()
     test_loss = 0
     correct = 0
@@ -153,7 +153,12 @@ def main(logger):
     torch.manual_seed(config.random_seed)
     train_loader, test_loader = utils.load_datasets()
 
-    tp_net = load_models(train_loader)
+    if config.dataset == "imagenet":
+        task_config = config.ImageNet
+    else:
+        task_config = config
+
+    tp_net = load_models(train_loader, config, task_config)
     step = 0
 
     if config.experiment == "sgd" or config.constraint_satisfaction == "penalty":
@@ -166,7 +171,7 @@ def main(logger):
     optimizer = torch.optim.Adagrad(tp_net.parameters(), lr=config.warmup_lr)
     for epoch in range(unconstrained_epochs):
         step = train(logger, tp_net, train_loader, optimizer, epoch, step, adversarial=False)
-        test(logger, tp_net, config.device, test_loader, step)
+        evaluate(logger, tp_net, config.device, test_loader, step)
 
     if constrained_epochs is not None:
         if config.constraint_satisfaction == "extra-gradient":
@@ -200,12 +205,12 @@ def main(logger):
 
         for epoch in tqdm.trange(config.num_epochs):
             step = train(logger, tp_net, train_loader, optimizer, epoch, step, adversarial=True)
-            test(logger, tp_net, config.device, test_loader, step)
+            evaluate(logger, tp_net, config.device, test_loader, step)
     print("Done", file=sys.stderr)
 
 
-def load_models(train_loader):
-    model = network.SplitNet(config.dataset)
+def load_models(train_loader, config, task_config):
+    model = network.SplitNet(dataset=config.dataset, distributional=config.distributional)
     dataset_size = len(train_loader.dataset)
 
     def input_size(b):
@@ -218,7 +223,7 @@ def load_models(train_loader):
 
     if config.distributional:
         num_classes = len(train_loader.dataset.classes)
-        state_net = network.GaussianStateNet(dataset_size, num_classes, features_size, config.num_samples)
+        state_net = network.GaussianStateNet(dataset_size, num_classes, features_size, task_config.num_samples)
     else:
         weights = [torch.zeros(dataset_size, state_size) for state_size in features_size]
         with torch.no_grad():
@@ -239,14 +244,13 @@ if __name__ == '__main__':
         host="mila" if config.REMOTE else "",
         sweep_yaml="sweep_hyper.yaml" if config.RUN_SWEEP else False,
         extra_slurm_headers="""
-        #SBATCH --gres=gpu:memory:48gb
+        #SBATCH --gres=gpu:rtx8000:1
         """,
         proc_num=10 if config.RUN_SWEEP else 1
     )
     # utils.update_hyper_parameters()
     if config.dataset == "imagenet":
         import imagenet
-
         imagenet.main(tb, config, config.ImageNet)
     else:
         main(tb)

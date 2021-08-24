@@ -9,7 +9,7 @@ dataset_path = "../data" if DEBUG else "/network/datasets/{}.var/{}_torchvision"
 experiment = ["sgd", "target-prop"][1]
 constraint_satisfaction = ["penalty", "descent-ascent", "extra-gradient"][2]
 dataset = ["mnist", "cifar10", "imagenet"][2]
-distributional = False
+distributional = True
 
 batch_size = 1024
 
@@ -48,9 +48,13 @@ class ImageNet:
     resume = False
     print_freq = 100
     device = "cuda"
-    initial_lr_theta = 0.01
-    initial_lr_x = 0.01
-    initial_lr_y = 0.01
+
+    # Cifar10 params
+    distributional_margin = 0.2470519487851573
+    initial_lr_theta = 0.004169182899797638
+    initial_lr_x = 0.25530572068931
+    initial_lr_y = 9.356607499463217e-07
+    num_samples = 32
 
 
 evaluate = False
