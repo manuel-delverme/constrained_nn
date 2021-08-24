@@ -25,14 +25,10 @@ best_acc1 = 0
 
 
 def main(tb, args, task_config):
-    class MomentumSXGD(torch_constrained.ExtraSGD):
-        def __init__(self, params, lr):
-            super().__init__(params, lr, momentum=task_config.momentum)
-
     global best_acc1
 
     train_loader, val_loader = utils.load_datasets()
-    model = train_module.load_models(train_loader)
+    model = train_module.load_models(train_loader, config, task_config)
 
     if args.device != "cuda":
         print('using CPU, this will be slow')
@@ -44,7 +40,7 @@ def main(tb, args, task_config):
     # define loss function (criterion) and optimizer
     criterion = nn.CrossEntropyLoss().cuda()
     optimizer = torch_constrained.ConstrainedOptimizer(
-        MomentumSXGD,
+        torch_constrained.ExtraSGD,
         torch_constrained.ExtraSGD,
         task_config.initial_lr_theta,
         task_config.initial_lr_y,
@@ -175,10 +171,12 @@ def validate(tb, val_loader, model: torchvision.models.AlexNet, criterion, args,
         end = time.time()
         for i, (images, target) in enumerate(val_loader):
             if args.device == "cuda":
+                images = images.cuda(non_blocking=True)
                 target = target.cuda(non_blocking=True)
+                # TODO: why no indices here?
 
             # compute output
-            output = model(images)
+            output = model.transition_model(images)
             loss = criterion(output, target)
 
             # measure accuracy and record loss
