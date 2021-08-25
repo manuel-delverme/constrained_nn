@@ -41,7 +41,7 @@ class ImageNet:
     workers = 4
     epochs = 90
     start_epoch = 0
-    batch_size = 256
+    batch_size = 8 if DEBUG else 256
     lr = 0.0001 if DEBUG else 0.1
     momentum = 0.9
     weight_decay = 1e-4
