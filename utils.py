@@ -9,6 +9,13 @@ import config
 
 
 class ImageNet(datasets.ImageFolder):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if config.DEBUG:
+            self.samples = self.samples[:config.ImageNet.batch_size * 2 - 1]
+            self.targets = self.targets[:config.ImageNet.batch_size * 2 - 1]
+            self.imgs = self.imgs[:config.ImageNet.batch_size * 2 - 1]
+
     def __getitem__(self, index):
         data, target = super().__getitem__(index)
         return data, target, index
