@@ -38,7 +38,7 @@ model_log_freq = 10000
 
 
 class ImageNet:
-    workers = 4
+    workers = 0 if DEBUG else 4
     epochs = 90
     start_epoch = 0
     batch_size = 8 if DEBUG else 256
