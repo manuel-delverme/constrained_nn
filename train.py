@@ -110,6 +110,9 @@ def defect_fn(indices, model, hat_y, targets, dataset_size):
         loc, scale = first_distribution.means(first_distribution.ys), first_distribution.scales(first_distribution.ys)
         h = (hat_y[0] - loc[targets]) / scale[targets]
 
+        if config.dataset == "imagenet":
+            h = h.abs().sum(1, keepdim=True)
+
         sparse_h = torch.sparse_coo_tensor(indices.unsqueeze(0), h, (dataset_size, h.shape[1]))
         defects.append(sparse_h)
 
