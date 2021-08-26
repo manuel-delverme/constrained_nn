@@ -1,4 +1,5 @@
 import sys
+import time
 
 import torch
 import torch.autograd
@@ -16,29 +17,38 @@ import network
 import utils
 
 
-def train(logger, primal, train_loader, optimizer: torch_constrained.ConstrainedOptimizer, epoch, step, adversarial):
-    primal.train()
+def train(logger, model, train_loader, optimizer: torch_constrained.ConstrainedOptimizer, epoch, step, adversarial):
+    model.train()
     loss, batch_idx = None, None
 
-    for batch_idx, (data, target, indices) in enumerate(train_loader):
-        data, target, indices = data.to(config.device), target.to(config.device), indices.to(config.device)
+    data_load_start = time.time()
+    for batch_idx, (images, target, indices) in enumerate(train_loader):
+        images = images.to(config.device, non_blocking=True)
+        target = target.to(config.device, non_blocking=True)
+        indices = indices.to(config.device, non_blocking=True)
+        logger.add_scalar("performance/data_time", time.time() - data_load_start, batch_idx + step)
+
         logger.add_scalar("train/epoch", epoch, batch_idx + step)
         logger.add_scalar("train/adversarial", float(adversarial), batch_idx + step)
         logger.add_histogram("train/indices", indices.cpu(), batch_idx + step)
+        begin_batch_time = time.time()
 
         if adversarial:
             def closure():
-                loss_, eq_defect = forward_step(data, indices, primal, target, len(train_loader.dataset))
+                loss_, eq_defect = forward_step(images, indices, model, target, len(train_loader.dataset))
                 return loss_, eq_defect, None
 
             lagrangian = optimizer.step(closure)  # noqa
             loss, defect, _ = closure()
             logger.add_scalar("train/loss", float(loss.item()), batch_idx + step)
             logger.add_scalar("train/lagrangian", float(lagrangian), batch_idx + step)
-            parameter_metrics(logger, batch_idx, defect, loss, primal, step, optimizer)
+            parameter_metrics(logger, batch_idx, defect, loss, model, step, optimizer)
+            # output = model.transition_model(images)
+            # acc1, acc5 = imagenet.accuracy(output, target, topk=(1, 5))
 
-        print(f'Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)} ({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f}', file=sys.stderr)
-        sys.stderr.flush()
+        print(f'Train Epoch: {epoch} [{batch_idx * len(images)}/{len(train_loader.dataset)} ({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f}', file=sys.stderr)
+        logger.add_scalar("performance/batch_time", time.time() - begin_batch_time, batch_idx + step)
+        data_load_start = time.time()
 
     return batch_idx + step
 
@@ -172,6 +182,7 @@ def main(logger):
         constrained_epochs = config.num_epochs
 
     optimizer = torch.optim.Adagrad(tp_net.parameters(), lr=config.warmup_lr)
+
     for epoch in range(unconstrained_epochs):
         step = train(logger, tp_net, train_loader, optimizer, epoch, step, adversarial=False)
         evaluate(logger, tp_net, config.device, test_loader, step)
