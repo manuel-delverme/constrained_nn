@@ -19,4 +19,20 @@ parameters:
     distribution: log_uniform
     min: -4.
     max: 0.
+  ^batch_size:
+    distribution: categorical
+    values:
+      - 256
+      - 512
+      - 1024
+      - 2048
+      - 4096
+  ^num_samples:
+    distribution: categorical
+    values:
+      - 32
+      - 128
+      - 512
+      - 2048
+
 program: train.py
