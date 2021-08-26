@@ -3,9 +3,6 @@ import torchvision.models
 from torch import nn as nn
 
 
-# import config
-
-
 class SplitNet(nn.Module):
     def __init__(self, dataset, distributional):
         super().__init__()
@@ -50,14 +47,15 @@ class SplitNet(nn.Module):
             alexnet = torchvision.models.alexnet()
             self.features = alexnet.features
             self.classifier = alexnet.classifier
-            self.avgpool = alexnet.avgpool
             self.blocks = nn.Sequential(
                 nn.Sequential(
                     *self.features,
-                    self.avgpool,
                     torch.nn.Flatten(1),
                 ),
-                self.classifier
+                nn.Sequential(
+                    *self.classifier,
+                    nn.LogSoftmax(dim=1)
+                )
             )
         else:
             raise NotImplementedError
