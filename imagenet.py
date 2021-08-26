@@ -39,9 +39,10 @@ def main(tb, args, task_config):
 
     # define loss function (criterion) and optimizer
     criterion = nn.CrossEntropyLoss().cuda()
+
     optimizer = torch_constrained.ConstrainedOptimizer(
         torch_constrained.ExtraSGD,
-        torch_constrained.ExtraSGD,
+        torch.optim.SGD,
         task_config.initial_lr_theta,
         task_config.initial_lr_y,
         model.parameters(),
@@ -59,10 +60,9 @@ def main(tb, args, task_config):
         return
 
     for epoch in range(task_config.start_epoch, task_config.epochs):
-        adjust_learning_rate(optimizer, epoch, task_config)
-
         # train for one epoch
-        total_gradients = train(tb, train_loader, model, criterion, optimizer, epoch, task_config, total_gradients)
+        total_gradients = train_module.train(tb, model, train_loader, optimizer, epoch, total_gradients, adversarial=True)
+        # logger, model, train_loader, optimizer: torch_constrained.ConstrainedOptimizer, epoch, step, adversarial
 
         # evaluate on validation set
         acc1 = validate(tb, val_loader, model, criterion, task_config, total_gradients)
@@ -102,62 +102,6 @@ def resume(args, model, optimizer):
         print("=> no checkpoint found at '{}'".format(args.resume))
 
 
-def train(tb, train_loader, model, criterion, optimizer, epoch, args, num_gradient_steps):
-    batch_time = AverageMeter('Time', ':6.3f')
-    data_time = AverageMeter('Data', ':6.3f')
-    losses = AverageMeter('Loss', ':.4e')
-    top1 = AverageMeter('Acc@1', ':6.2f')
-    top5 = AverageMeter('Acc@5', ':6.2f')
-    defects = AverageMeter('defect', ':6.2f')
-
-    progress = ProgressMeter(len(train_loader), [batch_time, data_time, losses, top1, top5], prefix="Epoch: [{}]".format(epoch))
-
-    # switch to train mode
-    model.train()
-
-    end = time.time()
-    i = 0
-
-    for i, (images, target, indices) in enumerate(train_loader):
-        # measure data loading time
-        data_time.update(time.time() - end)
-
-        images = images.cuda(non_blocking=True)
-        target = target.cuda(non_blocking=True)
-        indices = indices.cuda(non_blocking=True)
-
-        def closure():
-            loss_, eq_defect = train_module.forward_step(images, indices, model, target, len(train_loader.dataset))
-            # output = model(images)
-            # loss_ = criterion(output, target)
-            # defect_ = output.sum(-1, keepdim=True)
-            return loss_, eq_defect, None
-
-        lagrangian = optimizer.step(closure)  # noqa
-        loss, (defect,), _ = closure()
-        output = model.transition_model(images)
-
-        if loss.isnan():
-            raise ValueError
-
-        # measure accuracy and record loss
-        acc1, acc5 = accuracy(output, target, topk=(1, 5))
-        losses.update(loss.item(), images.size(0))
-        top1.update(acc1[0], images.size(0))
-        top5.update(acc5[0], images.size(0))
-        if defect.is_sparse:
-            defect = defect.to_dense()
-        defects.update(defect.mean().item(), images.size(0))
-
-        # measure elapsed time
-        batch_time.update(time.time() - end)
-        end = time.time()
-
-        if i % args.print_freq == 0:
-            progress.display(tb, i)
-    return num_gradient_steps + i
-
-
 def validate(tb, val_loader, model: torchvision.models.AlexNet, criterion, args, total_batches):
     batch_time = AverageMeter('Time', ':6.3f')
     losses = AverageMeter('Loss', ':.4e')
@@ -170,7 +114,7 @@ def validate(tb, val_loader, model: torchvision.models.AlexNet, criterion, args,
 
     with torch.no_grad():
         end = time.time()
-        for i, (images, target) in enumerate(val_loader):
+        for i, (images, target, indices) in enumerate(val_loader):
             if args.device == "cuda":
                 images = images.cuda(non_blocking=True)
                 target = target.cuda(non_blocking=True)
@@ -190,10 +134,7 @@ def validate(tb, val_loader, model: torchvision.models.AlexNet, criterion, args,
             batch_time.update(time.time() - end)
             end = time.time()
 
-            if i % args.print_freq == 0:
-                progress.display(tb, total_batches + i)
-
-        # TODO: this should also be done with the ProgressMeter
+        progress.display(tb, total_batches)
         print(' * Acc@1 {top1.avg:.3f} Acc@5 {top5.avg:.3f}'.format(top1=top1, top5=top5))
 
     return top1.avg

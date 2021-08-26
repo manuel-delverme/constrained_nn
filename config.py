@@ -42,17 +42,13 @@ class ImageNet:
     epochs = 90
     start_epoch = 0
     batch_size = 8 if DEBUG else 256
-    lr = 0.0001 if DEBUG else 0.1
-    momentum = 0.9
-    weight_decay = 1e-4
     resume = False
-    print_freq = 100
     device = "cuda"
 
     # Cifar10 params
     distributional_margin = 0.2470519487851573
-    initial_lr_theta = 0.004169182899797638
-    initial_lr_x = 0.25530572068931
+    initial_lr_theta = 0.0001
+    initial_lr_x = 0.01
     initial_lr_y = 9.356607499463217e-07
     num_samples = 32
 

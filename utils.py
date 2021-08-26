@@ -100,16 +100,16 @@ def load_imagenet():
             torchvision.transforms.ToTensor(),
             normalize,
         ]))
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=config.ImageNet.batch_size, shuffle=True, num_workers=config.ImageNet.workers, pin_memory=True)
-    val_loader = torch.utils.data.DataLoader(
-        datasets.ImageFolder(test_dir, torchvision.transforms.Compose([
+    validation_dataset = ImageNet(
+        test_dir,
+        torchvision.transforms.Compose([
             torchvision.transforms.Resize(256),
             torchvision.transforms.CenterCrop(224),
             torchvision.transforms.ToTensor(),
             normalize,
-        ])),
-        batch_size=config.ImageNet.batch_size, shuffle=False,
-        num_workers=config.ImageNet.workers, pin_memory=True)
+        ]))
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=config.ImageNet.batch_size, shuffle=True, num_workers=config.ImageNet.workers, pin_memory=True)
+    val_loader = torch.utils.data.DataLoader(validation_dataset, batch_size=config.ImageNet.batch_size, shuffle=False, num_workers=config.ImageNet.workers, pin_memory=True)
     return train_loader, val_loader
 
 

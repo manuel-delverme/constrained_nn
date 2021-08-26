@@ -19,4 +19,8 @@ parameters:
     distribution: log_uniform
     min: -4.
     max: 0.
+  ^batch_size:
+    distribution: log_uniform
+    min: -4.
+    max: 0.
 program: train.py
