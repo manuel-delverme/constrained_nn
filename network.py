@@ -57,7 +57,10 @@ class SplitNet(nn.Module):
                     self.avgpool,
                     torch.nn.Flatten(1),
                 ),
-                self.classifier
+                nn.Sequential(
+                    *self.classifier,
+                    nn.LogSoftmax(dim=1)
+                )
             )
         else:
             raise NotImplementedError
