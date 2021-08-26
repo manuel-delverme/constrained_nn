@@ -1,4 +1,5 @@
 import sys
+import time
 
 import torch
 import torch.autograd
@@ -16,29 +17,39 @@ import network
 import utils
 
 
-def train(logger, primal, train_loader, optimizer: torch_constrained.ConstrainedOptimizer, epoch, step, adversarial):
-    primal.train()
+def train(logger, model, train_loader, optimizer: torch_constrained.ConstrainedOptimizer, epoch, step, adversarial):
+    model.train()
     loss, batch_idx = None, None
 
-    for batch_idx, (data, target, indices) in enumerate(train_loader):
-        data, target, indices = data.to(config.device), target.to(config.device), indices.to(config.device)
+    data_load_start = time.time()
+    for batch_idx, (images, target, indices) in enumerate(train_loader):
+        images = images.to(config.device, non_blocking=True)
+        target = target.to(config.device, non_blocking=True)
+        indices = indices.to(config.device, non_blocking=True)
+        logger.add_scalar("performance/data_time", time.time() - data_load_start, batch_idx + step)
+
         logger.add_scalar("train/epoch", epoch, batch_idx + step)
         logger.add_scalar("train/adversarial", float(adversarial), batch_idx + step)
         logger.add_histogram("train/indices", indices.cpu(), batch_idx + step)
+        begin_batch_time = time.time()
 
         if adversarial:
             def closure():
-                loss_, eq_defect = forward_step(data, indices, primal, target, len(train_loader.dataset))
-                return loss_, eq_defect, None
+                loss_, eq_defect = forward_step(images, indices, model, target, len(train_loader.dataset))
+                if config.dataset == 'imagenet':
+                    return loss_, eq_defect, None
+                else:
+                    return loss_, eq_defect, None
 
-            lagrangian = optimizer.step(closure)  # noqa
-            loss, defect, _ = closure()
+            lagrangian, loss, defect, _ = optimizer.step(closure)  # noqa
             logger.add_scalar("train/loss", float(loss.item()), batch_idx + step)
             logger.add_scalar("train/lagrangian", float(lagrangian), batch_idx + step)
-            parameter_metrics(logger, batch_idx, defect, loss, primal, step, optimizer)
+            parameter_metrics(logger, batch_idx, defect, loss, model, step, optimizer)
 
-        print(f'Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)} ({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f}', file=sys.stderr)
-        sys.stderr.flush()
+        print(f'Train Epoch: {epoch} [{batch_idx * len(images)}/{len(train_loader.dataset)} ({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f}',
+              file=sys.stderr)
+        logger.add_scalar("performance/batch_time", time.time() - begin_batch_time, batch_idx + step)
+        data_load_start = time.time()
 
     return batch_idx + step
 
@@ -81,7 +92,7 @@ def dual_backward(defects, indices, multipliers):
 
 def forward_step(x, indices, model: network.TargetPropNetwork, targets, dataset_size):
     if config.experiment == "target-prop":
-        states = [x, ] + model.state_model(indices)
+        states = [x, *model.state_model(indices)]
         activations = model.transition_model.one_step(states)
         y_i, y_T = activations[:-1], activations[-1]
         defects = defect_fn(indices, model, y_i, targets, dataset_size)
@@ -111,9 +122,12 @@ def defect_fn(indices, model, hat_y, targets, dataset_size):
         h = (hat_y[0] - loc[targets]) / scale[targets]
 
         if config.dataset == "imagenet":
-            h = h.abs().sum(1, keepdim=True)
+            h = h.abs().mean(1, keepdim=True)
+            h_eps = torch.hardshrink(h, config.distributional_margin)
+        else:
+            h_eps = torch.hardshrink(h, config.distributional_margin)
 
-        sparse_h = torch.sparse_coo_tensor(indices.unsqueeze(0), h, (dataset_size, h.shape[1]))
+        sparse_h = torch.sparse_coo_tensor(indices.unsqueeze(0), h_eps, (dataset_size, h.shape[1]))
         defects.append(sparse_h)
 
         for hat_y_i, y_i in zip(hat_y[1:], model.state_model.state_params[1:]):
@@ -156,12 +170,7 @@ def main(logger):
     torch.manual_seed(config.random_seed)
     train_loader, test_loader = utils.load_datasets()
 
-    if config.dataset == "imagenet":
-        task_config = config.ImageNet
-    else:
-        task_config = config
-
-    tp_net = load_models(train_loader, config, task_config)
+    tp_net = load_models(train_loader, config)
     step = 0
 
     if config.experiment == "sgd" or config.constraint_satisfaction == "penalty":
@@ -172,6 +181,7 @@ def main(logger):
         constrained_epochs = config.num_epochs
 
     optimizer = torch.optim.Adagrad(tp_net.parameters(), lr=config.warmup_lr)
+
     for epoch in range(unconstrained_epochs):
         step = train(logger, tp_net, train_loader, optimizer, epoch, step, adversarial=False)
         evaluate(logger, tp_net, config.device, test_loader, step)
@@ -212,7 +222,7 @@ def main(logger):
     print("Done", file=sys.stderr)
 
 
-def load_models(train_loader, config, task_config):
+def load_models(train_loader, config):
     model = network.SplitNet(dataset=config.dataset, distributional=config.distributional)
     dataset_size = len(train_loader.dataset)
 
@@ -226,7 +236,7 @@ def load_models(train_loader, config, task_config):
 
     if config.distributional:
         num_classes = len(train_loader.dataset.classes)
-        state_net = network.GaussianStateNet(dataset_size, num_classes, features_size, task_config.num_samples)
+        state_net = network.GaussianStateNet(dataset_size, num_classes, features_size, config.num_samples)
     else:
         weights = [torch.zeros(dataset_size, state_size) for state_size in features_size]
         with torch.no_grad():
@@ -249,11 +259,12 @@ if __name__ == '__main__':
         extra_slurm_headers="""
         #SBATCH --gres=gpu:rtx8000:1
         """,
-        proc_num=10 if config.RUN_SWEEP else 1
+        proc_num=20 if config.RUN_SWEEP else 1
     )
     # utils.update_hyper_parameters()
     if config.dataset == "imagenet":
         import imagenet
-        imagenet.main(tb, config, config.ImageNet)
+
+        imagenet.main(tb, config)
     else:
         main(tb)

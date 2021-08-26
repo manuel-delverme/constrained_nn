@@ -12,9 +12,9 @@ class ImageNet(datasets.ImageFolder):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if config.DEBUG:
-            self.samples = self.samples[:config.ImageNet.batch_size * 2 - 1]
-            self.targets = self.targets[:config.ImageNet.batch_size * 2 - 1]
-            self.imgs = self.imgs[:config.ImageNet.batch_size * 2 - 1]
+            self.samples = self.samples[:config.batch_size * 2 - 1]
+            self.targets = self.targets[:config.batch_size * 2 - 1]
+            self.imgs = self.imgs[:config.batch_size * 2 - 1]
 
     def __getitem__(self, index):
         data, target = super().__getitem__(index)
@@ -100,16 +100,16 @@ def load_imagenet():
             torchvision.transforms.ToTensor(),
             normalize,
         ]))
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=config.ImageNet.batch_size, shuffle=True, num_workers=config.ImageNet.workers, pin_memory=True)
-    val_loader = torch.utils.data.DataLoader(
-        datasets.ImageFolder(test_dir, torchvision.transforms.Compose([
+    validation_dataset = ImageNet(
+        test_dir,
+        torchvision.transforms.Compose([
             torchvision.transforms.Resize(256),
             torchvision.transforms.CenterCrop(224),
             torchvision.transforms.ToTensor(),
             normalize,
-        ])),
-        batch_size=config.ImageNet.batch_size, shuffle=False,
-        num_workers=config.ImageNet.workers, pin_memory=True)
+        ]))
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=config.batch_size, shuffle=True, num_workers=config.workers, pin_memory=True)
+    val_loader = torch.utils.data.DataLoader(validation_dataset, batch_size=config.batch_size, shuffle=False, num_workers=config.workers, pin_memory=True)
     return train_loader, val_loader
 
 
