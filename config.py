@@ -46,7 +46,6 @@ class ImageNet:
     momentum = 0.9
     weight_decay = 1e-4
     resume = False
-    print_freq = 100
     device = "cuda"
 
     # Cifar10 params
