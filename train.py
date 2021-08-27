@@ -42,9 +42,11 @@ def train(logger, model, train_loader, optimizer: torch_constrained.ConstrainedO
                     return loss_, eq_defect, None
 
             lagrangian, loss, defect, _ = optimizer.step(closure)  # noqa
+
             logger.add_scalar("train/loss", float(loss.item()), batch_idx + step)
             logger.add_scalar("train/lagrangian", float(lagrangian), batch_idx + step)
-            parameter_metrics(logger, batch_idx, defect, loss, model, step, optimizer)
+            if (batch_idx + step) // config.model_log_freq:
+                parameter_metrics(logger, batch_idx, defect, loss, model, step, optimizer)
 
         print(f'Train Epoch: {epoch} [{batch_idx * len(images)}/{len(train_loader.dataset)} ({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f}',
               file=sys.stderr)
@@ -259,7 +261,7 @@ if __name__ == '__main__':
         extra_slurm_headers="""
         #SBATCH --gres=gpu:rtx8000:1
         """,
-        proc_num=20 if config.RUN_SWEEP else 1
+        proc_num=25 if config.RUN_SWEEP else 1
     )
     # utils.update_hyper_parameters()
     if config.dataset == "imagenet":

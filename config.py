@@ -26,7 +26,7 @@ tabular_margin = 2.538115624834669
 lambda_ = None
 
 model_log = "all"
-model_log_freq = 10000
+model_log_freq = 100
 
 workers = 0 if DEBUG else 4
 epochs = 90
