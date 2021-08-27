@@ -30,9 +30,9 @@ parameters:
   ^num_samples:
     distribution: categorical
     values:
-      - 32
-      - 128
-      - 512
-      - 2048
+      - 1
+      - 2
+      - 64
+      - 256
 
 program: train.py

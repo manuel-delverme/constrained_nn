@@ -80,7 +80,6 @@ class TabularStateNet(nn.Module):
 class GaussianStateNet(nn.Module):
     def __init__(self, dataset_size, num_classes, state_sizes, num_samples):
         super().__init__()
-        assert (num_samples // num_classes) > 0
         self.state_params = nn.ModuleList(GaussianState(num_classes, state_size, num_samples) for state_size in state_sizes)
 
     def forward(self, indices):
