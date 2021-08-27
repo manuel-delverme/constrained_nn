@@ -40,6 +40,6 @@ distributional_margin = 0.2470519487851573
 initial_lr_theta = 0.0001
 initial_lr_x = 0.01
 initial_lr_y = 9.356607499463217e-07
-num_samples = 32
+num_samples = 1
 
 evaluate = False
