@@ -25,14 +25,11 @@ parameters:
       - 256
       - 512
       - 1024
-      - 2048
-      - 4096
   ^num_samples:
     distribution: categorical
     values:
       - 1
       - 2
       - 64
-      - 256
 
 program: train.py
