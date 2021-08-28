@@ -1,4 +1,5 @@
 import os
+import subprocess
 
 import torch
 import torch.utils.data
@@ -85,9 +86,11 @@ def load_datasets():
 
 def load_imagenet():
     if "SLURM_JOB_ID" in os.environ.keys():
-        dataset_path = config.dataset_path.format("imagenet", "imagenet")
+        dataset_path = "$SLURM_TMPDIR/ImageNet"
+        subprocess.call(["cp", "-r", config.dataset_path.format("imagenet", "imagenet"), dataset_path], shell=True)
     else:
         dataset_path = "../data/ImageNet"
+
     print("dataset:", dataset_path)
     train_dir = os.path.join(dataset_path, 'train')
     test_dir = os.path.join(dataset_path, 'val')
@@ -108,8 +111,8 @@ def load_imagenet():
             torchvision.transforms.ToTensor(),
             normalize,
         ]))
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=config.batch_size, shuffle=True, num_workers=config.workers, pin_memory=True)
-    val_loader = torch.utils.data.DataLoader(validation_dataset, batch_size=config.batch_size, shuffle=False, num_workers=config.workers, pin_memory=True)
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=config.batch_size, shuffle=True, num_workers=config.data_workers, pin_memory=True)
+    val_loader = torch.utils.data.DataLoader(validation_dataset, batch_size=config.batch_size, shuffle=False, num_workers=config.data_workers, pin_memory=True)
     return train_loader, val_loader
 
 

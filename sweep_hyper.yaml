@@ -5,8 +5,8 @@ metric:
 parameters:
   ^initial_lr_theta:
     distribution: log_uniform
-    min: -14.
-    max: 1.
+    min: -3
+    max: 2
   ^initial_lr_x:
     distribution: log_uniform
     min: -6.30258509299
@@ -24,15 +24,12 @@ parameters:
     values:
       - 256
       - 512
-      - 1024
-      - 2048
-      - 4096
   ^num_samples:
     distribution: categorical
     values:
       - 1
       - 2
-      - 64
-      - 256
+      - 4
+      - 8
 
 program: train.py
