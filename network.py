@@ -107,7 +107,7 @@ class GaussianState(nn.Module):
             nn.Linear(num_classes, state_size, bias=False),
             nn.Softplus(),
         )
-        self.ys = nn.Parameter(torch.eye(num_classes).to(dtype=torch.float), requires_grad=False)  # device=config.device,
+        self.ys = nn.Parameter(torch.eye(num_classes).to(dtype=torch.float), requires_grad=False)
         self.num_samples = num_samples
 
     def forward(self, indices):
