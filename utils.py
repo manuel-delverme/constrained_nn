@@ -86,8 +86,17 @@ def load_datasets():
 
 def load_imagenet():
     if "SLURM_JOB_ID" in os.environ.keys():
-        dataset_path = "$SLURM_TMPDIR/ImageNet"
-        subprocess.call(["cp", "-r", config.dataset_path.format("imagenet", "imagenet"), dataset_path], shell=True)
+        dataset_home = os.path.join(os.environ["SLURM_TMPDIR"], "ImageNet")
+        os.system(f"mkdir -p {dataset_home}")
+
+        network_path = config.dataset_path.format('imagenet', 'imagenet')
+        os.system(f"cp -r {network_path} {dataset_home}")
+        dataset_path = os.path.join(dataset_home, "imagenet_torchvision")
+
+        os.system(f"mkdir {dataset_home}/train {dataset_home}/train/")
+        os.system(f"tar -xvf {network_path}/ILSVRC2012_img_train.tar {dataset_home}/train/")
+
+        os.system('find . -name "*.tar" | while read NAME ; do mkdir -p "${NAME%.tar}"; tar -xvf "${NAME}" -C "${NAME%.tar}"; rm -f "${NAME}"; done')
     else:
         dataset_path = "../data/ImageNet"
 
