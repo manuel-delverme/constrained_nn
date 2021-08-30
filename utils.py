@@ -86,7 +86,8 @@ def load_datasets():
 
 def load_imagenet():
     if "SLURM_JOB_ID" in os.environ.keys():
-        dataset_path = "$SLURM_TMPDIR/ImageNet"
+        tmp_dir = os.environ["SLURM_TMPDIR"]
+        dataset_path = tmp_dir + "/ImageNet"
         subprocess.call(["cp", "-r", config.dataset_path.format("imagenet", "imagenet"), dataset_path], shell=True)
     else:
         dataset_path = "../data/ImageNet"
