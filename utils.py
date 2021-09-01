@@ -51,7 +51,6 @@ def load_datasets():
             torchvision.transforms.ToTensor(),
             torchvision.transforms.Normalize((0.1307,), (0.3081,))
         ])
-
     elif config.dataset == "cifar10":
         dataset_class = CIFAR10
         transform = torchvision.transforms.Compose([
@@ -86,14 +85,20 @@ def load_datasets():
 
 def load_imagenet():
     if "SLURM_JOB_ID" in os.environ.keys():
-        dataset_path = "$SLURM_TMPDIR/ImageNet"
-        subprocess.call(["cp", "-r", config.dataset_path.format("imagenet", "imagenet"), dataset_path], shell=True)
-    else:
-        dataset_path = "../data/ImageNet"
+        dataset_home = os.path.join(os.environ["SLURM_TMPDIR"], "ImageNet")
 
-    print("dataset:", dataset_path)
-    train_dir = os.path.join(dataset_path, 'train')
-    test_dir = os.path.join(dataset_path, 'val')
+        os.system(f"mkdir -p {dataset_home}/train {dataset_home}/val/")
+        os.system(f"tar -xvf /network/datasets/imagenet/ILSVRC2012_img_train.tar -C {dataset_home}/train/")
+        os.system(f"tar -xvf /network/datasets/imagenet/ILSVRC2012_img_val.tar -C {dataset_home}/val/")
+        subprocess.run(
+            'find ' + dataset_home + '/train/ -name "*.tar" | while read NAME ; do mkdir -p "${NAME%.tar}"; tar -xvf "${NAME}" -C "${NAME%.tar}"; rm -f "${NAME}"; done')
+
+        os.system(f'cp -r /network/datasets/imagenet.var/imagenet_torchvision/val {dataset_home}/')
+    else:
+        dataset_home = "../data/ImageNet"
+
+    train_dir = os.path.join(dataset_home, 'train')
+    test_dir = os.path.join(dataset_home, 'val')
     normalize = torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     train_dataset = ImageNet(
         train_dir,
