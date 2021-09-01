@@ -1,3 +1,4 @@
+import os
 import sys
 import time
 
@@ -269,6 +270,7 @@ if __name__ == '__main__':
         """,
         proc_num=25 if config.RUN_SWEEP else 1
     )
+    print("CWD", os.getcwd())
     # utils.update_hyper_parameters()
     if config.dataset == "imagenet":
         import imagenet
