@@ -40,8 +40,8 @@ def main(tb, config):
     criterion = nn.CrossEntropyLoss().cuda()
 
     optimizer = torch_constrained.ConstrainedOptimizer(
+        torch_constrained.ExtraAdagrad,
         torch_constrained.ExtraSGD,
-        torch.optim.SGD,
         config.initial_lr_theta,
         config.initial_lr_y,
         model.parameters(),
@@ -59,6 +59,8 @@ def main(tb, config):
         return
 
     for epoch in range(config.start_epoch, config.epochs):
+        adjust_learning_rate(optimizer, epoch, config)
+
         total_gradients = train_module.train(tb, model, train_loader, optimizer, epoch, total_gradients, adversarial=True)
         acc1 = validate(tb, val_loader, model, criterion, config, total_gradients)
 
@@ -188,8 +190,8 @@ class ProgressMeter(object):
 
 def adjust_learning_rate(optimizer, epoch, args):
     """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
-    lr = args.lr * (0.1 ** (epoch // 30))
-    for param_group in optimizer.param_groups:
+    lr = args.initial_lr_theta * (0.1 ** (epoch // 30))
+    for param_group in optimizer.primal_optimizer.param_groups:
         param_group['lr'] = lr
 
 
