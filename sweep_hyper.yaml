@@ -1,12 +1,12 @@
 method: bayes
 metric:
   goal: maximize
-  name: test/accuracy
+  name: test/acc_1
 parameters:
   ^initial_lr_theta:
     distribution: log_uniform
-    min: -3
-    max: 2
+    min: -6
+    max: -1
   ^initial_lr_x:
     distribution: log_uniform
     min: -6.30258509299
@@ -22,8 +22,13 @@ parameters:
   ^batch_size:
     distribution: categorical
     values:
-      - 256
       - 512
+      - 1024
+  ^data_workers:
+    distribution: categorical
+    values:
+      - 4
+      - 8
   ^num_samples:
     distribution: categorical
     values:
