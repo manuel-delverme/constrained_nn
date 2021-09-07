@@ -1,5 +1,6 @@
 import os
 import shutil
+import sys
 import time
 
 import torch
@@ -40,8 +41,8 @@ def main(tb, config):
     criterion = nn.CrossEntropyLoss().cuda()
 
     optimizer = torch_constrained.ConstrainedOptimizer(
+        torch_constrained.ExtraAdagrad,
         torch_constrained.ExtraSGD,
-        torch.optim.SGD,
         config.initial_lr_theta,
         config.initial_lr_y,
         model.parameters(),
@@ -55,12 +56,15 @@ def main(tb, config):
     total_gradients = 0
 
     if config.evaluate:
+        raise NotImplemented
         validate(tb, val_loader, model, criterion, config, total_gradients)
         return
 
     for epoch in range(config.start_epoch, config.epochs):
+        adjust_learning_rate(optimizer, epoch, config)
+
         total_gradients = train_module.train(tb, model, train_loader, optimizer, epoch, total_gradients, adversarial=True)
-        acc1 = validate(tb, val_loader, model, criterion, config, total_gradients)
+        acc1, loss = validate(tb, val_loader, model, criterion, config, total_gradients)
 
         is_best = acc1 > best_acc1
         best_acc1 = max(acc1, best_acc1)
@@ -72,6 +76,10 @@ def main(tb, config):
             'best_acc1': best_acc1,
             'optimizer': optimizer.state_dict(),
         }, is_best)
+        if loss > 7 and epoch > 15:
+            print("loss is ", loss, "after 20 epoch")
+            sys.exit(0)
+
 
 
 def resume(args, model, optimizer):
@@ -97,10 +105,10 @@ def resume(args, model, optimizer):
 
 
 def validate(tb, val_loader, model: torchvision.models.AlexNet, criterion, args, total_batches):
-    batch_time = AverageMeter('Time', ':6.3f')
-    losses = AverageMeter('Loss', ':.4e')
-    top1 = AverageMeter('Acc@1', ':6.2f')
-    top5 = AverageMeter('Acc@5', ':6.2f')
+    batch_time = AverageMeter('test/time', ':6.3f')
+    losses = AverageMeter('test/loss', ':.4e')
+    top1 = AverageMeter('test/acc_1', ':6.2f')
+    top5 = AverageMeter('test/acc_5', ':6.2f')
     progress = ProgressMeter(len(val_loader), [batch_time, losses, top1, top5], prefix='Test: ')
 
     # switch to evaluate mode
@@ -131,7 +139,7 @@ def validate(tb, val_loader, model: torchvision.models.AlexNet, criterion, args,
         progress.display(tb, total_batches)
         # print(' * Acc@1 {top1.avg:.3f} Acc@5 {top5.avg:.3f}'.format(top1=top1, top5=top5))
 
-    return top1.avg
+    return top1.avg, losses.avg
 
 
 def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
@@ -188,8 +196,8 @@ class ProgressMeter(object):
 
 def adjust_learning_rate(optimizer, epoch, args):
     """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
-    lr = args.lr * (0.1 ** (epoch // 30))
-    for param_group in optimizer.param_groups:
+    lr = args.initial_lr_theta * (0.1 ** (epoch // 30))
+    for param_group in optimizer.primal_optimizer.param_groups:
         param_group['lr'] = lr
 
 
