@@ -1,7 +1,8 @@
+import math
+import os
 import sys
 import time
 
-import experiment_buddy
 import torch
 import torch.autograd
 import torch.functional
@@ -9,11 +10,12 @@ import torch.nn
 import torch.nn.functional as F  # noqa
 import torch.optim
 import torch.utils.data
-import torch_constrained
 import tqdm
 
 import config
+import experiment_buddy
 import network
+import torch_constrained
 import utils
 
 
@@ -49,13 +51,14 @@ def train(logger, model, train_loader, optimizer: torch_constrained.ConstrainedO
 
             lagrangian, loss, defect, _ = optimizer.step(closure)  # noqa
 
+            if math.isnan(lagrangian):
+                raise ValueError
+
             logger.add_scalar("train/loss", float(loss.item()), batch_idx + step)
             logger.add_scalar("train/lagrangian", float(lagrangian), batch_idx + step)
             if (batch_idx + step) // config.model_log_freq:
                 parameter_metrics(logger, batch_idx, defect, loss, model, step, optimizer)
 
-        print(f'Train Epoch: {epoch} [{batch_idx * len(images)}/{len(train_loader.dataset)} ({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f}',
-              file=sys.stderr)
         logger.add_scalar("performance/batch_time", time.time() - begin_batch_time, batch_idx + step)
         data_load_start = time.time()
 
@@ -128,12 +131,7 @@ def defect_fn(indices, model, hat_y, targets, dataset_size):
         first_distribution = model.state_model.state_params[0]
         loc, scale = first_distribution.means(first_distribution.ys), first_distribution.scales(first_distribution.ys)
         h = (hat_y[0] - loc[targets]) / scale[targets]
-
-        if config.dataset == "imagenet":
-            h = h.abs().mean(1, keepdim=True)
-            h_eps = torch.hardshrink(h, config.distributional_margin)
-        else:
-            h_eps = torch.hardshrink(h, config.distributional_margin)
+        h_eps = torch.hardshrink(h, config.distributional_margin)
 
         sparse_h = torch.sparse_coo_tensor(indices.unsqueeze(0), h_eps, (dataset_size, h.shape[1]))
         defects.append(sparse_h)
@@ -269,6 +267,7 @@ if __name__ == '__main__':
         """,
         proc_num=25 if config.RUN_SWEEP else 1
     )
+    print("CWD", os.getcwd())
     # utils.update_hyper_parameters()
     if config.dataset == "imagenet":
         import imagenet
