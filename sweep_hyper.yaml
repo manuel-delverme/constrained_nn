@@ -22,13 +22,8 @@ parameters:
   ^batch_size:
     distribution: categorical
     values:
-      - 512
-      - 1024
-  ^data_workers:
-    distribution: categorical
-    values:
-      - 4
-      - 8
+      - 128
+      - 256
   ^num_samples:
     distribution: categorical
     values:
