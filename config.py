@@ -28,7 +28,7 @@ lambda_ = None
 model_log = "all"
 model_log_freq = 100
 
-data_workers = 0 if DEBUG else 8
+data_workers = 0 if DEBUG else 4
 epochs = 90
 start_epoch = 0
 batch_size = 8 if DEBUG else 256

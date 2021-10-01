@@ -4,6 +4,7 @@ import pickle
 import matplotlib.pyplot as plt
 import matplotlib.ticker
 import numpy as np
+import tikzplotlib
 import wandb
 
 
@@ -42,10 +43,10 @@ def main():
         "online-alt-min/runs/73jzusur": "OAM"
     }
     sweep_pretty_names = {
-        "ijz3s64d": "Gaussian States",
+        "ijz3s64d": "Approximate TP",
         "6cfcvtam": "Regularization",
         "933xomle": "GDA",
-        "ybu8nps8": "Tabular States",
+        "ybu8nps8": "Exact TP",
         **baselines
     }
     keys_to_plot = [
@@ -72,7 +73,7 @@ def main():
         title = pretty_keys[k]
         ax.set_title(title)
         min_time = float('inf')
-        ax.set_xlabel('mini-batches')
+        ax.set_xlabel('optimization-iterations')
         for sweep_id, data in zip(mnist_sweeps, sweeps_data):
             if not data[k]:
                 continue
@@ -111,7 +112,7 @@ def main():
         ax.legend(loc='upper right')
         ax.set_xlim(0, min_timestamp)
         # plt.show()
-        plt.savefig(f"images/{title}.png", dpi=300)
+        tikzplotlib.save(f"images/{title}.tex", dpi=300)
 
 
 @disk_cache
