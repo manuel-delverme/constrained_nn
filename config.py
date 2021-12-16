@@ -8,7 +8,7 @@ dataset_path = "../data" if DEBUG else "/network/datasets/{}.var/{}_torchvision"
 
 experiment = ["sgd", "target-prop"][1]
 constraint_satisfaction = ["penalty", "descent-ascent", "extra-gradient"][2]
-dataset = ["mnist", "cifar10", "imagenet"][2]
+dataset = ["mnist", "cifar10", "imagenet"][0]
 distributional = True
 
 # # high lr_y make the lagrangian more responsive to sign changes -> less oscillation around 0
@@ -43,3 +43,4 @@ initial_lr_y = 9.356607499463217e-07
 num_samples = 1
 
 evaluate = False
+every_layer = True

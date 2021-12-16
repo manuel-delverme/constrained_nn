@@ -6,6 +6,7 @@ import torchvision.transforms
 from torchvision import datasets
 
 import config
+import milatools.datasets.torch
 
 
 class ImageNet(datasets.ImageFolder):
@@ -21,7 +22,7 @@ class ImageNet(datasets.ImageFolder):
         return data, target, index
 
 
-class MNIST(datasets.MNIST):
+class MNIST(milatools.datasets.torch.MNIST):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if config.DEBUG:
@@ -61,11 +62,6 @@ def load_datasets():
     else:
         raise NotImplemented
 
-    if "SLURM_JOB_ID" in os.environ.keys():
-        dataset_path = config.dataset_path.format(config.dataset, config.dataset)
-    else:
-        dataset_path = "../data"
-
     train_kwargs = {'batch_size': config.batch_size}
     test_kwargs = {'batch_size': config.batch_size * 4}
     if config.use_cuda:
@@ -73,12 +69,14 @@ def load_datasets():
         train_kwargs.update(cuda_kwargs)
         test_kwargs.update(cuda_kwargs)
 
-    train_dataset = dataset_class(dataset_path, train=True, transform=transform)
-
+    local_directory = "../data"
+    train_dataset = dataset_class(local_directory, train=True, transform=transform)
+    test_dataset = dataset_class(local_directory, train=False, transform=transform)
     train_kwargs['shuffle'] = True
-    train_loader = torch.utils.data.DataLoader(train_dataset, **train_kwargs)
 
-    test_loader = torch.utils.data.DataLoader(dataset_class(dataset_path, train=False, transform=transform), **test_kwargs)
+    train_loader = torch.utils.data.DataLoader(train_dataset, **train_kwargs)
+    test_loader = torch.utils.data.DataLoader(test_dataset, **test_kwargs)
+
     return train_loader, test_loader
 
 

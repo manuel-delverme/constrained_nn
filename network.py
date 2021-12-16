@@ -1,28 +1,51 @@
+import numpy as np
 import torch
 import torchvision.models
 from torch import nn as nn
 
 
 class SplitNet(nn.Module):
-    def __init__(self, dataset, distributional):
+    def __init__(self, dataset, distributional, every_layer):
         super().__init__()
         if dataset == "mnist":
-            self.blocks = nn.Sequential(
-                nn.Sequential(
-                    nn.Conv2d(1, 32, 3, 1),
-                    nn.ReLU(),
-                    nn.Conv2d(32, 64, 3, 1),
-                    nn.ReLU(),
-                    nn.MaxPool2d(2),
-                    nn.Flatten(1),
-                    nn.Linear(9216, 128),
-                    nn.Identity() if distributional else nn.ReLU(),
-                ),
-                nn.Sequential(
-                    nn.Linear(128, 10),
-                    nn.LogSoftmax(dim=1)
-                ),
-            )
+            if every_layer:
+                self.blocks = nn.Sequential(
+                    nn.Sequential(
+                        nn.Conv2d(1, 32, 3, 1),
+                        nn.ReLU(),
+                    ),
+                    nn.Sequential(
+                        nn.Conv2d(32, 64, 3, 1),
+                        nn.ReLU(),
+                        nn.MaxPool2d(2),
+                    ),
+                    nn.Sequential(
+                        nn.Flatten(start_dim=1),
+                        nn.Linear(9216, 128),
+                        nn.Identity() if distributional else nn.ReLU(),
+                    ),
+                    nn.Sequential(
+                        nn.Linear(128, 10),
+                        nn.LogSoftmax(dim=1)
+                    ),
+                )
+            else:
+                self.blocks = nn.Sequential(
+                    nn.Sequential(
+                        nn.Conv2d(1, 32, 3, 1),
+                        nn.ReLU(),
+                        nn.Conv2d(32, 64, 3, 1),
+                        nn.ReLU(),
+                        nn.MaxPool2d(2),
+                        nn.Flatten(1),
+                        nn.Linear(9216, 128),
+                        nn.Identity() if distributional else nn.ReLU(),
+                    ),
+                    nn.Sequential(
+                        nn.Linear(128, 10),
+                        nn.LogSoftmax(dim=1)
+                    ),
+                )
         elif dataset == "cifar10":
             self.blocks = nn.Sequential(
                 nn.Sequential(
@@ -102,9 +125,16 @@ class TabularState(nn.Module):
 class GaussianState(nn.Module):
     def __init__(self, num_classes, state_size, num_samples):
         super().__init__()
-        self.means = nn.Linear(num_classes, state_size, bias=False)
+        num_state_features = int(np.prod(state_size))
+        self.means = nn.Sequential(
+            nn.Flatten(1, ),
+            nn.Linear(num_classes, num_state_features, bias=False),
+            nn.Unflatten(1, state_size),
+        )
         self.scales = nn.Sequential(
-            nn.Linear(num_classes, state_size, bias=False),
+            nn.Flatten(1, ),
+            nn.Linear(num_classes, num_state_features, bias=False),
+            nn.Unflatten(1, state_size),
             nn.Softplus(),
         )
         self.ys = nn.Parameter(torch.eye(num_classes).to(dtype=torch.float), requires_grad=False)
@@ -112,7 +142,8 @@ class GaussianState(nn.Module):
 
     def forward(self, indices):
         loc, scale = self.means(self.ys), self.scales(self.ys)
-        return torch.distributions.Normal(loc, scale).rsample((self.num_samples,))
+        targets = torch.distributions.Normal(loc, scale).rsample((self.num_samples,))
+        return targets.reshape((targets.shape[0] * targets.shape[1], *targets.shape[2:]))
 
 
 class TargetPropNetwork(nn.Module):

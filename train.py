@@ -3,6 +3,7 @@ import os
 import sys
 import time
 
+import numpy as np
 import torch
 import torch.autograd
 import torch.functional
@@ -44,10 +45,7 @@ def train(logger, model, train_loader, optimizer: torch_constrained.ConstrainedO
         if adversarial:
             def closure():
                 loss_, eq_defect = forward_step(images, indices, model, target, len(train_loader.dataset))
-                if config.dataset == 'imagenet':
-                    return loss_, eq_defect, None
-                else:
-                    return loss_, eq_defect, None
+                return loss_, eq_defect, None
 
             lagrangian, loss, defect, _ = optimizer.step(closure)  # noqa
 
@@ -105,6 +103,7 @@ def forward_step(x, indices, model: network.TargetPropNetwork, targets, dataset_
     if config.experiment == "target-prop":
         states = [x, *model.state_model(indices)]
         activations = model.transition_model.one_step(states)
+
         y_i, y_T = activations[:-1], activations[-1]
         defects = defect_fn(indices, model, y_i, targets, dataset_size)
 
@@ -125,26 +124,29 @@ def forward_step(x, indices, model: network.TargetPropNetwork, targets, dataset_
     return loss, defects
 
 
-def defect_fn(indices, model, hat_y, targets, dataset_size):
+def defect_fn(dataset_index, model, hat_y, targets, dataset_size):
     defects = []
     if config.distributional:
         first_distribution = model.state_model.state_params[0]
         loc, scale = first_distribution.means(first_distribution.ys), first_distribution.scales(first_distribution.ys)
         h = (hat_y[0] - loc[targets]) / scale[targets]
+
         h_eps = torch.hardshrink(h, config.distributional_margin)
 
-        sparse_h = torch.sparse_coo_tensor(indices.unsqueeze(0), h_eps, (dataset_size, h.shape[1]))
-        defects.append(sparse_h)
+        sparse_h = torch.sparse_coo_tensor(dataset_index.unsqueeze(0), h_eps.flatten(start_dim=1), (dataset_size, int(np.prod(h.shape[1:]))))
+        defects.append(sparse_h)  # dataset_size x num_features
 
-        for hat_y_i, y_i in zip(hat_y[1:], model.state_model.state_params[1:]):
-            loc, scale = first_distribution.means(y_i.ys), first_distribution.scales(y_i.ys)
-            h = (hat_y_i - loc[targets]) / scale[targets]
-            defects.append(h)
+        for hat_y_i, layer_distr in zip(hat_y[1:], model.state_model.state_params[1:]):
+            loc, scale = layer_distr.means(layer_distr.ys), layer_distr.scales(layer_distr.ys)
+            h = (hat_y_i - loc) / scale
+            defects.append(h.flatten())  # num_classes x num_features
 
     else:
         for a_i, state in zip(hat_y, model.state_model.state_params):
-            h = a_i - state(indices)
-            sparse_h = torch.sparse_coo_tensor(indices.unsqueeze(0), h, (dataset_size, h.shape[1]))
+            h = a_i - state(dataset_index)
+            h_eps = F.softshrink(h, config.tabular_margin)
+
+            sparse_h = torch.sparse_coo_tensor(dataset_index.unsqueeze(0), h_eps, (dataset_size, h.shape[1]))
             defects.append(sparse_h)
     return defects
 
@@ -209,16 +211,12 @@ def main(logger):
 
         margin = config.distributional_margin if config.distributional else config.tabular_margin
 
-        def shrinkage(h):
-            F.softshrink(h, margin)
-
         optimizer = torch_constrained.ConstrainedOptimizer(
             optimizer_primal,
             optimizer_dual,
             config.initial_lr_x,
             config.initial_lr_y,
             primal_variables,
-            shrinkage=shrinkage
         )
         logger.watch(tp_net, config.model_log, log_freq=config.model_log_freq)
 
@@ -229,16 +227,29 @@ def main(logger):
 
 
 def load_models(train_loader, config):
-    model = network.SplitNet(dataset=config.dataset, distributional=config.distributional)
+    model = network.SplitNet(dataset=config.dataset, distributional=config.distributional, every_layer=config.every_layer)
     dataset_size = len(train_loader.dataset)
 
-    def input_size(b):
-        if hasattr(b[0], "in_features"):
-            return b[0].in_features
-        else:
-            return input_size(b[1:])
+    features_size = []
 
-    features_size = [input_size(b) for b in model.blocks[1:]]
+    def get_shapes():
+        def hook(_model, _input, output):
+            print(_input[0].shape, output.shape)
+            features_size.append(output.shape[1:])
+
+        return hook
+
+    hooks = []
+    for name, module in model.named_modules():
+        # if isinstance(module, (torch.nn.Linear, torch.nn.Conv2d)):
+        if name.count(".") == 1 and name.split(".")[0] == "blocks":
+            hook = module.register_forward_hook(get_shapes())
+            hooks.append(hook)
+
+    x0 = train_loader.dataset.data[0].view(1, 1, *train_loader.dataset.data[0].shape).to(torch.float)
+    _y = model(x0)
+    [h.remove() for h in hooks]
+    features_size.pop(-1)  # outputs are not activations
 
     if config.distributional:
         num_classes = len(train_loader.dataset.classes)
