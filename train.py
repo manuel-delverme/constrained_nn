@@ -63,6 +63,7 @@ def train(logger, model, train_loader, optimizer: torch_constrained.ConstrainedO
     return batch_idx + step
 
 
+@torch.no_grad()
 def parameter_metrics(logger, batch_idx, defects, loss, primal, step, optimizer):
     rhs = optimizer.weighted_constraint(defects, None)
     logger.add_scalar("train/loss", float(loss.item()), batch_idx + step)
@@ -77,15 +78,12 @@ def parameter_metrics(logger, batch_idx, defects, loss, primal, step, optimizer)
             logger.add_histogram(f"h{idx}/train/defect", defect.detach().cpu().numpy(), batch_idx + step)
 
             if config.distributional:
-                mean, scale = xi.means(xi.ys), xi.scales(xi.ys)
-                if idx == 0:
-                    logger.add_scalar(f"h{idx}/train/multipliers_abs_mean", dual.weight.abs().mean().cpu().detach().numpy(), batch_idx + step)
-                else:
-                    logger.add_histogram(f"h{idx}/train/distributional_multipliers", dual[1][idx - 1].abs().mean(axis=1).cpu().detach().numpy(), batch_idx + step)
+                proto_mean, proto_scale = xi.means(xi.ys), xi.scales(xi.ys)
+                logger.add_scalar(f"h{idx}/train/multipliers_abs_mean", dual.weight.abs().mean().cpu(), batch_idx + step)
 
-                logger.add_histogram(f"h{idx}/train/state_scale_mean", scale.mean(axis=1).cpu().detach().numpy(), batch_idx + step)
-                logger.add_scalar(f"h{idx}/train/state_loc_mean", mean.mean(), batch_idx + step)
-                logger.add_histogram(f"h{idx}/train/state_mean_pairwise_dist", torch.pdist(mean).cpu().detach().numpy(), batch_idx + step)
+                logger.add_scalar(f"h{idx}/train/state_scale_abs_mean", proto_scale.abs().mean().cpu(), batch_idx + step)
+                logger.add_scalar(f"h{idx}/train/state_loc_abs_mean", proto_mean.abs().mean().cpu(), batch_idx + step)
+                # logger.add_histogram(f"h{idx}/train/state_mean_pairwise_dist", torch.pdist(proto_mean.flatten(1)).cpu().detach().numpy(), batch_idx + step)
 
 
 def dual_backward(defects, indices, multipliers):
@@ -234,7 +232,6 @@ def load_models(train_loader, config):
 
     def get_shapes():
         def hook(_model, _input, output):
-            print(_input[0].shape, output.shape)
             features_size.append(output.shape[1:])
 
         return hook
@@ -282,6 +279,7 @@ if __name__ == '__main__':
     # utils.update_hyper_parameters()
     if config.dataset == "imagenet":
         import imagenet
+
         imagenet.main(tb, config)
     else:
         main(tb)

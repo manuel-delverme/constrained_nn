@@ -2,3 +2,4 @@ tqdm
 torchvision==0.8.0
 experiment_buddy
 torch-constrained
+git+git://github.com/manuel-delverme/milatools@datasets#egg=milatools
