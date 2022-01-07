@@ -15,7 +15,7 @@ parameters:
     distribution: log_uniform
     min: -20
     max: -1.
-  ^tabular_margin:
+  ^distributional_margin:
     distribution: log_uniform
     min: -4.
     max: 0.
