@@ -3,6 +3,7 @@ import os
 import sys
 import time
 
+import experiment_buddy
 import numpy as np
 import torch
 import torch.autograd
@@ -14,7 +15,6 @@ import torch.utils.data
 import tqdm
 
 import config
-import experiment_buddy
 import network
 import torch_constrained
 import utils
@@ -273,7 +273,8 @@ if __name__ == '__main__':
         extra_slurm_headers="""
         #SBATCH --gres=gpu:rtx8000:1
         """,
-        proc_num=25 if config.RUN_SWEEP else 1
+        proc_num=25 if config.RUN_SWEEP else 1,
+        interactive=True,
     )
     print("CWD", os.getcwd())
     # utils.update_hyper_parameters()
