@@ -2,3 +2,4 @@ tqdm
 torchvision==0.8.0
 experiment_buddy
 torch-constrained
+-e git+git://github.com/mila-iqia/milatools.git
